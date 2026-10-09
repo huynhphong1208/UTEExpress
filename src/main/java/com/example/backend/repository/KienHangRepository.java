@@ -21,6 +21,9 @@ public interface KienHangRepository extends JpaRepository<KienHang, String> {
     @Query("SELECT COUNT(k) FROM KienHang k WHERE k.khoHienTai IS NOT NULL")
     long countTongKienLuuKho();
 
+    @Query("SELECT k FROM KienHang k LEFT JOIN FETCH k.donHang LEFT JOIN FETCH k.khoHienTai")
+    List<KienHang> findAllWithDonHangAndKho();
+
     @org.springframework.data.jpa.repository.Modifying
     @Query("UPDATE KienHang k SET k.khoHienTai = :kho WHERE k.maKien = :maKien")
     int updateKhoHienTai(@Param("maKien") String maKien, @Param("kho") com.example.backend.entity.Kho kho);

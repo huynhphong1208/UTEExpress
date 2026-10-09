@@ -59,4 +59,9 @@ public interface DonHangRepository extends JpaRepository<DonHang, String> {
      */
     @Query("SELECT COALESCE(SUM(d.cod), 0) FROM DonHang d")
     BigDecimal sumTongCod();
+
+    List<DonHang> findByMaKhGuiOrderByNgayTaoDesc(String maKhGui);
+
+    List<DonHang> findAllByOrderByNgayTaoDesc();
 }
+

@@ -2,10 +2,16 @@ package com.example.backend.service;
 
 import com.example.backend.dto.request.TaoDonHangRequest;
 import com.example.backend.dto.response.DonHangChiTietResponse;
+import com.example.backend.dto.response.TaoDonHangResponse;
 import com.example.backend.dto.response.TraCuuDonHangResponse;
+import com.example.backend.entity.DonHang;
 import com.example.backend.entity.KhachHang;
+import com.example.backend.entity.ThanhToan;
 import com.example.backend.exception.BusinessException;
+import com.example.backend.repository.DonHangRepository;
 import com.example.backend.repository.KhachHangRepository;
+import com.example.backend.repository.NguoiDungRepository;
+import com.example.backend.repository.ThanhToanRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.ParameterMode;
 import jakarta.persistence.StoredProcedureQuery;
@@ -32,16 +38,24 @@ import java.util.Map;
 public class DonHangService {
 
     private final KhachHangRepository khachHangRepository;
+    private final DonHangRepository donHangRepository;
+    private final ThanhToanRepository thanhToanRepository;
+    private final NguoiDungRepository nguoiDungRepository;
     private final EntityManager entityManager;
 
     // =========================================================
     // UC04: Tạo đơn hàng (gọi sp_tao_don_hang)
     // =========================================================
     @Transactional
-    public String taoDonHang(String maNd, TaoDonHangRequest request) {
-        // Lấy mã khách hàng từ mã người dùng
+    public TaoDonHangResponse taoDonHang(String maNd, TaoDonHangRequest request) {
+        // Lấy mã khách hàng từ mã người dùng (hỗ trợ cả ma_nd hoặc ten_dang_nhap/sdt)
         KhachHang kh = khachHangRepository.findByNguoiDung_MaNd(maNd)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy hồ sơ khách hàng cho tài khoản này", 404));
+                .or(() -> khachHangRepository.findBySdt(maNd))
+                .orElseGet(() -> nguoiDungRepository.findByTenDangNhap(maNd)
+                        .flatMap(nd -> khachHangRepository.findByNguoiDung_MaNd(nd.getMaNd()))
+                        .orElseThrow(() -> new BusinessException("Không tìm thấy hồ sơ khách hàng cho tài khoản này", 404)));
+
+        String validMaNd = kh.getNguoiDung() != null ? kh.getNguoiDung().getMaNd() : maNd;
 
         // Chuyển danh sách kiện sang JSONB string
         StringBuilder jsonBuilder = new StringBuilder("[");
@@ -57,42 +71,66 @@ public class DonHangService {
         }
         jsonBuilder.append("]");
 
-        // Đặt phiên người dùng trong PostgreSQL session
-        entityManager.createNativeQuery(
-                "SELECT fn_dat_phien(:maNd, 'Tạo đơn hàng')")
-                .setParameter("maNd", maNd)
-                .getSingleResult();
-
-        // Gọi SP sp_tao_don_hang
-        StoredProcedureQuery query = entityManager
-                .createStoredProcedureQuery("sp_tao_don_hang")
-                .registerStoredProcedureParameter("p_ma_kh_gui", String.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_ten_nguoi_nhan", String.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_sdt_nhan", String.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_dia_chi_lay", String.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_dia_chi_giao", String.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_ma_kho_gui", String.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_ma_kho_nhan", String.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_cod", BigDecimal.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_kien", String.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_ma_nd", String.class, ParameterMode.IN)
-                .registerStoredProcedureParameter("p_ma_dh", String.class, ParameterMode.INOUT)
-                .setParameter("p_ma_kh_gui", kh.getMaKh())
-                .setParameter("p_ten_nguoi_nhan", request.getTenNguoiNhan())
-                .setParameter("p_sdt_nhan", request.getSdtNhan())
-                .setParameter("p_dia_chi_lay", request.getDiaChiLay())
-                .setParameter("p_dia_chi_giao", request.getDiaChiGiao())
-                .setParameter("p_ma_kho_gui", request.getMaKhoGui())
-                .setParameter("p_ma_kho_nhan", request.getMaKhoNhan())
-                .setParameter("p_cod", request.getCod() != null ? request.getCod() : BigDecimal.ZERO)
-                .setParameter("p_kien", jsonBuilder.toString())
-                .setParameter("p_ma_nd", maNd)
-                .setParameter("p_ma_dh", null);
-
-        query.execute();
-        String maDh = (String) query.getOutputParameterValue("p_ma_dh");
+        // Gọi SP sp_tao_don_hang với cast ?::jsonb
+        org.hibernate.Session session = entityManager.unwrap(org.hibernate.Session.class);
+        String maDh = session.doReturningWork(connection -> {
+            try (java.sql.CallableStatement cs = connection.prepareCall("CALL sp_tao_don_hang(?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?)")) {
+                cs.setString(1, kh.getMaKh());
+                cs.setString(2, request.getTenNguoiNhan());
+                cs.setString(3, request.getSdtNhan());
+                cs.setString(4, request.getDiaChiLay());
+                cs.setString(5, request.getDiaChiGiao());
+                cs.setString(6, request.getMaKhoGui());
+                cs.setString(7, request.getMaKhoNhan());
+                cs.setBigDecimal(8, request.getCod() != null ? request.getCod() : BigDecimal.ZERO);
+                cs.setString(9, jsonBuilder.toString());
+                cs.setString(10, validMaNd);
+                cs.registerOutParameter(11, java.sql.Types.VARCHAR);
+                cs.execute();
+                return cs.getString(11);
+            }
+        });
         log.info("Tạo đơn hàng thành công - maDH: {}", maDh);
-        return maDh;
+
+        // Lấy thông tin đơn hàng vừa tạo (lúc này Trigger DB đã tính xong phí vận chuyển)
+        DonHang donHang = donHangRepository.findById(maDh)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng sau khi tạo: " + maDh, 500));
+
+        // Xác định phương thức thanh toán cước phí và trạng thái
+        String rawPt = request.getPhuongThucThanhToan();
+        boolean isChuyenKhoan = rawPt != null && (rawPt.toUpperCase().contains("CHUYEN") || rawPt.toUpperCase().contains("BANK"));
+        String phuongThuc = isChuyenKhoan ? "Chuyển khoản" : "Tiền mặt";
+        String trangThai = isChuyenKhoan ? "Đã thanh toán" : "Chưa thanh toán";
+        String thongBao = isChuyenKhoan
+                ? "Đã ghi nhận thanh toán cước qua chuyển khoản thành công"
+                : "Vui lòng chuẩn bị tiền mặt khi nhân viên bưu cục đến lấy hàng";
+
+        BigDecimal phiVC = donHang.getPhiVanChuyen() != null ? donHang.getPhiVanChuyen() : BigDecimal.ZERO;
+
+        // Lưu thông tin thanh toán cước vào bảng thanh_toan
+        String maTt = "TT" + String.format("%08d", (int) (System.currentTimeMillis() % 100000000));
+        ThanhToan thanhToan = ThanhToan.builder()
+                .maTtToan(maTt)
+                .donHang(donHang)
+                .loaiKhoan("PHI_VC")
+                .soTien(phiVC)
+                .phuongThuc(phuongThuc)
+                .trangThai(trangThai)
+                .thoiGian(LocalDateTime.now())
+                .nguoiThanhToan(kh.getHoTen() != null ? kh.getHoTen() : validMaNd)
+                .build();
+        thanhToanRepository.save(thanhToan);
+
+        return TaoDonHangResponse.builder()
+                .maDh(maDh)
+                .phiVanChuyen(phiVC)
+                .cod(donHang.getCod())
+                .tongCuocCanThanhToan(phiVC)
+                .phuongThucThanhToan(phuongThuc)
+                .trangThaiThanhToan(trangThai)
+                .thoiGianTao(donHang.getNgayTao() != null ? donHang.getNgayTao() : LocalDateTime.now())
+                .thongBaoThanhToan(thongBao)
+                .build();
     }
 
     // =========================================================
@@ -154,7 +192,10 @@ public class DonHangService {
     public Page<DonHangChiTietResponse> layDonHangCuaToi(String maNd, String maTt,
                                                           int page, int size) {
         KhachHang kh = khachHangRepository.findByNguoiDung_MaNd(maNd)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy hồ sơ khách hàng", 404));
+                .or(() -> khachHangRepository.findBySdt(maNd))
+                .orElseGet(() -> nguoiDungRepository.findByTenDangNhap(maNd)
+                        .flatMap(nd -> khachHangRepository.findByNguoiDung_MaNd(nd.getMaNd()))
+                        .orElseThrow(() -> new BusinessException("Không tìm thấy hồ sơ khách hàng", 404)));
 
         String baseQuery = """
                 SELECT ma_dh, ngay_tao, ten_nguoi_nhan, sdt_nhan, dia_chi_lay, dia_chi_giao,

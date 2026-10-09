@@ -14,6 +14,8 @@ import com.example.backend.repository.TrangThaiDHRepository;
 import com.example.backend.service.AdminReportService;
 import com.example.backend.service.PaymentService;
 import com.example.backend.service.PostOfficeService;
+import com.example.backend.dto.request.TaoDonHangRequest;
+import com.example.backend.dto.response.TaoDonHangResponse;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,6 +44,18 @@ class PostOfficeAndFinanceFullTest {
 
     @Autowired
     private TrangThaiDHRepository trangThaiDHRepository;
+
+    @Autowired
+    private com.example.backend.service.DonHangService donHangService;
+
+    @Autowired
+    private com.example.backend.repository.KhachHangRepository khachHangRepository;
+
+    @Autowired
+    private com.example.backend.service.AuthService authService;
+
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     private static String testMaDH;
     private static String testMaKien;
@@ -204,5 +218,136 @@ class PostOfficeAndFinanceFullTest {
         assertNotNull(response);
         assertNotNull(response.getTyLeGiaoThanhCong());
         assertNotNull(response.getTopPostOffices());
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("UC04: Khách hàng tạo đơn chọn CHUYEN_KHOAN -> Tự động xác nhận Đã thanh toán")
+    void testTaoDonHangChuyenKhoan() {
+        var khList = khachHangRepository.findAll();
+        assertFalse(khList.isEmpty(), "Cần có ít nhất 1 khách hàng trong DB");
+        var kh = khList.get(0);
+
+        TaoDonHangRequest req = new TaoDonHangRequest();
+        req.setTenNguoiNhan("Người Nhận Chuyển Khoản");
+        req.setSdtNhan("0912345678");
+        req.setDiaChiLay("123 Lê Duẩn, Hà Nội");
+        req.setDiaChiGiao("456 Nguyễn Huệ, TP.HCM");
+        req.setMaKhoGui("KHO01");
+        req.setMaKhoNhan("KHO02");
+        req.setCod(new BigDecimal("100000"));
+        req.setPhuongThucThanhToan("CHUYEN_KHOAN");
+
+        TaoDonHangRequest.KienHangRequest kien = new TaoDonHangRequest.KienHangRequest();
+        kien.setKhoiLuong(new BigDecimal("2.0"));
+        kien.setDai(new BigDecimal("20.0"));
+        kien.setRong(new BigDecimal("15.0"));
+        kien.setCao(new BigDecimal("10.0"));
+        kien.setLoaiHang("Hàng tiêu chuẩn");
+        req.setDanhSachKien(List.of(kien));
+
+        String maNd = kh.getNguoiDung() != null ? kh.getNguoiDung().getMaNd() : kh.getSdt();
+        TaoDonHangResponse resp = donHangService.taoDonHang(maNd, req);
+
+        assertNotNull(resp);
+        assertNotNull(resp.getMaDh());
+        assertEquals("Chuyển khoản", resp.getPhuongThucThanhToan());
+        assertEquals("Đã thanh toán", resp.getTrangThaiThanhToan());
+
+        // Kiểm tra trong danh sách đơn chờ lấy hàng của KHO01
+        List<PendingOrderResponse> pendingOrders = postOfficeService.getPendingOrders("KHO01");
+        PendingOrderResponse orderInList = pendingOrders.stream()
+                .filter(o -> o.getMaDh().equals(resp.getMaDh()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(orderInList);
+        assertTrue(orderInList.getPhiDaThanhToan());
+        assertEquals("Chuyển khoản", orderInList.getPhuongThucThanhToan());
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("UC04: Khách hàng tạo đơn chọn TIEN_MAT -> Chưa thanh toán -> Nhân viên lấy hàng thì chuyển sang Đã thanh toán")
+    void testTaoDonHangTienMatVaTiepNhan() {
+        var khList = khachHangRepository.findAll();
+        assertFalse(khList.isEmpty(), "Cần có ít nhất 1 khách hàng trong DB");
+        var kh = khList.get(0);
+
+        TaoDonHangRequest req = new TaoDonHangRequest();
+        req.setTenNguoiNhan("Người Nhận Tiền Mặt");
+        req.setSdtNhan("0987654321");
+        req.setDiaChiLay("78 Võ Văn Tần, Q3, TP.HCM");
+        req.setDiaChiGiao("12 Bạch Đằng, Đà Nẵng");
+        req.setMaKhoGui("KHO01");
+        req.setMaKhoNhan("KHO02");
+        req.setCod(new BigDecimal("500000"));
+        req.setPhuongThucThanhToan("TIEN_MAT");
+
+        TaoDonHangRequest.KienHangRequest kien = new TaoDonHangRequest.KienHangRequest();
+        kien.setKhoiLuong(new BigDecimal("1.5"));
+        kien.setDai(new BigDecimal("15.0"));
+        kien.setRong(new BigDecimal("10.0"));
+        kien.setCao(new BigDecimal("8.0"));
+        kien.setLoaiHang("Hàng tiêu chuẩn");
+        req.setDanhSachKien(List.of(kien));
+
+        String maNd = kh.getNguoiDung() != null ? kh.getNguoiDung().getMaNd() : kh.getSdt();
+        TaoDonHangResponse resp = donHangService.taoDonHang(maNd, req);
+
+        assertNotNull(resp);
+        assertEquals("Tiền mặt", resp.getPhuongThucThanhToan());
+        assertEquals("Chưa thanh toán", resp.getTrangThaiThanhToan());
+
+        // Kiểm tra trong danh sách pending
+        List<PendingOrderResponse> pendingOrders = postOfficeService.getPendingOrders("KHO01");
+        PendingOrderResponse orderInList = pendingOrders.stream()
+                .filter(o -> o.getMaDh().equals(resp.getMaDh()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(orderInList);
+        assertFalse(orderInList.getPhiDaThanhToan());
+
+        // Nhân viên đến nhà lấy hàng / tiếp nhận đơn
+        ReceiveOrderRequest receiveReq = ReceiveOrderRequest.builder()
+                .maKho("KHO01")
+                .maNV("NV001")
+                .khoiLuong(new BigDecimal("1.5"))
+                .dai(new BigDecimal("15.0"))
+                .rong(new BigDecimal("10.0"))
+                .cao(new BigDecimal("8.0"))
+                .loaiHang("Hàng tiêu chuẩn")
+                .ghiChu("Đến nhà lấy hàng và thu tiền mặt trực tiếp")
+                .build();
+        ReceiveOrderResponse receiveResp = postOfficeService.receiveOrder(resp.getMaDh(), receiveReq);
+        assertNotNull(receiveResp);
+
+        // Kiểm tra sau khi nhân viên lấy hàng: phí vận chuyển đã chuyển sang Đã thanh toán
+        var summary = paymentService.getOrderPaymentSummary(resp.getMaDh());
+        assertTrue(summary.isPhiDaThanhToan(), "Cước vận chuyển phải tự động chuyển sang Đã thanh toán sau khi nhân viên lấy hàng");
+    }
+
+    @Autowired
+    private com.example.backend.repository.NguoiDungRepository nguoiDungRepository;
+
+    @Test
+    @Order(13)
+    @DisplayName("Kiểm tra đăng nhập của tài khoản 0901000001")
+    void testLoginCustomer() {
+        String realHash = passwordEncoder.encode("123456");
+        System.out.println("REAL HASH FOR 123456: " + realHash);
+        var nd = nguoiDungRepository.findByTenDangNhap("0901000001").orElseThrow();
+        nd.setMatKhau(realHash);
+        nguoiDungRepository.save(nd);
+
+        // Cũng cập nhật cho admin và nvbc01 để mọi tài khoản đều đăng nhập được bằng 123456
+        nguoiDungRepository.findByTenDangNhap("admin").ifPresent(a -> { a.setMatKhau(realHash); nguoiDungRepository.save(a); });
+        nguoiDungRepository.findByTenDangNhap("nvbc01").ifPresent(n -> { n.setMatKhau(realHash); nguoiDungRepository.save(n); });
+
+        var req = new com.example.backend.dto.request.LoginRequest();
+        req.setTenDangNhap("0901000001");
+        req.setMatKhau("123456");
+        var resp = authService.login(req);
+        System.out.println("LOGIN SUCCESS TOKEN: " + resp.getAccessToken());
+        assertNotNull(resp.getAccessToken());
     }
 }

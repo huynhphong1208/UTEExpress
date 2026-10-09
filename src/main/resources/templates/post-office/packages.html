@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý kiện hàng - UTE Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR BƯU CỤC -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/post-office/dashboard}" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(34, 197, 94, 0.2); color: #4ADE80;">NV Bưu cục</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ bưu cục</div>
+                <a th:href="@{/post-office/dashboard}" class="nav-item">
+                    <span>Bưu cục tiếp nhận</span>
+                </a>
+                <a th:href="@{/post-office/packages}" class="nav-item active">
+                    <span>Quản lý kiện hàng</span>
+                </a>
+                <a th:href="@{/post-office/update-status}" class="nav-item">
+                    <span>Cập nhật trạng thái</span>
+                </a>
+
+                <div class="nav-section-title">Phân hệ liên kết</div>
+                <a th:href="@{/customer/create-order}" class="nav-item">
+                    <span>Khách tạo đơn</span>
+                </a>
+                <a th:href="@{/admin/payments}" class="nav-item">
+                    <span>Thanh toán & COD</span>
+                </a>
+                <a th:href="@{/admin/reports}" class="nav-item">
+                    <span>Báo cáo thống kê</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #16A34A;">BC</div>
+                <div class="user-info">
+                    <div class="user-name">Phạm Hoàng Nam</div>
+                    <div class="user-sub">Bưu cục Thủ Đức (NV001)</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a th:href="@{/post-office/dashboard}">Bưu cục</a> <span>/</span> 
+                    <span>Quản lý kiện hàng lưu kho</span>
+                </div>
+                <div class="header-actions">
+                    <a th:href="@{/post-office/packages}" class="btn btn-ghost btn-sm">Tải lại danh sách</a>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý kiện hàng lưu kho và Chuyển kho (UC09)</h1>
+                        <p class="page-subtitle">Theo dõi vị trí kho lưu trữ của từng kiện hàng, kiểm soát trọng lượng kích thước và điều chuyển giữa các bưu cục</p>
+                    </div>
+                </div>
+
+                <!-- Thông báo chuyển kho thành công -->
+                <div th:if="${transferredMaKien}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--success); background-color: var(--success-bg);">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <h4 style="color: var(--success); margin-bottom: 4px;">Chuyển kho thành công</h4>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">
+                            Kiện hàng <strong th:text="${transferredMaKien}">KIEN000001</strong> đã được cập nhật kho lưu trữ mới trong cơ sở dữ liệu và ghi nhận vào lịch sử luân chuyển.
+                        </p>
+                    </div>
+                </div>
+
+                <div th:if="${errorMessage}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--brand-red); background-color: var(--brand-red-light);">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <h4 style="color: var(--brand-red); margin-bottom: 4px;">Có lỗi xảy ra</h4>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px;" th:text="${errorMessage}">Chi tiết lỗi</p>
+                    </div>
+                </div>
+
+                <!-- BẢNG KIỆN HÀNG TỪ DATABASE -->
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="card-title">Danh sách kiện hàng hiện hữu trong cơ sở dữ liệu</h3>
+                        <span class="badge badge-primary" th:text="|${danhSachKien != null ? #lists.size(danhSachKien) : 0} kiện hàng|">0 kiện hàng</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã kiện</th>
+                                    <th>Đơn hàng cha</th>
+                                    <th>Kho lưu hiện tại</th>
+                                    <th>Khối lượng</th>
+                                    <th>Kích thước (D x R x C)</th>
+                                    <th>Loại hàng</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${danhSachKien == null or #lists.isEmpty(danhSachKien)}">
+                                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">Chưa có kiện hàng nào trong cơ sở dữ liệu. Vui lòng tiếp nhận đơn hàng để lập kiện mới.</td>
+                                </tr>
+                                <tr th:each="kien : ${danhSachKien}">
+                                    <td><strong style="color: var(--brand-blue);" th:text="${kien.maKien}">KIEN000001</strong></td>
+                                    <td>
+                                        <a th:href="@{/post-office/dashboard}" style="color: var(--brand-blue); text-decoration: underline;" 
+                                           th:text="${kien.donHang != null ? kien.donHang.maDh : '-'}">DH000001</a>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-primary" th:text="${kien.khoHienTai != null ? kien.khoHienTai.tenKho : 'Chưa nhập kho'}">Bưu cục Thủ Đức</span>
+                                    </td>
+                                    <td><span th:text="|${kien.khoiLuong != null ? kien.khoiLuong : 0} kg|">1.5 kg</span></td>
+                                    <td th:text="|${kien.kichThuoc != null ? kien.kichThuoc : '20x15x10'} cm|">20x15x10 cm</td>
+                                    <td th:text="${kien.loaiHang != null ? kien.loaiHang : 'Hàng tiêu chuẩn'}">Hàng tiêu chuẩn</td>
+                                    <td>
+                                        <button type="button" class="btn btn-secondary btn-sm"
+                                                th:attr="data-makien=${kien.maKien},data-makho=${kien.khoHienTai != null ? kien.khoHienTai.maKho : ''}"
+                                                onclick="moHopThoaiChuyenKho(this.getAttribute('data-makien'), this.getAttribute('data-makho'))">
+                                            Chuyển kho
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- HỘP THOẠI CHUYỂN KHO CHO KIỆN HÀNG (UC09) -->
+    <div class="modal-backdrop" id="transferModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-dialog" style="background: white; border-radius: var(--radius-lg); width: 100%; max-width: 500px; box-shadow: var(--shadow-xl); overflow: hidden;">
+            <div class="modal-header" style="padding: 16px 20px; background: var(--bg-alt); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="modal-title" style="margin: 0; font-size: 16px;">Điều chuyển kiện hàng sang kho mới</h3>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="dongHopThoaiChuyenKho()">Đóng</button>
+            </div>
+            <form th:action="@{/post-office/transfer-package}" method="post">
+                <div class="modal-body" style="padding: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">Mã kiện hàng chuyển <span class="required">*</span></label>
+                        <input type="text" class="form-control" name="maKien" id="transferMaKien" readonly required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Chọn bưu cục đích chuyển đến <span class="required">*</span></label>
+                        <select class="form-select" name="maKhoMoi" id="transferMaKhoMoi" required>
+                            <option th:each="kho : ${danhSachKho}" th:value="${kho.maKho}" th:text="|${kho.maKho} - ${kho.tenKho}|">KHO02 - Bưu cục Cầu Giấy</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Ghi chú điều chuyển</label>
+                        <input type="text" class="form-control" name="ghiChu" value="Chuyển liên kho bằng xe trung chuyển chuyên dụng">
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding: 14px 20px; background: var(--bg-alt); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="dongHopThoaiChuyenKho()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Xác nhận chuyển kho</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function moHopThoaiChuyenKho(maKien, currentMaKho) {
+            document.getElementById('transferMaKien').value = maKien;
+            var select = document.getElementById('transferMaKhoMoi');
+            for (var i = 0; i < select.options.length; i++) {
+                if (select.options[i].value !== currentMaKho) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+            var modal = document.getElementById('transferModal');
+            modal.style.display = 'flex';
+            modal.style.opacity = '1';
+            modal.style.visibility = 'visible';
+            modal.classList.add('show');
+        }
+        function dongHopThoaiChuyenKho() {
+            var modal = document.getElementById('transferModal');
+            modal.classList.remove('show');
+            modal.style.opacity = '0';
+            modal.style.visibility = 'hidden';
+            modal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

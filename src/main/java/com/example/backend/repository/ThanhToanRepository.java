@@ -23,6 +23,9 @@ public interface ThanhToanRepository extends JpaRepository<ThanhToan, String> {
 
     List<ThanhToan> findByLoaiKhoanOrderByThoiGianDesc(String loaiKhoan);
 
+    @Query("SELECT t FROM ThanhToan t LEFT JOIN FETCH t.donHang ORDER BY t.thoiGian DESC")
+    List<ThanhToan> findAllWithDonHang();
+
     @Query("""
             SELECT COALESCE(SUM(t.soTien), 0)
             FROM ThanhToan t

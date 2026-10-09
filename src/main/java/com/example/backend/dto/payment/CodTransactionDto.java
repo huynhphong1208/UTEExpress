@@ -22,6 +22,9 @@ public class CodTransactionDto {
     @Schema(description = "Tên người nhận", example = "Lê Văn Cường")
     private String tenNguoiNhan;
 
+    @Schema(description = "Số điện thoại người nhận", example = "0901000002")
+    private String sdtNhan;
+
     @Schema(description = "Số tiền COD cần thu", example = "500000")
     private BigDecimal tienCod;
 

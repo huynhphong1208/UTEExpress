@@ -245,6 +245,7 @@ public class PaymentService {
                     .maDh(dh.getMaDh())
                     .maKhGui(dh.getMaKhGui())
                     .tenNguoiNhan(dh.getTenNguoiNhan())
+                    .sdtNhan(dh.getSdtNhan())
                     .tienCod(codVal)
                     .codDaThu(codDaThu)
                     .maTrangThai(dh.getTrangThai().getMaTrangThai())

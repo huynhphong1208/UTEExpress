@@ -24,6 +24,7 @@ public class PostOfficeService {
     private final LichSuTrangThaiRepository lichSuTrangThaiRepository;
     private final NguoiDungRepository nguoiDungRepository;
     private final NhanVienRepository nhanVienRepository;
+    private final ThanhToanRepository thanhToanRepository;
 
     // Bộ quy tắc chuyển đổi trạng thái hợp lệ
     private static final Map<String, Set<String>> VALID_TRANSITIONS = new HashMap<>();
@@ -31,7 +32,8 @@ public class PostOfficeService {
     static {
         // TT01: Mới tạo -> TT02 (Đã tiếp nhận), TT07 (Hủy/Trả)
         VALID_TRANSITIONS.put("TT01", Set.of("TT02", "TT07"));
-        // TT02: Đã tiếp nhận -> TT03 (Đang vận chuyển), TT05 (Đang giao hàng nội bưu cục), TT07
+        // TT02: Đã tiếp nhận -> TT03 (Đang vận chuyển), TT05 (Đang giao hàng nội bưu
+        // cục), TT07
         VALID_TRANSITIONS.put("TT02", Set.of("TT03", "TT05", "TT07"));
         // TT03: Đang vận chuyển -> TT04 (Đã đến kho), TT07
         VALID_TRANSITIONS.put("TT03", Set.of("TT04", "TT07"));
@@ -44,7 +46,8 @@ public class PostOfficeService {
     }
 
     /**
-     * UC08: Lấy danh sách đơn hàng chờ tiếp nhận tại bưu cục (trạng thái 'Mới tạo' TT01)
+     * UC08: Lấy danh sách đơn hàng chờ tiếp nhận tại bưu cục (trạng thái 'Mới tạo'
+     * TT01)
      */
     @Transactional(readOnly = true)
     public List<PendingOrderResponse> getPendingOrders(String maKho) {
@@ -54,22 +57,38 @@ public class PostOfficeService {
         }
 
         List<DonHang> orders = donHangRepository.findByMaKhoGuiAndTrangThai_MaTrangThai(maKho, "TT01");
-        return orders.stream().map(d -> PendingOrderResponse.builder()
-                .maDh(d.getMaDh())
-                .maKhGui(d.getMaKhGui())
-                .tenNguoiNhan(d.getTenNguoiNhan())
-                .sdtNhan(d.getSdtNhan())
-                .diaChiLay(d.getDiaChiLay())
-                .diaChiGiao(d.getDiaChiGiao())
-                .maKhoGui(d.getMaKhoGui())
-                .maKhoNhan(d.getMaKhoNhan())
-                .ngayTao(d.getNgayTao())
-                .phiVanChuyen(d.getPhiVanChuyen())
-                .cod(d.getCod())
-                .maTrangThai(d.getTrangThai().getMaTrangThai())
-                .tenTrangThai(d.getTrangThai().getTenTrangThai())
-                .build()
-        ).toList();
+        return orders.stream().map(d -> {
+            List<ThanhToan> payments = thanhToanRepository.findByDonHang_MaDhOrderByThoiGianDesc(d.getMaDh());
+            ThanhToan phiPayment = payments.stream()
+                    .filter(p -> "PHI_VC".equalsIgnoreCase(p.getLoaiKhoan()))
+                    .findFirst()
+                    .orElse(null);
+
+            boolean phiDaThanhToan = phiPayment != null &&
+                    ("Đã thanh toán".equalsIgnoreCase(phiPayment.getTrangThai())
+                            || "DA_THANH_TOAN".equalsIgnoreCase(phiPayment.getTrangThai()));
+            String phuongThuc = phiPayment != null ? phiPayment.getPhuongThuc() : "Tiền mặt";
+            String tinhTrang = phiDaThanhToan ? "Đã thanh toán" : "Chưa thanh toán (Thu tiền mặt khi lấy hàng)";
+
+            return PendingOrderResponse.builder()
+                    .maDh(d.getMaDh())
+                    .maKhGui(d.getMaKhGui())
+                    .tenNguoiNhan(d.getTenNguoiNhan())
+                    .sdtNhan(d.getSdtNhan())
+                    .diaChiLay(d.getDiaChiLay())
+                    .diaChiGiao(d.getDiaChiGiao())
+                    .maKhoGui(d.getMaKhoGui())
+                    .maKhoNhan(d.getMaKhoNhan())
+                    .ngayTao(d.getNgayTao())
+                    .phiVanChuyen(d.getPhiVanChuyen())
+                    .cod(d.getCod())
+                    .maTrangThai(d.getTrangThai().getMaTrangThai())
+                    .tenTrangThai(d.getTrangThai().getTenTrangThai())
+                    .phiDaThanhToan(phiDaThanhToan)
+                    .tinhTrangThanhToan(tinhTrang)
+                    .phuongThucThanhToan(phuongThuc)
+                    .build();
+        }).toList();
     }
 
     /**
@@ -87,14 +106,14 @@ public class PostOfficeService {
 
         if (!"TT01".equals(donHang.getTrangThai().getMaTrangThai())) {
             throw new IllegalArgumentException(
-                    "Đơn hàng không ở trạng thái 'Mới tạo' (Hiện tại: " + donHang.getTrangThai().getTenTrangThai() + ")"
-            );
+                    "Đơn hàng không ở trạng thái 'Mới tạo' (Hiện tại: " + donHang.getTrangThai().getTenTrangThai()
+                            + ")");
         }
 
         if (donHang.getMaKhoGui() != null && !donHang.getMaKhoGui().equals(request.getMaKho())) {
             throw new IllegalArgumentException(
-                    "Bưu cục tiếp nhận (" + request.getMaKho() + ") không trùng với bưu cục gửi của đơn (" + donHang.getMaKhoGui() + ")"
-            );
+                    "Bưu cục tiếp nhận (" + request.getMaKho() + ") không trùng với bưu cục gửi của đơn ("
+                            + donHang.getMaKhoGui() + ")");
         }
 
         // Lấy hoặc tạo trạng thái TT02 (Đã tiếp nhận)
@@ -155,6 +174,23 @@ public class PostOfficeService {
         }
         donHangRepository.save(donHang);
 
+        // Tự động cập nhật khoản cước vận chuyển tiền mặt sang Đã thanh toán (nhân viên
+        // thu khi lấy hàng)
+        List<ThanhToan> unpaidFees = thanhToanRepository.findByDonHang_MaDhOrderByThoiGianDesc(donHang.getMaDh())
+                .stream()
+                .filter(p -> "PHI_VC".equalsIgnoreCase(p.getLoaiKhoan())
+                        && !"DA_THANH_TOAN".equalsIgnoreCase(p.getTrangThai())
+                        && !"Đã thanh toán".equalsIgnoreCase(p.getTrangThai()))
+                .toList();
+        for (ThanhToan p : unpaidFees) {
+            p.setTrangThai("Đã thanh toán");
+            p.setThoiGian(LocalDateTime.now());
+            if (request.getMaNV() != null && !request.getMaNV().isBlank()) {
+                p.setNguoiThanhToan("NV " + request.getMaNV() + " (thu tiền mặt khi lấy hàng)");
+            }
+            thanhToanRepository.save(p);
+        }
+
         // Ghi nhận lịch sử trạng thái
         String maLs = "LS" + String.format("%08d", (int) (System.currentTimeMillis() % 100000000));
         LichSuTrangThai lichSu = LichSuTrangThai.builder()
@@ -192,7 +228,8 @@ public class PostOfficeService {
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy kiện hàng: " + maKien));
 
         Kho khoMoi = khoRepository.findById(request.getMaKhoMoi())
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy bưu cục đích: " + request.getMaKhoMoi()));
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Không tìm thấy bưu cục đích: " + request.getMaKhoMoi()));
 
         String maKhoCu = kien.getKhoHienTai() != null ? kien.getKhoHienTai().getMaKho() : "Chưa nhập kho";
         kienHangRepository.updateKhoHienTai(maKien, khoMoi);
@@ -235,13 +272,15 @@ public class PostOfficeService {
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng: " + maDH));
 
         TrangThaiDH trangThaiMoi = trangThaiDHRepository.findById(request.getMaTrangThaiMoi())
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy trạng thái đích: " + request.getMaTrangThaiMoi()));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Không tìm thấy trạng thái đích: " + request.getMaTrangThaiMoi()));
 
         String currentCode = donHang.getTrangThai().getMaTrangThai();
         String targetCode = trangThaiMoi.getMaTrangThai();
 
         if (currentCode.equalsIgnoreCase(targetCode)) {
-            throw new IllegalArgumentException("Đơn hàng hiện tại đã ở trạng thái: " + donHang.getTrangThai().getTenTrangThai());
+            throw new IllegalArgumentException(
+                    "Đơn hàng hiện tại đã ở trạng thái: " + donHang.getTrangThai().getTenTrangThai());
         }
 
         Set<String> allowedTransitions = VALID_TRANSITIONS.get(currentCode);
@@ -249,8 +288,7 @@ public class PostOfficeService {
             throw new IllegalArgumentException(String.format(
                     "Quy trình chuyển đổi trạng thái không hợp lệ: '%s' (%s) -> '%s' (%s)",
                     currentCode, donHang.getTrangThai().getTenTrangThai(),
-                    targetCode, trangThaiMoi.getTenTrangThai()
-            ));
+                    targetCode, trangThaiMoi.getTenTrangThai()));
         }
 
         String maTrangThaiCu = donHang.getTrangThai().getMaTrangThai();
@@ -286,7 +324,8 @@ public class PostOfficeService {
     }
 
     /**
-     * Phân giải ID truyền vào (mã người dùng hoặc mã nhân viên) thành ma_nd hợp lệ có trong bảng nguoi_dung.
+     * Phân giải ID truyền vào (mã người dùng hoặc mã nhân viên) thành ma_nd hợp lệ
+     * có trong bảng nguoi_dung.
      * Trả về null nếu không tìm thấy để không vi phạm khóa ngoại FK.
      */
     private String resolveValidMaNd(String rawUserIdOrEmployeeId) {

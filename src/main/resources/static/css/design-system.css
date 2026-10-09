@@ -1,0 +1,184 @@
+/* ==========================================================================
+   UTE EXPRESS LOGISTICS - DESIGN SYSTEM CORE CSS
+   Tông màu chủ đạo: TRẮNG - XANH DƯƠNG - ĐỎ THƯƠNG HIỆU (HCMUTE Logistics)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    /* 1. Color Styles - Bộ nhận diện Trắng - Xanh - Đỏ UTE Express */
+    --brand-red: #E31B23;            /* Đỏ chuyển phát nhanh UTE Express */
+    --brand-red-hover: #C5131B;
+    --brand-red-active: #A80D14;
+    --brand-red-light: #FEECEE;
+    --brand-red-border: #FCA5A5;
+
+    --brand-blue: #184E94;           /* Xanh đậm Đại học Sư Phạm Kỹ Thuật TP.HCM */
+    --brand-blue-hover: #123C73;
+    --brand-blue-active: #0D2C54;
+    --brand-blue-light: #EBF2FA;
+    --brand-blue-border: #93C5FD;
+
+    --brand-accent: #E31B23;         /* Màu nhấn hành động chính: Đỏ năng động */
+    --brand-navy: #0B192C;           /* Xanh Navy đậm */
+    --brand-navy-surface: #1E293B;
+
+    /* Màu Vàng Đất (Ochre / Earth Yellow) cho trạng thái kích hoạt / nhấn chọn */
+    --earth-yellow: #E5A93C;         /* Vàng đất chuẩn, ấm, nổi bật và sang trọng trên nền xanh UTE */
+    --earth-yellow-hover: #D49B28;
+    --earth-yellow-light: #FEF3C7;
+    --earth-yellow-bg: rgba(229, 169, 60, 0.18);
+
+    /* 1.1 Sidebar & Dashboard Navigation Tokens (UTE Blue Theme - Chữ Trắng, Active Vàng Đất) */
+    --sidebar-bg: #184E94;           /* Ưu tiên màu xanh của UTE */
+    --sidebar-border: rgba(255, 255, 255, 0.12);
+    --sidebar-header-bg: #123C73;    /* Xanh UTE đậm tạo điểm tựa đầu thanh menu */
+    --sidebar-footer-bg: #123C73;    /* Xanh UTE đồng bộ chân trang */
+    --sidebar-text: #FFFFFF;         /* Màu của các chữ chức năng là MÀU TRẮNG */
+    --sidebar-text-muted: rgba(255, 255, 255, 0.65);
+    --sidebar-item-hover-bg: rgba(255, 255, 255, 0.12);
+    --sidebar-item-hover-text: #FFFFFF;
+    --sidebar-item-active-bg: rgba(0, 0, 0, 0.22);
+    --sidebar-item-active-text: #E5A93C;   /* Khi nhấn vào chữ sẽ đổi sang MÀU VÀNG ĐẤT */
+    --sidebar-item-active-border: #E5A93C; /* Viền nhấn màu vàng đất */
+    --sidebar-badge-bg: #E5A93C;           /* Huy hiệu màu vàng đất */
+    --sidebar-badge-text: #0D2C54;
+
+    /* Nền và Bề mặt: Tone Trắng hiện đại */
+    --bg-main: #F8FAFC;
+    --bg-surface: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --bg-alt: #F1F5F9;
+    --white: #FFFFFF;
+
+    /* Text Colors */
+    --text-primary: #0D2C54;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+    --text-inverted: #FFFFFF;
+    --text-link: #184E94;
+
+    /* Border & Divider */
+    --border-color: #E2E8F0;
+    --border-focus: #E31B23;
+    --divider-color: #F1F5F9;
+
+    /* Status Colors (Nghiệp vụ Logistics UTE Express) */
+    --success: #16A34A;
+    --success-bg: #DCFCE7;
+    --success-border: #86EFAC;
+    
+    --info: #184E94;
+    --info-bg: #EBF2FA;
+    --info-border: #93C5FD;
+    
+    --warning: #D97706;
+    --warning-bg: #FEF3C7;
+    --warning-border: #FCD34D;
+    
+    --danger: #E31B23;
+    --danger-bg: #FEECEE;
+    --danger-border: #FCA5A5;
+    
+    --neutral-gray: #64748B;
+    --neutral-gray-bg: #F1F5F9;
+    --neutral-gray-border: #CBD5E1;
+
+    /* 2. Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    
+    --h1-size: 28px;
+    --h1-weight: 700;
+    --h1-lh: 36px;
+    
+    --h2-size: 22px;
+    --h2-weight: 600;
+    --h2-lh: 28px;
+    
+    --h3-size: 18px;
+    --h3-weight: 600;
+    --h3-lh: 24px;
+    
+    --body-size: 14px;
+    --body-weight: 400;
+    --body-lh: 20px;
+    
+    --body-sm-size: 13px;
+    --body-sm-weight: 400;
+    --body-sm-lh: 18px;
+    
+    --caption-size: 12px;
+    --caption-weight: 400;
+    --caption-lh: 16px;
+    
+    --label-size: 13px;
+    --label-weight: 500;
+    
+    --btn-size: 14px;
+    --btn-weight: 600;
+
+    /* 3. Radius & Shadow */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    
+    /* Layout Sizes */
+    --sidebar-width: 260px;
+    --header-height: 68px;
+    --content-max-width: 1440px;
+    --transition: all 0.2s ease-in-out;
+}
+
+/* Base Reset */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    font-family: var(--font-family);
+    font-size: var(--body-size);
+    line-height: var(--body-lh);
+    color: var(--text-primary);
+    background-color: var(--bg-main);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: var(--text-link);
+    text-decoration: none;
+    transition: var(--transition);
+}
+a:hover {
+    color: var(--brand-red);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--h1-size); font-weight: var(--h1-weight); line-height: var(--h1-lh); }
+h2 { font-size: var(--h2-size); font-weight: var(--h2-weight); line-height: var(--h2-lh); }
+h3 { font-size: var(--h3-size); font-weight: var(--h3-weight); line-height: var(--h3-lh); }
+
+p { margin-bottom: 8px; }
+p:last-child { margin-bottom: 0; }
+
+img, svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+ul, ol {
+    list-style: none;
+}

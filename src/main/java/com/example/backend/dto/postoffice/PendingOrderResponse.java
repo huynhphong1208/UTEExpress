@@ -51,4 +51,13 @@ public class PendingOrderResponse {
 
     @Schema(description = "Tên trạng thái", example = "Mới tạo")
     private String tenTrangThai;
+
+    @Schema(description = "Cước phí đã thanh toán chưa", example = "true")
+    private Boolean phiDaThanhToan;
+
+    @Schema(description = "Tình trạng thanh toán cước", example = "Đã thanh toán")
+    private String tinhTrangThanhToan;
+
+    @Schema(description = "Phương thức thanh toán cước", example = "Chuyển khoản")
+    private String phuongThucThanhToan;
 }
