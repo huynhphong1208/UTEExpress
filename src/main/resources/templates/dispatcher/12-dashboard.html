@@ -617,6 +617,10 @@
             }
 
             tbody.innerHTML = list.map(item => {
+                const isSameWh = (item.maKhoHienTai && item.maKhoNhan && item.maKhoHienTai === item.maKhoNhan);
+                const suggestedRoute = isSameWh 
+                    ? `<span class="badge badge-success" style="font-size: 10.5px; padding: 2px 6px;">🚚 Đề xuất: Giao cuối</span>`
+                    : `<span class="badge badge-primary" style="font-size: 10.5px; padding: 2px 6px;">🚛 Đề xuất: Liên kho (${item.maKhoHienTai || '?'} ➔ ${item.maKhoNhan || '?'})</span>`;
                 const khoNhan = item.tenKhoNhan ? `Kho nhận: ${item.tenKhoNhan}` : (item.diaChiGiao || '---');
                 return `
                     <tr>
@@ -625,7 +629,10 @@
                         <td>${item.loaiHang || 'Hàng phổ thông'}</td>
                         <td><span style="font-weight: 600;">${item.khoiLuong ? item.khoiLuong + ' kg' : '---'}</span></td>
                         <td><span class="badge badge-secondary">${item.tenKhoHienTai || item.maKhoHienTai || '---'}</span></td>
-                        <td style="max-width: 250px; white-space: normal;">${khoNhan}</td>
+                        <td style="max-width: 250px; white-space: normal;">
+                            <div>${khoNhan}</div>
+                            <div style="margin-top: 4px;">${suggestedRoute}</div>
+                        </td>
                         <td>
                             <div>${item.tenNguoiNhan || '---'}</div>
                             <small style="color: var(--text-muted);">${item.sdtNhan || ''}</small>

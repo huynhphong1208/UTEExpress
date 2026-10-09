@@ -107,9 +107,11 @@ public class DieuPhoiController {
     }
 
     @GetMapping("/kien-hang-kha-dung")
-    public ResponseEntity<ApiResponse<List<KienHang>>> getAvailableKienHang(
-            @RequestParam(required = false) String maKho) {
-        List<KienHang> list = dieuPhoiService.getAvailableKienHang(maKho);
+    public ResponseEntity<ApiResponse<List<DonCanDieuPhoiDTO>>> getAvailableKienHang(
+            @RequestParam(required = false) String maKho,
+            @RequestParam(required = false) String loaiChuyen,
+            @RequestParam(required = false) String maTuyen) {
+        List<DonCanDieuPhoiDTO> list = dieuPhoiService.getAvailableKienHangDTOList(maKho, loaiChuyen, maTuyen);
         return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách kiện hàng khả dụng thành công"));
     }
 

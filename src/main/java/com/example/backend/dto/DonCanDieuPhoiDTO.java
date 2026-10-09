@@ -24,5 +24,6 @@ public class DonCanDieuPhoiDTO {
     private String tenNguoiNhan;
     private String sdtNhan;
     private BigDecimal cod;
+    private String maTt;
     private String trangThaiDon;
 }

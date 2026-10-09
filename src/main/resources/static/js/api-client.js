@@ -68,8 +68,12 @@ const UteApi = (function() {
         getWarehouses: () => request('/api/dieu-phoi/kho'),
         getDrivers: () => request('/api/dieu-phoi/tai-xe'),
         getVehicles: () => request('/api/dieu-phoi/phuong-tien'),
-        getAvailablePackages: (maKho) => {
-            const query = maKho ? `?maKho=${encodeURIComponent(maKho)}` : '';
+        getAvailablePackages: (maKho, loaiChuyen, maTuyen) => {
+            const params = new URLSearchParams();
+            if (maKho) params.append('maKho', maKho);
+            if (loaiChuyen) params.append('loaiChuyen', loaiChuyen);
+            if (maTuyen) params.append('maTuyen', maTuyen);
+            const query = params.toString() ? `?${params.toString()}` : '';
             return request(`/api/dieu-phoi/kien-hang-kha-dung${query}`);
         },
 

@@ -303,6 +303,7 @@ public class DieuPhoiService {
                 dh.ten_nguoi_nhan,
                 dh.sdt_nhan,
                 dh.cod,
+                dh.ma_tt,
                 tt.ten_trang_thai AS trang_thai_don
             FROM kien_hang k
             JOIN don_hang dh ON k.ma_dh = dh.ma_dh
@@ -331,8 +332,104 @@ public class DieuPhoiService {
                 .tenNguoiNhan(rs.getString("ten_nguoi_nhan"))
                 .sdtNhan(rs.getString("sdt_nhan"))
                 .cod(rs.getBigDecimal("cod"))
+                .maTt(rs.getString("ma_tt"))
                 .trangThaiDon(rs.getString("trang_thai_don"))
                 .build());
+    }
+
+    /**
+     * Lấy danh sách kiện hàng khả dụng cho điều phối có đầy đủ metadata và lọc theo ràng buộc nghiệp vụ:
+     * - loaiChuyen = 'LIEN_KHO':
+     *     + Kiện hàng đang ở kho đi của tuyến (k.ma_kho_hien_tai = tuyen.ma_kho_di)
+     *     + Trạng thái đơn: TT02 hoặc TT04
+     *     + Kho nhận đơn khác kho đi (chưa đến đích cuối)
+     *     + Nếu có maTuyen: ưu tiên hoặc chỉ lấy kiện hợp lệ với tuyến đó
+     * - loaiChuyen = 'GIAO_CUOI':
+     *     + Kiện hàng đang ở kho giao (k.ma_kho_hien_tai = maKhoGiao)
+     *     + Kho nhận của đơn hàng PHẢI là kho giao (dh.ma_kho_nhan = maKhoGiao) - RÀNG BUỘC CƠ SỞ DỮ LIỆU
+     *     + Trạng thái đơn: TT02, TT04, TT08
+     */
+    public List<DonCanDieuPhoiDTO> getAvailableKienHangDTOList(String maKho, String loaiChuyen, String maTuyen) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT 
+                k.ma_kien,
+                k.ma_dh,
+                k.loai_hang,
+                k.khoi_luong,
+                k.ma_kho_hien_tai,
+                kh.ten_kho AS ten_kho_hien_tai,
+                dh.dia_chi_giao,
+                dh.ma_kho_nhan,
+                kn.ten_kho AS ten_kho_nhan,
+                dh.ten_nguoi_nhan,
+                dh.sdt_nhan,
+                dh.cod,
+                dh.ma_tt,
+                tt.ten_trang_thai AS trang_thai_don
+            FROM kien_hang k
+            JOIN don_hang dh ON k.ma_dh = dh.ma_dh
+            LEFT JOIN kho kh ON k.ma_kho_hien_tai = kh.ma_kho
+            LEFT JOIN kho kn ON dh.ma_kho_nhan = kn.ma_kho
+            LEFT JOIN trang_thai_dh tt ON dh.ma_tt = tt.ma_trang_thai
+            WHERE k.ma_kho_hien_tai IS NOT NULL
+              AND k.ma_kien NOT IN (
+                  SELECT c.ma_kien FROM chi_tiet_chuyen_giao c
+                  JOIN chuyen_giao cg ON cg.ma_chuyen = c.ma_chuyen
+                  WHERE cg.trang_thai IN ('Chưa đi', 'Đang đi')
+              )
+        """);
+
+        List<Object> params = new java.util.ArrayList<>();
+
+        if (loaiChuyen != null && !loaiChuyen.isBlank()) {
+            if ("LIEN_KHO".equalsIgnoreCase(loaiChuyen)) {
+                sql.append(" AND dh.ma_tt IN ('TT02', 'TT04') ");
+                if (maTuyen != null && !maTuyen.isBlank()) {
+                    TuyenVanChuyen tuyen = tuyenVanChuyenRepository.findById(maTuyen).orElse(null);
+                    if (tuyen != null) {
+                        sql.append(" AND k.ma_kho_hien_tai = ? ");
+                        params.add(tuyen.getMaKhoDi());
+                        sql.append(" AND dh.ma_kho_nhan <> ? ");
+                        params.add(tuyen.getMaKhoDi());
+                    }
+                } else if (maKho != null && !maKho.isBlank()) {
+                    sql.append(" AND k.ma_kho_hien_tai = ? ");
+                    params.add(maKho);
+                    sql.append(" AND dh.ma_kho_nhan <> ? ");
+                    params.add(maKho);
+                }
+            } else if ("GIAO_CUOI".equalsIgnoreCase(loaiChuyen)) {
+                sql.append(" AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') ");
+                if (maKho != null && !maKho.isBlank()) {
+                    sql.append(" AND k.ma_kho_hien_tai = ? ");
+                    params.add(maKho);
+                    sql.append(" AND dh.ma_kho_nhan = ? ");
+                    params.add(maKho);
+                }
+            }
+        } else if (maKho != null && !maKho.isBlank()) {
+            sql.append(" AND k.ma_kho_hien_tai = ? ");
+            params.add(maKho);
+        }
+
+        sql.append(" ORDER BY k.ma_kien ASC ");
+
+        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> DonCanDieuPhoiDTO.builder()
+                .maKien(rs.getString("ma_kien"))
+                .maDh(rs.getString("ma_dh"))
+                .loaiHang(rs.getString("loai_hang"))
+                .khoiLuong(rs.getBigDecimal("khoi_luong"))
+                .maKhoHienTai(rs.getString("ma_kho_hien_tai"))
+                .tenKhoHienTai(rs.getString("ten_kho_hien_tai"))
+                .diaChiGiao(rs.getString("dia_chi_giao"))
+                .maKhoNhan(rs.getString("ma_kho_nhan"))
+                .tenKhoNhan(rs.getString("ten_kho_nhan"))
+                .tenNguoiNhan(rs.getString("ten_nguoi_nhan"))
+                .sdtNhan(rs.getString("sdt_nhan"))
+                .cod(rs.getBigDecimal("cod"))
+                .maTt(rs.getString("ma_tt"))
+                .trangThaiDon(rs.getString("trang_thai_don"))
+                .build(), params.toArray());
     }
 
     /**

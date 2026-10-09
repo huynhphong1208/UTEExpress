@@ -168,20 +168,47 @@
                     </div>
                 </div>
 
-                <!-- Danh sách kiện hàng gán vào chuyến -->
-                <div style="margin-top: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label class="form-label" style="font-weight: 600; margin: 0;">Chọn kiện hàng gán vào chuyến:</label>
-                        <span id="pkgCountText" style="font-size: 12px; color: var(--text-muted);">0 kiện khả dụng</span>
+                <!-- Danh sách kiện hàng gán vào chuyến & Kiểm tra ràng buộc -->
+                <div style="margin-top: 14px; border-top: 1px dashed var(--border-color); padding-top: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                            <label class="form-label" style="font-weight: 700; margin: 0; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+                                <span>📦 Kiện hàng có thể gắn vào chuyến:</span>
+                                <span id="tripConstraintBadge" class="badge badge-primary" style="font-size: 11px;">Kiểm tra ràng buộc</span>
+                            </label>
+                            <div id="constraintExplanation" style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+                                Tự động kiểm tra ràng buộc CSDL theo loại chuyến, kho xuất phát và trạng thái đơn.
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-outline-primary btn-sm" style="padding: 3px 8px; font-size: 11.5px;" onclick="selectAllEligiblePackages(true)">✓ Chọn tất cả</button>
+                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11.5px;" onclick="selectAllEligiblePackages(false)">✕ Bỏ chọn</button>
+                            <button type="button" class="btn btn-outline-success btn-sm" style="padding: 3px 8px; font-size: 11.5px;" onclick="selectOptimalPackages()" title="Tự động chọn tối đa kiện trong giới hạn tải trọng xe">⚡ Vừa tải xe</button>
+                        </div>
                     </div>
                     
-                    <div id="pkgListContainer" style="background: var(--bg-alt); padding: 12px; border-radius: var(--radius-md); max-height: 180px; overflow-y: auto;">
-                        <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 12px;">Đang tải danh sách kiện hàng khả dụng...</div>
+                    <div id="pkgListContainer" style="background: var(--bg-alt); padding: 12px; border-radius: var(--radius-md); max-height: 240px; overflow-y: auto; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 14px;">Đang tải danh sách kiện hàng khả dụng...</div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px 14px; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                        <span>Tổng khối lượng kiện: <strong id="currentLoadText" style="color: var(--primary-blue);">0 kg</strong></span>
-                        <span>Tải trọng phương tiện: <strong id="maxCapText">0 kg</strong></span>
+                    <!-- Danh sách kiện không đủ điều kiện (nếu có tại kho) -->
+                    <div id="ineligibleSection" style="display: none; margin-top: 8px;">
+                        <button type="button" onclick="toggleIneligibleList()" id="btnToggleIneligible" style="background: none; border: none; color: #64748B; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 0; text-decoration: underline;">
+                            👁️ Xem các kiện tại kho không đủ điều kiện gán (<span id="ineligibleCountText">0</span> kiện)
+                        </button>
+                        <div id="ineligibleListContainer" style="display: none; margin-top: 6px; padding: 10px 12px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px; font-size: 12px; max-height: 140px; overflow-y: auto;">
+                        </div>
+                    </div>
+
+                    <!-- Thanh đo tải trọng phương tiện -->
+                    <div style="margin-top: 10px; padding: 10px 14px; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 6px;">
+                            <span>Đã chọn: <strong id="selectedPkgCountText" style="color: var(--primary-blue);">0</strong> kiện (<strong id="currentLoadText" style="color: var(--primary-blue);">0 kg</strong>)</span>
+                            <span>Tải trọng xe: <strong id="maxCapText">0 kg</strong> <span id="capacityPercentText" style="font-weight: 600; color: #059669;">(0%)</span></span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
+                            <div id="capacityProgressBar" style="width: 0%; height: 100%; background: #2563EB; transition: width 0.3s, background-color 0.3s;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -333,27 +360,52 @@
                     }
                 }
 
-                if (warehouseId) {
-                    const matchedRoute = allRoutes.find(r => r.maKhoDi === warehouseId);
-                    if (matchedRoute) {
-                        document.getElementById('tripRoute').value = matchedRoute.maTuyen;
-                        renderAvailablePackages();
-                    } else {
-                        document.getElementById('tripType').value = 'GIAO_CUOI';
-                        toggleTripType();
-                        document.getElementById('tripDepartureWarehouse').value = warehouseId;
-                        renderAvailablePackages();
-                    }
-                }
-
                 if (packageId) {
+                    const targetPkg = availablePackages.find(p => p.maKien === packageId);
+                    if (targetPkg) {
+                        const curWh = targetPkg.maKhoHienTai;
+                        const destWh = targetPkg.maKhoNhan;
+                        if (curWh && destWh && curWh === destWh) {
+                            document.getElementById('tripType').value = 'GIAO_CUOI';
+                            toggleTripType();
+                            document.getElementById('tripDepartureWarehouse').value = curWh;
+                        } else if (curWh) {
+                            document.getElementById('tripType').value = 'LIEN_KHO';
+                            toggleTripType();
+                            const matchedRoute = allRoutes.find(r => r.maKhoDi === curWh && r.maKhoDen === destWh)
+                                              || allRoutes.find(r => r.maKhoDi === curWh);
+                            if (matchedRoute) {
+                                document.getElementById('tripRoute').value = matchedRoute.maTuyen;
+                            }
+                        }
+                    } else if (warehouseId) {
+                        const matchedRoute = allRoutes.find(r => r.maKhoDi === warehouseId);
+                        if (matchedRoute) {
+                            document.getElementById('tripRoute').value = matchedRoute.maTuyen;
+                        } else {
+                            document.getElementById('tripType').value = 'GIAO_CUOI';
+                            toggleTripType();
+                            document.getElementById('tripDepartureWarehouse').value = warehouseId;
+                        }
+                    }
+                    renderAvailablePackages();
                     setTimeout(() => {
                         const chk = document.querySelector(`input[type="checkbox"][value="${packageId}"]`);
                         if (chk) {
                             chk.checked = true;
                             onPackageToggled(chk);
                         }
-                    }, 150);
+                    }, 200);
+                } else if (warehouseId) {
+                    const matchedRoute = allRoutes.find(r => r.maKhoDi === warehouseId);
+                    if (matchedRoute) {
+                        document.getElementById('tripRoute').value = matchedRoute.maTuyen;
+                    } else {
+                        document.getElementById('tripType').value = 'GIAO_CUOI';
+                        toggleTripType();
+                        document.getElementById('tripDepartureWarehouse').value = warehouseId;
+                    }
+                    renderAvailablePackages();
                 }
 
                 if (driverId) {
@@ -464,47 +516,241 @@
             checkCapacityConstraint();
         }
 
+        let currentEligiblePackages = [];
+        let currentIneligiblePackages = [];
+
         function renderAvailablePackages() {
             const container = document.getElementById('pkgListContainer');
+            const badgeEl = document.getElementById('tripConstraintBadge');
+            const explEl = document.getElementById('constraintExplanation');
+            const inelSection = document.getElementById('ineligibleSection');
+            const inelContainer = document.getElementById('ineligibleListContainer');
+            const inelCountText = document.getElementById('ineligibleCountText');
+
             selectedPackageWeights = {};
+            currentEligiblePackages = [];
+            currentIneligiblePackages = [];
 
+            const type = document.getElementById('tripType').value;
             const departureWh = getSelectedDepartureWarehouse();
-            const whObj = allWarehouses.find(w => w.maKho === departureWh);
-            const whDisplayName = whObj ? `${whObj.tenKho} (${whObj.maKho})` : (departureWh || 'Kho xuất phát');
+            const depWhObj = allWarehouses.find(w => w.maKho === departureWh);
+            const depWhName = depWhObj ? `${depWhObj.tenKho} (${depWhObj.maKho})` : (departureWh || 'Kho xuất phát');
 
-            // Nghiệp vụ CSDL: Kiện hàng PHẢI đang lưu kho tại đúng kho xuất phát của chuyến
+            // Tất cả kiện đang lưu kho tại kho xuất phát này
             const pkgsAtWarehouse = availablePackages.filter(p => {
                 const curWh = p.maKhoHienTai || (p.khoHienTai && p.khoHienTai.maKho);
                 return curWh === departureWh;
             });
 
-            if (pkgsAtWarehouse.length === 0) {
-                container.innerHTML = `
-                    <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 14px;">
-                        📦 Không có kiện hàng nào đang lưu kho tại <strong>${whDisplayName}</strong>.<br>
-                        <small style="color: var(--warning); display: block; margin-top: 4px;">* Ràng buộc CSDL: Kiện gán vào chuyến phải đang ở kho xuất phát.</small>
-                    </div>`;
-                document.getElementById('pkgCountText').innerText = `0 kiện tại kho ${departureWh || ''}`;
+            if (type === 'LIEN_KHO') {
+                const routeId = document.getElementById('tripRoute').value;
+                const route = allRoutes.find(r => r.maTuyen === routeId);
+                const arrWh = route ? route.maKhoDen : null;
+                const arrWhObj = allWarehouses.find(w => w.maKho === arrWh);
+                const arrWhName = arrWhObj ? `${arrWhObj.tenKho} (${arrWhObj.maKho})` : (arrWh || 'Kho đích');
+
+                if (badgeEl) {
+                    badgeEl.className = 'badge badge-primary';
+                    badgeEl.innerText = `Liên kho: ${departureWh || '?'} ➔ ${arrWh || '?'}`;
+                }
+                if (explEl) {
+                    explEl.innerHTML = `Lộ trình: <strong>${depWhName}</strong> ➔ <strong>${arrWhName}</strong>. Ràng buộc: Kiện phải ở kho đi, đơn đã tiếp nhận hoặc đã đến kho (TT02/TT04), chưa tới đích cuối.`;
+                }
+
+                pkgsAtWarehouse.forEach(p => {
+                    const statusOk = (p.maTt === 'TT02' || p.maTt === 'TT04' || p.trangThaiDon === 'Đã tiếp nhận' || p.trangThaiDon === 'Đã đến kho');
+                    const destWh = p.maKhoNhan;
+                    const notAtFinalDest = (destWh && destWh !== departureWh);
+
+                    if (statusOk && notAtFinalDest) {
+                        currentEligiblePackages.push(p);
+                    } else {
+                        let reason = '';
+                        if (!statusOk) {
+                            reason = `Trạng thái đơn [${p.trangThaiDon || p.maTt || 'Chưa xác định'}] chưa sẵn sàng đi liên kho (yêu cầu TT02/TT04)`;
+                        } else if (!notAtFinalDest) {
+                            reason = `Đơn đã tới kho nhận đích (${departureWh}), chỉ được tạo chuyến Giao cuối`;
+                        }
+                        currentIneligiblePackages.push({ package: p, reason: reason });
+                    }
+                });
+
+                // Ưu tiên hiển thị: kiện có đích đến khớp thẳng với kho đến của tuyến
+                currentEligiblePackages.sort((a, b) => {
+                    const aDirect = (a.maKhoNhan === arrWh) ? 1 : 0;
+                    const bDirect = (b.maKhoNhan === arrWh) ? 1 : 0;
+                    return bDirect - aDirect;
+                });
+
+            } else { // GIAO_CUOI
+                if (badgeEl) {
+                    badgeEl.className = 'badge badge-success';
+                    badgeEl.innerText = `Giao cuối: ${departureWh || '?'} ➔ Khách`;
+                }
+                if (explEl) {
+                    explEl.innerHTML = `Bưu cục giao: <strong>${depWhName}</strong>. Ràng buộc CSDL: Kho nhận của đơn BẮT BUỘC là <strong>${departureWh}</strong>, đơn ở trạng thái sẵn sàng giao (TT02/TT04/TT08).`;
+                }
+
+                pkgsAtWarehouse.forEach(p => {
+                    const destWh = p.maKhoNhan;
+                    const isCorrectDest = (destWh === departureWh);
+                    const statusOk = (p.maTt === 'TT02' || p.maTt === 'TT04' || p.maTt === 'TT08' 
+                                   || p.trangThaiDon === 'Đã tiếp nhận' || p.trangThaiDon === 'Đã đến kho' || p.trangThaiDon === 'Giao thất bại');
+
+                    if (isCorrectDest && statusOk) {
+                        currentEligiblePackages.push(p);
+                    } else {
+                        let reason = '';
+                        if (!isCorrectDest) {
+                            reason = `Kho nhận đơn là [${p.tenKhoNhan || destWh || 'kho khác'}] ≠ Kho giao [${departureWh}] (Cần đi Liên kho, không được giao cuối tại đây)`;
+                        } else if (!statusOk) {
+                            reason = `Trạng thái đơn [${p.trangThaiDon || p.maTt || 'Chưa xác định'}] chưa sẵn sàng giao`;
+                        }
+                        currentIneligiblePackages.push({ package: p, reason: reason });
+                    }
+                });
+            }
+
+            // Hiển thị danh sách kiện không đủ điều kiện (nếu có tại kho)
+            if (currentIneligiblePackages.length > 0) {
+                if (inelSection) inelSection.style.display = 'block';
+                if (inelCountText) inelCountText.innerText = currentIneligiblePackages.length;
+                if (inelContainer) {
+                    inelContainer.innerHTML = currentIneligiblePackages.map(item => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed #FDE68A; gap: 8px;">
+                            <span><strong>${item.package.maKien}</strong> (Đơn ${item.package.maDh}): ${item.package.loaiHang || 'Hàng hóa'} - ${item.package.khoiLuong}kg</span>
+                            <span style="color: #B45309; font-weight: 500;">⚠️ ${item.reason}</span>
+                        </div>
+                    `).join('');
+                }
+            } else {
+                if (inelSection) inelSection.style.display = 'none';
+            }
+
+            // Nếu không có kiện nào hợp lệ
+            if (currentEligiblePackages.length === 0) {
+                let msg = '';
+                if (type === 'LIEN_KHO') {
+                    const routeId = document.getElementById('tripRoute').value;
+                    const route = allRoutes.find(r => r.maTuyen === routeId);
+                    const arrWhName = route ? (route.maKhoDen) : 'kho đích';
+                    msg = `
+                        <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 18px;">
+                            <div style="font-size: 24px; margin-bottom: 6px;">📦</div>
+                            <strong style="color: #1E293B;">Không có kiện hàng nào tại ${depWhName} có thể gắn vào chuyến Liên kho này.</strong>
+                            <div style="color: var(--text-muted); font-size: 12px; margin-top: 6px; line-height: 1.5;">
+                                Tuyến đi tới: <strong>${arrWhName}</strong>.<br>
+                                Ràng buộc: Kiện phải đang ở <em>${departureWh}</em>, đơn hàng ở trạng thái <em>Đã tiếp nhận (TT02)</em> hoặc <em>Đã đến kho (TT04)</em>, và kho nhận khác <em>${departureWh}</em>.
+                            </div>
+                        </div>`;
+                } else {
+                    msg = `
+                        <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 18px;">
+                            <div style="font-size: 24px; margin-bottom: 6px;">🚚</div>
+                            <strong style="color: #1E293B;">Không có kiện hàng nào tại ${depWhName} đủ điều kiện giao cuối.</strong>
+                            <div style="color: var(--text-muted); font-size: 12px; margin-top: 6px; line-height: 1.5;">
+                                Ràng buộc CSDL: Kiện đang lưu kho tại <em>${departureWh}</em>, kho nhận của đơn hàng PHẢI là <em>${departureWh}</em>, và trạng thái đơn là <em>Đã đến kho (TT04) / Đã tiếp nhận (TT02) / Giao thất bại (TT08)</em>.
+                            </div>
+                        </div>`;
+                }
+                container.innerHTML = msg;
                 updateTotalWeight();
                 return;
             }
 
-            document.getElementById('pkgCountText').innerText = `${pkgsAtWarehouse.length} kiện tại ${whDisplayName}`;
-
-            container.innerHTML = pkgsAtWarehouse.map((p, idx) => {
+            // Render các kiện hợp lệ
+            container.innerHTML = currentEligiblePackages.map(p => {
                 const kg = parseFloat(p.khoiLuong) || 0;
+                let routeBadge = '';
+                if (type === 'LIEN_KHO') {
+                    const routeId = document.getElementById('tripRoute').value;
+                    const route = allRoutes.find(r => r.maTuyen === routeId);
+                    const arrWh = route ? route.maKhoDen : null;
+                    if (p.maKhoNhan === arrWh) {
+                        routeBadge = `<span class="badge badge-success" style="font-size: 10.5px; padding: 2px 6px;">🎯 Đúng tuyến tới ${p.tenKhoNhan || arrWh}</span>`;
+                    } else {
+                        routeBadge = `<span class="badge badge-info" style="font-size: 10.5px; padding: 2px 6px;">↗ Đi tiếp: ${p.tenKhoNhan || p.maKhoNhan || 'Kho khác'}</span>`;
+                    }
+                } else {
+                    routeBadge = `<span class="badge badge-success" style="font-size: 10.5px; padding: 2px 6px;">📍 Khách: ${p.tenNguoiNhan || 'Khách nhận'}</span>`;
+                }
+
+                const statusBadge = `<span class="badge badge-secondary" style="font-size: 10.5px; padding: 2px 6px;">${p.trangThaiDon || p.maTt || 'Sẵn sàng'}</span>`;
+
                 return `
-                    <label class="checkbox-label" style="display: flex; margin-bottom: 8px; font-size: 13px; align-items: center; justify-content: space-between; padding: 6px 10px; background: white; border-radius: 6px; border: 1px solid var(--border-color);">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="checkbox" value="${p.maKien}" data-weight="${kg}" onchange="onPackageToggled(this)">
-                            <span><strong>${p.maKien}</strong> (Đơn: ${p.maDh} - ${p.loaiHang || 'Hàng hóa'})</span>
+                    <label class="checkbox-label" style="display: flex; margin-bottom: 8px; font-size: 13px; align-items: center; justify-content: space-between; padding: 8px 12px; background: white; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.15s ease;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" value="${p.maKien}" data-weight="${kg}" onchange="onPackageToggled(this)" style="width: 16px; height: 16px; cursor: pointer;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                    <strong>${p.maKien}</strong>
+                                    <span style="color: var(--text-muted); font-size: 12px;">(Đơn: ${p.maDh})</span>
+                                    ${routeBadge}
+                                    ${statusBadge}
+                                </div>
+                                <div style="font-size: 11.5px; color: #64748B; margin-top: 2px;">
+                                    ${p.loaiHang || 'Hàng hóa'}${p.diaChiGiao ? ` • Giao: ${p.diaChiGiao}` : ''}
+                                </div>
+                            </div>
                         </div>
-                        <span style="color: var(--primary-blue); font-weight: 700;">${kg} kg</span>
+                        <div style="text-align: right; white-space: nowrap; margin-left: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: 700; font-size: 14px;">${kg.toLocaleString('vi-VN')} kg</span>
+                            ${p.cod && parseFloat(p.cod) > 0 ? `<div style="font-size: 11px; color: #DC2626; font-weight: 600;">COD: ${parseFloat(p.cod).toLocaleString('vi-VN')} đ</div>` : ''}
+                        </div>
                     </label>
                 `;
             }).join('');
 
             updateTotalWeight();
+        }
+
+        function toggleIneligibleList() {
+            const container = document.getElementById('ineligibleListContainer');
+            if (container) {
+                container.style.display = (container.style.display === 'none' || !container.style.display) ? 'block' : 'none';
+            }
+        }
+
+        function selectAllEligiblePackages(selectBool) {
+            const checkboxes = document.querySelectorAll('#pkgListContainer input[type="checkbox"]');
+            checkboxes.forEach(chk => {
+                chk.checked = selectBool;
+                const code = chk.value;
+                const weight = parseFloat(chk.getAttribute('data-weight')) || 0;
+                if (selectBool) {
+                    selectedPackageWeights[code] = weight;
+                } else {
+                    delete selectedPackageWeights[code];
+                }
+            });
+            updateTotalWeight();
+        }
+
+        function selectOptimalPackages() {
+            // Bỏ chọn tất cả trước
+            selectAllEligiblePackages(false);
+
+            if (currentVehicleCapacity <= 0) {
+                alert('Vui lòng chọn phương tiện có tải trọng trước để tính toán tối ưu!');
+                return;
+            }
+
+            let runningKg = 0;
+            const checkboxes = Array.from(document.querySelectorAll('#pkgListContainer input[type="checkbox"]'));
+
+            // Duyệt chọn các kiện sao cho tổng khối lượng <= tải trọng xe
+            checkboxes.forEach(chk => {
+                const code = chk.value;
+                const weight = parseFloat(chk.getAttribute('data-weight')) || 0;
+                if (runningKg + weight <= currentVehicleCapacity) {
+                    chk.checked = true;
+                    selectedPackageWeights[code] = weight;
+                    runningKg += weight;
+                }
+            });
+
+            updateTotalWeight();
+            showToast('Chọn tối ưu', `Đã chọn ${Object.keys(selectedPackageWeights).length} kiện (${runningKg.toLocaleString('vi-VN')} kg) vừa vặn tải trọng xe (${currentVehicleCapacity.toLocaleString('vi-VN')} kg).`, 'info');
         }
 
         function onPackageToggled(checkbox) {
@@ -522,7 +768,41 @@
 
         function updateTotalWeight() {
             const totalKg = Object.values(selectedPackageWeights).reduce((a, b) => a + b, 0);
-            document.getElementById('currentLoadText').innerText = totalKg.toLocaleString('vi-VN') + ' kg';
+            const count = Object.keys(selectedPackageWeights).length;
+
+            const currentLoadEl = document.getElementById('currentLoadText');
+            if (currentLoadEl) currentLoadEl.innerText = totalKg.toLocaleString('vi-VN') + ' kg';
+
+            const countEl = document.getElementById('selectedPkgCountText');
+            if (countEl) countEl.innerText = count;
+
+            const progressBar = document.getElementById('capacityProgressBar');
+            const percentEl = document.getElementById('capacityPercentText');
+
+            if (currentVehicleCapacity > 0) {
+                const percent = Math.min(100, Math.round((totalKg / currentVehicleCapacity) * 100));
+                const exactPercent = Math.round((totalKg / currentVehicleCapacity) * 100);
+
+                if (progressBar) {
+                    progressBar.style.width = Math.min(100, percent) + '%';
+                    if (totalKg > currentVehicleCapacity) {
+                        progressBar.style.backgroundColor = '#DC2626'; // Quá tải -> đỏ
+                    } else if (percent > 85) {
+                        progressBar.style.backgroundColor = '#D97706'; // Gần đầy -> vàng cam
+                    } else {
+                        progressBar.style.backgroundColor = '#2563EB'; // Bình thường -> xanh dương
+                    }
+                }
+
+                if (percentEl) {
+                    percentEl.innerText = `(${exactPercent}%)`;
+                    percentEl.style.color = (totalKg > currentVehicleCapacity) ? '#DC2626' : (percent > 85 ? '#D97706' : '#059669');
+                }
+            } else {
+                if (progressBar) progressBar.style.width = '0%';
+                if (percentEl) percentEl.innerText = '(0%)';
+            }
+
             checkCapacityConstraint(totalKg);
         }
 
@@ -535,7 +815,9 @@
             const submitBtn = document.getElementById('btnSubmitTrip');
 
             if (currentVehicleCapacity > 0 && totalKg > currentVehicleCapacity) {
+                const diff = (totalKg - currentVehicleCapacity).toFixed(1);
                 alertBox.style.display = 'block';
+                alertBox.innerHTML = `⚠️ CẢNH BÁO TẢI TRỌNG: Tổng khối lượng (${totalKg.toLocaleString('vi-VN')} kg) vượt quá tải trọng xe (${currentVehicleCapacity.toLocaleString('vi-VN')} kg) đến ${diff} kg! Vui lòng chọn xe lớn hơn hoặc bớt kiện hàng.`;
                 submitBtn.disabled = true;
                 return false;
             } else {
