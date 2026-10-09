@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -28,25 +27,7 @@ public interface ChuyenGiaoRepository extends JpaRepository<ChuyenGiao, String> 
      */
     List<ChuyenGiao> findByMaTxAndTrangThai(String maTx, String trangThai);
 
-    /**
-     * Gọi SP tạo chuyến giao.
-     * p_ma_chuyen là INOUT parameter → dùng procedure call.
-     */
-    @Modifying
-    @Query(value = "CALL sp_tao_chuyen_giao(:loai, :maTuyen, :maKhoGiao, :maTx, :maPt, " +
-            ":ngayXuatPhat, :maNvDp, :maNd, :ngayDenDuKien, :maChuyen)", nativeQuery = true)
-    void taoChuyenGiao(
-            @Param("loai") String loai,
-            @Param("maTuyen") String maTuyen,
-            @Param("maKhoGiao") String maKhoGiao,
-            @Param("maTx") String maTx,
-            @Param("maPt") String maPt,
-            @Param("ngayXuatPhat") LocalDateTime ngayXuatPhat,
-            @Param("maNvDp") String maNvDp,
-            @Param("maNd") String maNd,
-            @Param("ngayDenDuKien") LocalDateTime ngayDenDuKien,
-            @Param("maChuyen") String maChuyen
-    );
+
 
     /**
      * Gán kiện vào chuyến giao.

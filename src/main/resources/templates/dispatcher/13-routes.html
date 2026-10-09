@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13 – Quản lý tuyến vận chuyển - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ĐIỀU PHỐI -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="12-dashboard.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA;">Điều phối</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Điều hành vận tải</div>
+                <a href="12-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Điều phối</span>
+                </a>
+                <a href="13-routes.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    <span>Tuyến vận chuyển</span>
+                </a>
+                <a href="14-trips.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>Quản lý chuyến giao</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="12-dashboard.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #2563EB;">DP</div>
+                <div class="user-info">
+                    <div class="user-name">Đặng Quốc Huy</div>
+                    <div class="user-sub">NV Điều phối (NV003)</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="12-dashboard.html">Điều phối</a> <span>/</span> <span>Danh mục tuyến vận chuyển</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openCreateModal()">+ Thêm tuyến mới</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý tuyến vận chuyển liên kho</h1>
+                        <p class="page-subtitle">Thiết lập lộ trình từ kho đi đến kho đích, khoảng cách và thời gian di chuyển tiêu chuẩn</p>
+                    </div>
+                </div>
+
+                <!-- Table Routes -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Danh sách các tuyến đang khai thác</h3>
+                        <div class="search-input-wrapper">
+                            <input type="text" class="form-control" style="width: 240px; padding: 6px 12px;" placeholder="Tìm theo mã hoặc tên kho..." oninput="filterRoutes(this.value)">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã tuyến</th>
+                                    <th>Kho đi (Xuất phát)</th>
+                                    <th>Kho đến (Đích nhận)</th>
+                                    <th>Khoảng cách (km)</th>
+                                    <th>Thời gian dự kiến</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="routeTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Đang tải danh sách tuyến...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL THÊM / SỬA TUYẾN VẬN CHUYỂN -->
+    <div class="modal-backdrop" id="routeModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="routeModalTitle">Thêm tuyến vận chuyển mới</h3>
+                <button class="modal-close" onclick="closeModal('routeModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" id="maTuyenGroup">
+                    <label class="form-label">Mã tuyến (Ví dụ: TU01, TU_NEW) <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="routeCode" placeholder="Nhập mã tuyến hoặc để trống để sinh tự động">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kho đi (Xuất phát) <span class="required">*</span></label>
+                    <select class="form-select" id="routeFrom">
+                        <option value="">-- Đang tải danh sách kho --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kho đến (Đích nhận) <span class="required">*</span></label>
+                    <select class="form-select" id="routeTo">
+                        <option value="">-- Đang tải danh sách kho --</option>
+                    </select>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Khoảng cách (km) <span class="required">*</span></label>
+                        <input type="number" step="0.1" min="0.1" class="form-control" id="routeDist" value="15.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Thời gian dự kiến (giờ) <span class="required">*</span></label>
+                        <input type="number" step="0.1" min="0.1" class="form-control" id="routeTime" value="1.0" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('routeModal')">Hủy</button>
+                <button class="btn btn-primary" id="btnSaveRoute" onclick="saveRoute()">✓ Lưu tuyến</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/api-client.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        let allRoutes = [];
+        let allWarehouses = [];
+        let warehouseMap = {};
+        let isEditing = false;
+        let editingRouteCode = '';
+
+        async function initPage() {
+            await loadWarehouses();
+            await loadRoutes();
+        }
+
+        async function loadWarehouses() {
+            try {
+                const res = await UteApi.getWarehouses();
+                if (res && res.success && Array.isArray(res.data)) {
+                    allWarehouses = res.data;
+                    warehouseMap = {};
+                    allWarehouses.forEach(k => {
+                        warehouseMap[k.maKho] = k.tenKho;
+                    });
+                    populateWarehouseDropdowns();
+                }
+            } catch (err) {
+                console.error('Lỗi tải kho:', err);
+            }
+        }
+
+        function populateWarehouseDropdowns() {
+            const fromSelect = document.getElementById('routeFrom');
+            const toSelect = document.getElementById('routeTo');
+
+            if (allWarehouses.length === 0) {
+                fromSelect.innerHTML = '<option value="">Không có dữ liệu kho</option>';
+                toSelect.innerHTML = '<option value="">Không có dữ liệu kho</option>';
+                return;
+            }
+
+            const options = allWarehouses.map(k => 
+                `<option value="${k.maKho}">${k.tenKho} (${k.maKho})</option>`
+            ).join('');
+
+            fromSelect.innerHTML = options;
+            toSelect.innerHTML = options;
+        }
+
+        async function loadRoutes() {
+            const tbody = document.getElementById('routeTableBody');
+            try {
+                const res = await UteApi.getRoutes();
+                if (res && res.success && Array.isArray(res.data)) {
+                    allRoutes = res.data;
+                    renderRoutes(allRoutes);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Chưa có tuyến vận chuyển nào.</td></tr>`;
+                }
+            } catch (err) {
+                console.error('Lỗi tải tuyến:', err);
+                tbody.innerHTML = `
+                    <tr><td colspan="6" style="text-align: center; color: var(--danger); padding: 20px;">
+                        ⚠️ Không thể tải danh sách tuyến từ máy chủ (${err.message}).
+                    </td></tr>
+                `;
+            }
+        }
+
+        function renderRoutes(routes) {
+            const tbody = document.getElementById('routeTableBody');
+            if (!routes || routes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Không tìm thấy tuyến phù hợp.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = routes.map(r => {
+                const tenDi = warehouseMap[r.maKhoDi] || r.maKhoDi;
+                const tenDen = warehouseMap[r.maKhoDen] || r.maKhoDen;
+                const dist = r.khoangCach != null ? `${r.khoangCach} km` : '---';
+                const time = r.thoiGianDuKienGio != null ? `${r.thoiGianDuKienGio} giờ (~${Math.round(r.thoiGianDuKienGio * 60)} phút)` : '---';
+
+                return `
+                    <tr>
+                        <td><strong style="color: var(--primary-blue);">${r.maTuyen}</strong></td>
+                        <td>${tenDi} <small style="color: var(--text-muted);">(${r.maKhoDi})</small></td>
+                        <td>${tenDen} <small style="color: var(--text-muted);">(${r.maKhoDen})</small></td>
+                        <td>${dist}</td>
+                        <td>${time}</td>
+                        <td class="cell-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="openEditModal('${r.maTuyen}', '${r.maKhoDi}', '${r.maKhoDen}', ${r.khoangCach}, ${r.thoiGianDuKienGio})">Sửa</button>
+                            <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="deleteRoute('${r.maTuyen}')">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterRoutes(query) {
+            if (!query) {
+                renderRoutes(allRoutes);
+                return;
+            }
+            const q = query.toLowerCase().trim();
+            const filtered = allRoutes.filter(r => {
+                const tenDi = (warehouseMap[r.maKhoDi] || '').toLowerCase();
+                const tenDen = (warehouseMap[r.maKhoDen] || '').toLowerCase();
+                return (r.maTuyen && r.maTuyen.toLowerCase().includes(q)) ||
+                       (r.maKhoDi && r.maKhoDi.toLowerCase().includes(q)) ||
+                       (r.maKhoDen && r.maKhoDen.toLowerCase().includes(q)) ||
+                       tenDi.includes(q) || tenDen.includes(q);
+            });
+            renderRoutes(filtered);
+        }
+
+        function openCreateModal() {
+            isEditing = false;
+            editingRouteCode = '';
+            document.getElementById('routeModalTitle').innerText = 'Thêm tuyến vận chuyển mới';
+            document.getElementById('routeCode').disabled = false;
+            document.getElementById('routeCode').value = '';
+            document.getElementById('routeDist').value = '15.0';
+            document.getElementById('routeTime').value = '1.0';
+            if (allWarehouses.length >= 2) {
+                document.getElementById('routeFrom').value = allWarehouses[0].maKho;
+                document.getElementById('routeTo').value = allWarehouses[1].maKho;
+            }
+            openModal('routeModal');
+        }
+
+        function openEditModal(code, from, to, dist, time) {
+            isEditing = true;
+            editingRouteCode = code;
+            document.getElementById('routeModalTitle').innerText = `Sửa thông tin tuyến ${code}`;
+            document.getElementById('routeCode').value = code;
+            document.getElementById('routeCode').disabled = true;
+            document.getElementById('routeFrom').value = from;
+            document.getElementById('routeTo').value = to;
+            document.getElementById('routeDist').value = dist;
+            document.getElementById('routeTime').value = time;
+            openModal('routeModal');
+        }
+
+        async function saveRoute() {
+            const from = document.getElementById('routeFrom').value;
+            const to = document.getElementById('routeTo').value;
+            const dist = parseFloat(document.getElementById('routeDist').value);
+            const time = parseFloat(document.getElementById('routeTime').value);
+            const codeInput = document.getElementById('routeCode').value.trim();
+
+            if (!from || !to) {
+                alert('Vui lòng chọn kho đi và kho đến.');
+                return;
+            }
+
+            if (from === to) {
+                alert('Kho đi và kho đến không được trùng nhau theo quy định vận chuyển.');
+                return;
+            }
+
+            if (isNaN(dist) || dist <= 0) {
+                alert('Khoảng cách phải lớn hơn 0 km.');
+                return;
+            }
+
+            if (isNaN(time) || time <= 0) {
+                alert('Thời gian dự kiến phải lớn hơn 0 giờ.');
+                return;
+            }
+
+            const btn = document.getElementById('btnSaveRoute');
+            btn.disabled = true;
+
+            try {
+                if (isEditing) {
+                    const payload = {
+                        maKhoDi: from,
+                        maKhoDen: to,
+                        khoangCach: dist,
+                        thoiGianDuKienGio: time
+                    };
+                    const res = await UteApi.updateRoute(editingRouteCode, payload);
+                    if (res && res.success) {
+                        showToast('Thành công', `Đã cập nhật tuyến ${editingRouteCode}.`, 'success');
+                        closeModal('routeModal');
+                        await loadRoutes();
+                    }
+                } else {
+                    const payload = {
+                        maTuyen: codeInput || undefined,
+                        maKhoDi: from,
+                        maKhoDen: to,
+                        khoangCach: dist,
+                        thoiGianDuKienGio: time
+                    };
+                    const res = await UteApi.createRoute(payload);
+                    if (res && res.success) {
+                        showToast('Thành công', 'Đã tạo tuyến vận chuyển mới thành công.', 'success');
+                        closeModal('routeModal');
+                        await loadRoutes();
+                    }
+                }
+            } catch (err) {
+                alert('Lỗi lưu tuyến: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteRoute(code) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa tuyến vận chuyển ${code}?`)) {
+                return;
+            }
+
+            try {
+                const res = await UteApi.deleteRoute(code);
+                if (res && res.success) {
+                    showToast('Đã xóa', `Tuyến ${code} đã được xóa thành công.`, 'success');
+                    await loadRoutes();
+                }
+            } catch (err) {
+                alert('Không thể xóa tuyến: ' + err.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>

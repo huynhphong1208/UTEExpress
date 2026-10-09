@@ -1,0 +1,442 @@
+/* ==========================================================================
+   UTE EXPRESS LOGISTICS - LAYOUT CSS (WHITE - BLUE - RED THEME)
+   ========================================================================== */
+
+/* 1. APP CONTAINER & SHELL */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-main);
+}
+
+/* 2. SIDEBAR (UTE BLUE THEME - CHỮ TRẮNG, ACTIVE VÀNG ĐẤT) */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    box-shadow: 4px 0 20px rgba(11, 25, 44, 0.15);
+    border-right: 1px solid var(--sidebar-border);
+    transition: var(--transition);
+}
+
+.sidebar-header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--sidebar-border);
+    gap: 10px;
+    background-color: var(--sidebar-header-bg);
+}
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none !important;
+}
+.sidebar-logo img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+    background: #FFFFFF;
+    padding: 3px 8px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+}
+.sidebar-role-tag {
+    font-size: 11px;
+    padding: 3px 9px;
+    background-color: rgba(229, 169, 60, 0.2);
+    color: #FCD34D;
+    border: 1px solid rgba(229, 169, 60, 0.4);
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    margin-left: auto;
+    letter-spacing: 0.02em;
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+}
+
+.nav-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sidebar-text-muted);
+    padding: 14px 12px 6px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    color: var(--sidebar-text);
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: var(--transition);
+    position: relative;
+}
+.nav-item svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.85);
+    transition: var(--transition);
+}
+.nav-item:hover {
+    background-color: var(--sidebar-item-hover-bg);
+    color: var(--sidebar-item-hover-text);
+}
+.nav-item:hover svg {
+    color: #FFFFFF;
+}
+
+/* Khi nhấn vào chữ hoặc mục đang active: Đổi sang MÀU VÀNG ĐẤT */
+.nav-item.active,
+.nav-item:active {
+    background-color: var(--sidebar-item-active-bg);
+    color: var(--sidebar-item-active-text) !important;
+    font-weight: 600;
+    box-shadow: none;
+    border-left: 3.5px solid var(--sidebar-item-active-border);
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
+}
+.nav-item.active svg,
+.nav-item:active svg {
+    color: var(--sidebar-item-active-text) !important;
+}
+.nav-item .nav-badge {
+    margin-left: auto;
+    background-color: var(--sidebar-badge-bg);
+    color: var(--sidebar-badge-text);
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Logout link styling */
+.sidebar-nav a[href*="login"] {
+    margin-top: auto;
+    color: #FCA5A5 !important;
+}
+.sidebar-nav a[href*="login"] svg {
+    color: #FCA5A5 !important;
+}
+.sidebar-nav a[href*="login"]:hover {
+    background-color: rgba(227, 27, 35, 0.25) !important;
+    color: #FFFFFF !important;
+}
+.sidebar-nav a[href*="login"]:hover svg {
+    color: #FFFFFF !important;
+}
+
+.sidebar-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--sidebar-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--sidebar-footer-bg);
+}
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: var(--earth-yellow);
+    color: #0D2C54;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    border: none;
+}
+.user-info {
+    flex: 1;
+    overflow: hidden;
+}
+.user-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #FFFFFF;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.user-sub {
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* 3. MAIN WRAPPER & TOP HEADER */
+.main-wrapper {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.top-header {
+    height: var(--header-height);
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    box-shadow: 0 1px 3px rgba(11, 25, 44, 0.04);
+}
+.header-search {
+    width: 360px;
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.action-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-surface);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: var(--transition);
+}
+.action-btn:hover {
+    background-color: var(--brand-red-light);
+    color: var(--brand-red);
+    border-color: var(--brand-red-border);
+}
+.action-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--brand-red);
+}
+
+/* 4. PAGE CONTENT */
+.page-container {
+    padding: 24px 28px 80px;
+    max-width: var(--content-max-width);
+    width: 100%;
+    margin: 0 auto;
+}
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+.page-title {
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight);
+    color: var(--text-primary);
+}
+.page-subtitle {
+    font-size: var(--body-sm-size);
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+.page-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--caption-size);
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+.breadcrumbs a {
+    color: var(--brand-blue);
+    text-decoration: none;
+    font-weight: 500;
+}
+.breadcrumbs a:hover {
+    color: var(--brand-red);
+}
+
+/* 5. GRID LAYOUTS */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.grid-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+
+.col-8 { grid-column: span 8; }
+.col-4 { grid-column: span 4; }
+.col-7 { grid-column: span 7; }
+.col-5 { grid-column: span 5; }
+.col-6 { grid-column: span 6; }
+.col-12 { grid-column: span 12; }
+
+/* 6. PUBLIC HEADER & FOOTER */
+.public-header {
+    height: 76px;
+    background-color: var(--white);
+    border-bottom: 3px solid var(--brand-red);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+.public-logo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none !important;
+}
+.public-logo-img {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+}
+.public-nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+.public-nav a {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--brand-navy);
+    text-decoration: none;
+    transition: var(--transition);
+}
+.public-nav a:hover, .public-nav a.active {
+    color: var(--brand-red);
+}
+.public-footer {
+    background-color: var(--brand-navy);
+    color: #94A3B8;
+    padding: 60px 40px 30px;
+    border-top: 4px solid var(--brand-red);
+}
+
+/* 7. PROTOTYPE TOOLBAR (WHITE - BLUE - RED) */
+.prototype-toolbar {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0B192C;
+    border: 2px solid var(--brand-red);
+    padding: 8px 18px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 9999;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+.proto-label {
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.proto-label::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--brand-red);
+    box-shadow: 0 0 6px var(--brand-red);
+}
+.proto-select {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-full);
+    padding: 5px 14px;
+    font-size: 12px;
+    font-family: var(--font-family);
+    outline: none;
+    cursor: pointer;
+}
+.proto-select option {
+    background-color: #0B192C;
+    color: white;
+}
+.proto-btn {
+    background: var(--brand-red);
+    color: white;
+    border: none;
+    padding: 5px 14px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: var(--transition);
+}
+.proto-btn:hover {
+    background: var(--brand-red-hover);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .col-8, .col-4, .col-7, .col-5 { grid-column: span 12; }
+}
+@media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main-wrapper { margin-left: 0; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .public-header { padding: 0 16px; }
+}

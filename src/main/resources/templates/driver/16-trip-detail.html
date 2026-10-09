@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16 – Chi tiết chuyến giao Tài xế - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR TÀI XẾ -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="15-dashboard.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(234, 179, 8, 0.2); color: #FACC15;">Tài xế</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nhiệm vụ vận chuyển</div>
+                <a href="15-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Tài xế</span>
+                </a>
+                <a href="16-trip-detail.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Chuyến giao của tôi</span>
+                </a>
+                <a href="17-delivery-update.html" class="nav-item" id="navDeliveryUpdate">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                    <span>Quét kiện & Cập nhật</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="15-dashboard.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #D97706;">TX</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarDriverName">Huỳnh Văn Tài</div>
+                    <div class="user-sub" id="sidebarDriverSub">TX001</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="15-dashboard.html">Tài xế</a> <span>/</span> <span id="breadcrumbTrip">Chuyến giao</span>
+                </div>
+                <div class="header-actions" style="display: flex; align-items: center; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 12px; color: var(--text-muted);">Tài xế:</span>
+                        <select id="driverSwitcher" class="form-select form-select-sm" style="width: auto; font-size: 12px; font-weight: 600;" onchange="onDriverSwitched(this.value)">
+                            <option value="TX001">TX001 - Huỳnh Văn Tài (Chuyến liên kho)</option>
+                            <option value="TX002">TX002 - Ngô Minh Đức (Chuyến giao cuối)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" id="btnAcknowledgeTrip" onclick="handleAcknowledgeTrip()">✓ Nhận chuyến</button>
+                    <button class="btn btn-secondary btn-sm" id="btnStartTrip" onclick="handleStartTrip()">🚚 Xuất phát chuyến</button>
+                    <button class="btn btn-success btn-sm" id="btnCompleteTrip" onclick="handleCompleteTrip()" style="display: none;">🏁 Đến kho đích & Hoàn thành</button>
+                    <a href="17-delivery-update.html" class="btn btn-primary btn-sm" id="headerScanBtn">📷 Quét kiện giao</a>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <h1 class="page-title" id="pageTitleTrip">Chi tiết chuyến giao</h1>
+                            <span class="badge badge-info" id="badgeTripStatus"><span class="badge-dot"></span>Đang tải</span>
+                        </div>
+                        <p class="page-subtitle">Tài xế chỉ được xem và cập nhật các chuyến & kiện được hệ thống phân công cho mình</p>
+                    </div>
+                </div>
+
+                <!-- Chọn chuyến nếu có nhiều chuyến -->
+                <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                    <label style="font-weight: 600; font-size: 13.5px;">Chọn chuyến xe của bạn:</label>
+                    <select class="form-select" id="selectMyTrips" style="width: 280px;" onchange="onTripSelectChanged(this.value)">
+                        <option value="">-- Đang tải danh sách chuyến --</option>
+                    </select>
+                </div>
+
+                <!-- Thông tin tổng quan chuyến xe -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-body" id="tripOverviewBody">
+                        <div style="text-align: center; color: var(--text-muted); padding: 16px;">Đang tải thông tin chuyến giao...</div>
+                    </div>
+                </div>
+
+                <!-- Danh sách kiện hàng trên xe -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title" id="pkgTableTitle">Danh sách kiện hàng gán trên chuyến</h3>
+                        <a href="17-delivery-update.html" class="btn btn-outline-primary btn-sm" id="btnScanQr">📷 Quét mã vạch</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã kiện</th>
+                                    <th>Mã đơn</th>
+                                    <th>Khối lượng</th>
+                                    <th>Người nhận / SĐT</th>
+                                    <th>Địa chỉ giao hàng</th>
+                                    <th>Tiền COD</th>
+                                    <th>Trạng thái kiện</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tripPkgsBody">
+                                <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Đang tải danh sách kiện...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../static/js/api-client.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function getCurrentDriverId() {
+            return localStorage.getItem('ute_current_driver') || 'TX001';
+        }
+
+        function getDriverUserId(driverId) {
+            return driverId === 'TX002' ? 'ND006' : 'ND005';
+        }
+
+        function onDriverSwitched(driverId) {
+            localStorage.setItem('ute_current_driver', driverId);
+            window.location.href = `16-trip-detail.html`;
+        }
+
+        let currentTripId = '';
+        let currentTripData = null;
+
+        async function initPage() {
+            const driverId = getCurrentDriverId();
+            const switcher = document.getElementById('driverSwitcher');
+            if (switcher) switcher.value = driverId;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramId = urlParams.get('id');
+
+            await loadDriverTrips(paramId);
+        }
+
+        async function loadDriverTrips(defaultId) {
+            const driverId = getCurrentDriverId();
+            try {
+                const res = await UteApi.getDriverTrips(driverId);
+                const select = document.getElementById('selectMyTrips');
+
+                if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+                    const trips = res.data;
+                    select.innerHTML = trips.map(t => 
+                        `<option value="${t.maChuyen}">${t.maChuyen} - ${t.loaiChuyen} (${t.trangThai})</option>`
+                    ).join('');
+
+                    if (defaultId && trips.some(t => t.maChuyen === defaultId)) {
+                        currentTripId = defaultId;
+                        select.value = defaultId;
+                    } else {
+                        currentTripId = trips[0].maChuyen;
+                        select.value = currentTripId;
+                    }
+
+                    await loadTripDetail(currentTripId);
+                } else {
+                    select.innerHTML = '<option value="">Không có chuyến nào</option>';
+                    document.getElementById('tripOverviewBody').innerHTML = `
+                        <div style="text-align: center; color: var(--text-muted); padding: 24px;">
+                            Hiện tại tài xế ${driverId} chưa được phân công chuyến giao nào.
+                        </div>
+                    `;
+                    document.getElementById('tripPkgsBody').innerHTML = `
+                        <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Không có kiện hàng nào.</td></tr>
+                    `;
+                }
+            } catch (err) {
+                console.error('Lỗi load danh sách chuyến:', err);
+            }
+        }
+
+        async function loadTripDetail(tripId) {
+            currentTripId = tripId;
+            document.getElementById('breadcrumbTrip').innerText = `Chuyến giao ${tripId}`;
+            document.getElementById('pageTitleTrip').innerText = `Chi tiết chuyến giao ${tripId}`;
+
+            // Cập nhật link quét mã
+            document.getElementById('headerScanBtn').href = `17-delivery-update.html?id=${tripId}`;
+            document.getElementById('btnScanQr').href = `17-delivery-update.html?id=${tripId}`;
+            document.getElementById('navDeliveryUpdate').href = `17-delivery-update.html?id=${tripId}`;
+
+            try {
+                // Tải chi tiết chuyến và danh sách kiện
+                const [tripRes, pkgsRes] = await Promise.all([
+                    UteApi.getDriverTripDetail(tripId),
+                    UteApi.getDriverTripPackagesFull(tripId)
+                ]);
+
+                if (tripRes && tripRes.success && tripRes.data) {
+                    currentTripData = tripRes.data;
+                    renderTripOverview(currentTripData);
+                }
+
+                if (pkgsRes && pkgsRes.success) {
+                    renderPackagesTable(pkgsRes.data || []);
+                }
+            } catch (err) {
+                console.error('Lỗi load chi tiết chuyến:', err);
+                showToast('Lỗi', 'Không thể tải chi tiết chuyến: ' + err.message, 'danger');
+            }
+        }
+
+        function renderTripOverview(t) {
+            const badge = document.getElementById('badgeTripStatus');
+            badge.className = `badge ${t.trangThai === 'Hoàn thành' ? 'badge-success' : t.trangThai === 'Đang đi' ? 'badge-info' : 'badge-warning'}`;
+            badge.innerHTML = `<span class="badge-dot"></span>${t.trangThai}`;
+
+            const startBtn = document.getElementById('btnStartTrip');
+            const completeBtn = document.getElementById('btnCompleteTrip');
+            const scanBtn = document.getElementById('headerScanBtn');
+            const ackBtn = document.getElementById('btnAcknowledgeTrip');
+
+            const isAck = isTripAcknowledged(t.maChuyen) || t.trangThai === 'Đang đi' || t.trangThai === 'Hoàn thành';
+            if (ackBtn) {
+                if (t.trangThai === 'Đã hủy') {
+                    ackBtn.style.display = 'none';
+                } else if (isAck) {
+                    ackBtn.style.display = 'inline-block';
+                    ackBtn.className = 'btn btn-success btn-sm';
+                    ackBtn.innerHTML = '✓ Đã nhận';
+                    ackBtn.disabled = true;
+                    ackBtn.title = 'Tài xế đã tiếp nhận chuyến giao này';
+                } else {
+                    ackBtn.style.display = 'inline-block';
+                    ackBtn.className = 'btn btn-outline-primary btn-sm';
+                    ackBtn.innerHTML = '✓ Nhận chuyến';
+                    ackBtn.disabled = false;
+                    ackBtn.title = 'Bấm để nhận nhiệm vụ chuyến này';
+                }
+            }
+
+            if (t.trangThai === 'Chưa đi') {
+                startBtn.style.display = 'inline-block';
+                startBtn.innerText = '🚚 Xuất phát chuyến';
+                completeBtn.style.display = 'none';
+                scanBtn.style.display = 'inline-block';
+            } else if (t.trangThai === 'Đang đi') {
+                startBtn.style.display = 'none';
+                if (t.loaiChuyen === 'LIEN_KHO') {
+                    // Với chuyến liên kho đang chạy, tài xế có nút xác nhận đến kho đích
+                    completeBtn.style.display = 'inline-block';
+                    scanBtn.style.display = 'none';
+                } else {
+                    completeBtn.style.display = 'none';
+                    scanBtn.style.display = 'inline-block';
+                }
+            } else {
+                startBtn.style.display = 'none';
+                completeBtn.style.display = 'none';
+                scanBtn.style.display = 'none';
+            }
+
+            const depTime = t.ngayXuatPhat ? new Date(t.ngayXuatPhat).toLocaleString('vi-VN') : '---';
+            const arrTime = t.ngayDenDuKien ? new Date(t.ngayDenDuKien).toLocaleString('vi-VN') : '---';
+
+            document.getElementById('tripOverviewBody').innerHTML = `
+                <div class="grid-4" style="margin-bottom: 16px;">
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-muted);">Tuyến / Loại chuyến</span>
+                        <div style="font-weight: 700; margin-top: 2px;">${t.loaiChuyen === 'LIEN_KHO' ? 'Liên kho (Hub-to-Hub): ' + (t.maTuyen || '') : 'Giao cuối tới khách hàng'}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-muted);">Kho đi (Xuất phát)</span>
+                        <div style="font-weight: 600; margin-top: 2px;">${t.tenKhoXuatPhat || '---'}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-muted);">Kho đến (Đích nhận)</span>
+                        <div style="font-weight: 600; margin-top: 2px;">${t.tenDiemDen || 'Địa chỉ khách'}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-muted);">Phương tiện phân công</span>
+                        <div style="font-weight: 600; color: var(--primary-blue); margin-top: 2px;">${t.bienSo || '---'} (Tải trọng ${t.taiTrong || 0} kg)</div>
+                    </div>
+                </div>
+
+                <div class="grid-4" style="padding-top: 14px; border-top: 1px solid var(--border-color);">
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-muted);">Tài xế chịu trách nhiệm</span>
+                        <div style="font-weight: 600; margin-top: 2px;">${t.tenTaiXe || t.maTx} (${t.maTx})</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-muted);">Giờ xuất phát</span>
+                        <div style="font-weight: 600; margin-top: 2px;">${depTime}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-muted);">Giờ đến dự kiến</span>
+                        <div style="font-weight: 600; margin-top: 2px;">${arrTime}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-muted);">Tổng khối lượng hàng</span>
+                        <div style="font-weight: 700; color: var(--info); margin-top: 2px;">${(t.tongKg || 0).toLocaleString('vi-VN')} kg / ${(t.taiTrong || 0).toLocaleString('vi-VN')} kg</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPackagesTable(pkgs) {
+            const tbody = document.getElementById('tripPkgsBody');
+            document.getElementById('pkgTableTitle').innerText = `Danh sách kiện hàng gán trên chuyến (${pkgs.length} kiện)`;
+
+            if (pkgs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Chuyến này chưa được gán kiện hàng nào.</td></tr>`;
+                return;
+            }
+
+            const isLienKho = currentTripData && currentTripData.loaiChuyen === 'LIEN_KHO';
+
+            tbody.innerHTML = pkgs.map(p => {
+                const badge = getStatusBadge(p.trangThai);
+                const codFormatted = (p.cod || 0).toLocaleString('vi-VN') + ' đ';
+
+                let actionHtml = '';
+                if (isLienKho) {
+                    if (currentTripData.trangThai === 'Hoàn thành') {
+                        actionHtml = '<span class="badge badge-success">✓ Đã nhập kho đích</span>';
+                    } else if (currentTripData.trangThai === 'Đang đi') {
+                        actionHtml = '<span class="badge badge-info">🚚 Đang trung chuyển</span>';
+                    } else {
+                        actionHtml = '<span class="badge badge-warning">📦 Trên xe</span>';
+                    }
+                } else {
+                    actionHtml = p.trangThai === 'Đã giao'
+                        ? '<span style="font-size: 12px; color: var(--text-muted);">Đã hoàn tất</span>'
+                        : `<a href="17-delivery-update.html?id=${currentTripId}&pkg=${p.maKien}" class="btn btn-primary btn-sm">Cập nhật</a>`;
+                }
+
+                return `
+                    <tr>
+                        <td><strong style="color: var(--primary-blue);">${p.maKien}</strong></td>
+                        <td>${p.maDh || '---'}</td>
+                        <td>${p.khoiLuong || 0} kg</td>
+                        <td><strong>${p.tenNguoiNhan}</strong><br><small style="color: var(--text-muted);">${p.sdtNhan}</small></td>
+                        <td>${p.diaChiGiao}</td>
+                        <td style="font-weight: 600; color: ${p.cod > 0 ? 'var(--danger)' : 'var(--text-muted)'};">${codFormatted}</td>
+                        <td>${badge}</td>
+                        <td class="cell-actions">
+                            ${actionHtml}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function onTripSelectChanged(tripId) {
+            if (tripId) {
+                loadTripDetail(tripId);
+            }
+        }
+
+        function isTripAcknowledged(tripId) {
+            if (!tripId) return false;
+            try {
+                const acks = JSON.parse(localStorage.getItem('ute_acknowledged_trips') || '{}');
+                return !!acks[tripId];
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function setTripAcknowledged(tripId, ack = true) {
+            if (!tripId) return;
+            try {
+                const acks = JSON.parse(localStorage.getItem('ute_acknowledged_trips') || '{}');
+                acks[tripId] = ack;
+                localStorage.setItem('ute_acknowledged_trips', JSON.stringify(acks));
+            } catch (e) {}
+        }
+
+        function handleAcknowledgeTrip() {
+            if (!currentTripId) return;
+            setTripAcknowledged(currentTripId, true);
+            const ackBtn = document.getElementById('btnAcknowledgeTrip');
+            if (ackBtn) {
+                ackBtn.className = 'btn btn-success btn-sm';
+                ackBtn.innerHTML = '✓ Đã nhận';
+                ackBtn.disabled = true;
+                ackBtn.title = 'Tài xế đã tiếp nhận chuyến giao này';
+            }
+            showToast('Đã nhận chuyến', `Tài xế đã xác nhận nhận nhiệm vụ chuyến ${currentTripId}. Nút đã chuyển sang "Đã nhận".`, 'success');
+        }
+
+        async function handleStartTrip() {
+            if (!currentTripId) return;
+            if (!confirm(`Bạn có chắc chắn muốn xuất phát chuyến ${currentTripId}?`)) return;
+
+            const driverId = getCurrentDriverId();
+            const maNd = getDriverUserId(driverId);
+
+            try {
+                const res = await UteApi.startTrip({
+                    maChuyen: currentTripId,
+                    maNd: maNd
+                });
+                if (res && res.success) {
+                    setTripAcknowledged(currentTripId, true);
+                    showToast('Xuất phát thành công', `Chuyến ${currentTripId} đã bắt đầu khởi hành.`, 'success');
+                    await loadTripDetail(currentTripId);
+                }
+            } catch (err) {
+                alert('Không thể xuất phát chuyến: ' + err.message);
+            }
+        }
+
+        async function handleCompleteTrip() {
+            if (!currentTripId || !currentTripData) return;
+            const destName = currentTripData.tenDiemDen || currentTripData.maKhoDen || 'Kho đích';
+
+            if (!confirm(`Xác nhận chuyến xe ${currentTripId} đã đến kho đích [${destName}]?\n\nToàn bộ kiện hàng trên xe sẽ tự động được nhập vào kho đích và chuyến giao hoàn thành.`)) {
+                return;
+            }
+
+            const driverId = getCurrentDriverId();
+            const maNd = getDriverUserId(driverId);
+
+            try {
+                const res = await UteApi.completeTrip(currentTripId, maNd);
+                if (res && res.success) {
+                    showToast('Hoàn thành chuyến!', `Chuyến liên kho ${currentTripId} đã đến nơi an toàn. Toàn bộ kiện hàng đã được nhập vào [${destName}].`, 'success');
+                    await loadTripDetail(currentTripId);
+                }
+            } catch (err) {
+                alert('Không thể hoàn thành chuyến: ' + err.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>

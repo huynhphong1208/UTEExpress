@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>14 – Quản lý chuyến giao - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ĐIỀU PHỐI -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="12-dashboard.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA;">Điều phối</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Điều hành vận tải</div>
+                <a href="12-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Điều phối</span>
+                </a>
+                <a href="13-routes.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    <span>Tuyến vận chuyển</span>
+                </a>
+                <a href="14-trips.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>Quản lý chuyến giao</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="12-dashboard.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #2563EB;">DP</div>
+                <div class="user-info">
+                    <div class="user-name">Đặng Quốc Huy</div>
+                    <div class="user-sub">NV Điều phối (NV003)</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="12-dashboard.html">Điều phối</a> <span>/</span> <span>Quản lý chuyến giao vận</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openCreateTripModal()">+ Lên lịch chuyến mới</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý chuyến giao & Phân công phương tiện</h1>
+                        <p class="page-subtitle">Tạo chuyến, chọn xe theo tải trọng thực tế và gán tài xế tránh xung đột trùng lịch</p>
+                    </div>
+                </div>
+
+                <!-- Bảng chuyến giao -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Danh sách các chuyến giao hàng</h3>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <input type="text" id="tripSearchInput" class="form-control" placeholder="🔍 Tìm mã chuyến, tuyến, tài xế, biển số xe..." style="width: 290px; padding: 6px 12px; font-size: 13px;" oninput="applyTripFilter()">
+                            <select class="form-select" id="filterStatus" style="width: 170px; padding: 6px 10px; font-size: 13px;" onchange="applyTripFilter()">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="Chưa đi">Chưa đi</option>
+                                <option value="Đang đi">Đang đi</option>
+                                <option value="Hoàn thành">Hoàn thành</option>
+                                <option value="Đã hủy">Đã hủy</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã chuyến</th>
+                                    <th>Lộ trình / Tuyến</th>
+                                    <th>Tài xế phụ trách</th>
+                                    <th>Phương tiện & Tải trọng</th>
+                                    <th>Thời gian xuất phát</th>
+                                    <th>Thời gian đến dự kiến</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tripsTableBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Đang tải danh sách chuyến...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL TẠO CHUYẾN & KIỂM TRA TẢI TRỌNG (Ràng buộc nghiệp vụ quan trọng) -->
+    <div class="modal-backdrop" id="createTripModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title">Tạo chuyến vận chuyển & Phân công tải trọng</h3>
+                <button class="modal-close" onclick="closeModal('createTripModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Cảnh báo lỗi tải trọng theo đúng yêu cầu -->
+                <div id="overloadAlert" style="display: none; padding: 12px 16px; background-color: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); color: var(--danger); font-size: 13.5px; font-weight: 600; margin-bottom: 16px;">
+                    ⚠️ CẢNH BÁO TẢI TRỌNG: Tổng khối lượng kiện vượt quá tải trọng tối đa của phương tiện. Vui lòng chọn xe lớn hơn hoặc bớt kiện hàng!
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Loại chuyến <span class="required">*</span></label>
+                        <select class="form-select" id="tripType" onchange="toggleTripType()">
+                            <option value="LIEN_KHO" selected>Liên kho (Hub to Hub / Branch)</option>
+                            <option value="GIAO_CUOI">Giao cuối (Branch to Customer)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="groupRoute">
+                        <label class="form-label">Chọn tuyến vận chuyển <span class="required">*</span></label>
+                        <select class="form-select" id="tripRoute" onchange="renderAvailablePackages()">
+                            <option value="">-- Đang tải danh sách tuyến --</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="groupFromWarehouse" style="display: none;">
+                        <label class="form-label">Kho xuất phát giao hàng <span class="required">*</span></label>
+                        <select class="form-select" id="tripDepartureWarehouse" onchange="renderAvailablePackages()">
+                            <option value="">-- Đang tải danh sách kho --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Phân công Tài xế <span class="required">*</span></label>
+                        <select class="form-select" id="tripDriver">
+                            <option value="">-- Đang tải danh sách tài xế --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phân công Phương tiện <span class="required">*</span></label>
+                        <select class="form-select" id="tripVehicle" onchange="onVehicleChanged()">
+                            <option value="">-- Đang tải danh sách xe --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Ngày xuất phát dự kiến <span class="required">*</span></label>
+                        <input type="datetime-local" class="form-control" id="tripDepartureTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ngày đến dự kiến</label>
+                        <input type="datetime-local" class="form-control" id="tripArrivalTime">
+                        <small style="color: var(--text-muted); font-size: 11px;">(Liên kho: nếu để trống DB sẽ tự tính theo giờ chuẩn tuyến)</small>
+                    </div>
+                </div>
+
+                <!-- Danh sách kiện hàng gán vào chuyến -->
+                <div style="margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" style="font-weight: 600; margin: 0;">Chọn kiện hàng gán vào chuyến:</label>
+                        <span id="pkgCountText" style="font-size: 12px; color: var(--text-muted);">0 kiện khả dụng</span>
+                    </div>
+                    
+                    <div id="pkgListContainer" style="background: var(--bg-alt); padding: 12px; border-radius: var(--radius-md); max-height: 180px; overflow-y: auto;">
+                        <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 12px;">Đang tải danh sách kiện hàng khả dụng...</div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px 14px; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                        <span>Tổng khối lượng kiện: <strong id="currentLoadText" style="color: var(--primary-blue);">0 kg</strong></span>
+                        <span>Tải trọng phương tiện: <strong id="maxCapText">0 kg</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createTripModal')">Hủy bỏ</button>
+                <button class="btn btn-primary" id="btnSubmitTrip" onclick="submitCreateTrip()">✓ Xác nhận tạo chuyến</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SỬA CHUYẾN GIAO & PHÂN CÔNG PHƯƠNG TIỆN -->
+    <div class="modal-backdrop" id="editTripModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title" id="editTripModalTitle">Chỉnh sửa phân công chuyến giao</h3>
+                <button class="modal-close" onclick="closeModal('editTripModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editTripId">
+                <div id="editOverloadAlert" style="display: none; padding: 12px 16px; background-color: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); color: var(--danger); font-size: 13.5px; font-weight: 600; margin-bottom: 16px;">
+                    ⚠️ CẢNH BÁO TẢI TRỌNG: Phương tiện mới có tải trọng nhỏ hơn tổng khối lượng kiện hiện đã gán!
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Loại chuyến</label>
+                        <input type="text" class="form-control" id="editTripTypeDisplay" readonly style="background: var(--bg-alt); font-weight: 600;">
+                    </div>
+                    <div class="form-group" id="editGroupRoute">
+                        <label class="form-label">Tuyến vận chuyển</label>
+                        <select class="form-select" id="editTripRoute"></select>
+                    </div>
+                    <div class="form-group" id="editGroupFromWarehouse" style="display: none;">
+                        <label class="form-label">Kho xuất phát</label>
+                        <select class="form-select" id="editTripDepartureWarehouse"></select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Phân công Tài xế mới <span class="required">*</span></label>
+                        <select class="form-select" id="editTripDriver"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phân công Phương tiện mới <span class="required">*</span></label>
+                        <select class="form-select" id="editTripVehicle" onchange="onEditVehicleChanged()"></select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Ngày xuất phát dự kiến <span class="required">*</span></label>
+                        <input type="datetime-local" class="form-control" id="editTripDepartureTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ngày đến dự kiến</label>
+                        <input type="datetime-local" class="form-control" id="editTripArrivalTime">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px 14px; background: var(--bg-alt); border-radius: var(--radius-md);">
+                    <span>Tổng khối lượng kiện đã gán: <strong id="editTripCurrentLoadText" style="color: var(--primary-blue);">0 kg</strong></span>
+                    <span>Tải trọng xe phân công mới: <strong id="editTripMaxCapText">0 kg</strong></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editTripModal')">Hủy bỏ</button>
+                <button class="btn btn-primary" id="btnSubmitEditTrip" onclick="submitEditTrip()">✓ Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL XEM CHI TIẾT KIỆN TRONG CHUYẾN -->
+    <div class="modal-backdrop" id="tripDetailModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title" id="tripDetailTitle">Chi tiết kiện hàng thuộc chuyến</h3>
+                <button class="modal-close" onclick="closeModal('tripDetailModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã kiện</th>
+                                <th>Đơn hàng</th>
+                                <th>Khối lượng</th>
+                                <th>Người nhận / Địa chỉ</th>
+                                <th>COD</th>
+                                <th>Trạng thái</th>
+                                <th>Thời gian quét</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tripDetailBody">
+                            <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 16px;">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('tripDetailModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/api-client.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        let allTrips = [];
+        let allRoutes = [];
+        let allDrivers = [];
+        let allVehicles = [];
+        let allWarehouses = [];
+        let availablePackages = [];
+        let selectedPackageWeights = {};
+        let currentVehicleCapacity = 0;
+
+        async function initPage() {
+            initDefaultDates();
+            await Promise.all([
+                loadTrips(),
+                loadFormData()
+            ]);
+            handleUrlParams();
+        }
+
+        function handleUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const action = params.get('action');
+            const driverId = params.get('driver');
+            const vehicleId = params.get('vehicle');
+            const packageId = params.get('package');
+            const warehouseId = params.get('warehouse');
+
+            if (action === 'create' || driverId || vehicleId || packageId) {
+                openCreateTripModal();
+
+                if (driverId) {
+                    const drvSel = document.getElementById('tripDriver');
+                    if (drvSel) drvSel.value = driverId;
+                }
+
+                if (vehicleId) {
+                    const vehSel = document.getElementById('tripVehicle');
+                    if (vehSel) {
+                        vehSel.value = vehicleId;
+                        onVehicleChanged();
+                    }
+                }
+
+                if (warehouseId) {
+                    const matchedRoute = allRoutes.find(r => r.maKhoDi === warehouseId);
+                    if (matchedRoute) {
+                        document.getElementById('tripRoute').value = matchedRoute.maTuyen;
+                        renderAvailablePackages();
+                    } else {
+                        document.getElementById('tripType').value = 'GIAO_CUOI';
+                        toggleTripType();
+                        document.getElementById('tripDepartureWarehouse').value = warehouseId;
+                        renderAvailablePackages();
+                    }
+                }
+
+                if (packageId) {
+                    setTimeout(() => {
+                        const chk = document.querySelector(`input[type="checkbox"][value="${packageId}"]`);
+                        if (chk) {
+                            chk.checked = true;
+                            onPackageToggled(chk);
+                        }
+                    }, 150);
+                }
+
+                if (driverId) {
+                    showToast('Phân công tài xế', `Đang thiết lập chuyến giao cho tài xế ${driverId}`, 'info');
+                }
+            }
+        }
+
+        function toLocalIsoString(date) {
+            const tzOffset = date.getTimezoneOffset() * 60000;
+            const localTime = new Date(date.getTime() - tzOffset);
+            return localTime.toISOString().slice(0, 16);
+        }
+
+        function initDefaultDates() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 30);
+            document.getElementById('tripDepartureTime').value = toLocalIsoString(now);
+
+            const arr = new Date(now);
+            arr.setHours(arr.getHours() + 4);
+            document.getElementById('tripArrivalTime').value = toLocalIsoString(arr);
+        }
+
+        async function loadFormData() {
+            try {
+                const [routesRes, driversRes, vehiclesRes, whRes, pkgsRes] = await Promise.all([
+                    UteApi.getRoutes(),
+                    UteApi.getDrivers(),
+                    UteApi.getVehicles(),
+                    UteApi.getWarehouses(),
+                    UteApi.getAvailablePackages()
+                ]);
+
+                if (routesRes && routesRes.success) allRoutes = routesRes.data;
+                if (driversRes && driversRes.success) allDrivers = driversRes.data;
+                if (vehiclesRes && vehiclesRes.success) allVehicles = vehiclesRes.data;
+                if (whRes && whRes.success) allWarehouses = whRes.data;
+                if (pkgsRes && pkgsRes.success) availablePackages = pkgsRes.data;
+
+                populateDropdowns();
+            } catch (err) {
+                console.error('Lỗi load form data:', err);
+            }
+        }
+
+        function populateDropdowns() {
+            // 1. Tuyến
+            const routeSel = document.getElementById('tripRoute');
+            routeSel.innerHTML = allRoutes.map(r => 
+                `<option value="${r.maTuyen}">${r.maTuyen}: ${r.maKhoDi} ➔ ${r.maKhoDen} (${r.khoangCach} km, ~${r.thoiGianDuKienGio}h)</option>`
+            ).join('');
+
+            // 2. Kho xuất phát (cho giao cuối)
+            const whSel = document.getElementById('tripDepartureWarehouse');
+            whSel.innerHTML = allWarehouses.map(k => 
+                `<option value="${k.maKho}">${k.tenKho} (${k.maKho})</option>`
+            ).join('');
+
+            // 3. Tài xế
+            const drvSel = document.getElementById('tripDriver');
+            drvSel.innerHTML = allDrivers.map(d => 
+                `<option value="${d.maTx}">${d.hoTen} (${d.maTx}) - SĐT: ${d.sdt} - Bằng: ${d.bangLai || 'C'}</option>`
+            ).join('');
+
+            // 4. Phương tiện
+            const vehSel = document.getElementById('tripVehicle');
+            vehSel.innerHTML = allVehicles.map(v => 
+                `<option value="${v.maPt}" data-capacity="${v.taiTrong}">${v.bienSo} (${v.loaiXe || 'Xe tải'} - Tải trọng max ${v.taiTrong} kg)</option>`
+            ).join('');
+
+            onVehicleChanged();
+            renderAvailablePackages();
+        }
+
+        function toggleTripType() {
+            const type = document.getElementById('tripType').value;
+            if (type === 'LIEN_KHO') {
+                document.getElementById('groupRoute').style.display = 'block';
+                document.getElementById('groupFromWarehouse').style.display = 'none';
+            } else {
+                document.getElementById('groupRoute').style.display = 'none';
+                document.getElementById('groupFromWarehouse').style.display = 'block';
+            }
+            renderAvailablePackages();
+        }
+
+        function getSelectedDepartureWarehouse() {
+            const type = document.getElementById('tripType').value;
+            if (type === 'LIEN_KHO') {
+                const routeId = document.getElementById('tripRoute').value;
+                const route = allRoutes.find(r => r.maTuyen === routeId);
+                return route ? (route.maKhoDi || (route.khoDi && route.khoDi.maKho)) : null;
+            } else {
+                return document.getElementById('tripDepartureWarehouse').value;
+            }
+        }
+
+        function onVehicleChanged() {
+            const vehSel = document.getElementById('tripVehicle');
+            const selectedOpt = vehSel.options[vehSel.selectedIndex];
+            if (selectedOpt) {
+                currentVehicleCapacity = parseFloat(selectedOpt.getAttribute('data-capacity')) || 0;
+            } else {
+                currentVehicleCapacity = 0;
+            }
+            document.getElementById('maxCapText').innerText = currentVehicleCapacity.toLocaleString('vi-VN') + ' kg';
+            checkCapacityConstraint();
+        }
+
+        function renderAvailablePackages() {
+            const container = document.getElementById('pkgListContainer');
+            selectedPackageWeights = {};
+
+            const departureWh = getSelectedDepartureWarehouse();
+            const whObj = allWarehouses.find(w => w.maKho === departureWh);
+            const whDisplayName = whObj ? `${whObj.tenKho} (${whObj.maKho})` : (departureWh || 'Kho xuất phát');
+
+            // Nghiệp vụ CSDL: Kiện hàng PHẢI đang lưu kho tại đúng kho xuất phát của chuyến
+            const pkgsAtWarehouse = availablePackages.filter(p => {
+                const curWh = p.maKhoHienTai || (p.khoHienTai && p.khoHienTai.maKho);
+                return curWh === departureWh;
+            });
+
+            if (pkgsAtWarehouse.length === 0) {
+                container.innerHTML = `
+                    <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 14px;">
+                        📦 Không có kiện hàng nào đang lưu kho tại <strong>${whDisplayName}</strong>.<br>
+                        <small style="color: var(--warning); display: block; margin-top: 4px;">* Ràng buộc CSDL: Kiện gán vào chuyến phải đang ở kho xuất phát.</small>
+                    </div>`;
+                document.getElementById('pkgCountText').innerText = `0 kiện tại kho ${departureWh || ''}`;
+                updateTotalWeight();
+                return;
+            }
+
+            document.getElementById('pkgCountText').innerText = `${pkgsAtWarehouse.length} kiện tại ${whDisplayName}`;
+
+            container.innerHTML = pkgsAtWarehouse.map((p, idx) => {
+                const kg = parseFloat(p.khoiLuong) || 0;
+                return `
+                    <label class="checkbox-label" style="display: flex; margin-bottom: 8px; font-size: 13px; align-items: center; justify-content: space-between; padding: 6px 10px; background: white; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" value="${p.maKien}" data-weight="${kg}" onchange="onPackageToggled(this)">
+                            <span><strong>${p.maKien}</strong> (Đơn: ${p.maDh} - ${p.loaiHang || 'Hàng hóa'})</span>
+                        </div>
+                        <span style="color: var(--primary-blue); font-weight: 700;">${kg} kg</span>
+                    </label>
+                `;
+            }).join('');
+
+            updateTotalWeight();
+        }
+
+        function onPackageToggled(checkbox) {
+            const code = checkbox.value;
+            const weight = parseFloat(checkbox.getAttribute('data-weight')) || 0;
+
+            if (checkbox.checked) {
+                selectedPackageWeights[code] = weight;
+            } else {
+                delete selectedPackageWeights[code];
+            }
+
+            updateTotalWeight();
+        }
+
+        function updateTotalWeight() {
+            const totalKg = Object.values(selectedPackageWeights).reduce((a, b) => a + b, 0);
+            document.getElementById('currentLoadText').innerText = totalKg.toLocaleString('vi-VN') + ' kg';
+            checkCapacityConstraint(totalKg);
+        }
+
+        function checkCapacityConstraint(totalKg) {
+            if (totalKg === undefined) {
+                totalKg = Object.values(selectedPackageWeights).reduce((a, b) => a + b, 0);
+            }
+
+            const alertBox = document.getElementById('overloadAlert');
+            const submitBtn = document.getElementById('btnSubmitTrip');
+
+            if (currentVehicleCapacity > 0 && totalKg > currentVehicleCapacity) {
+                alertBox.style.display = 'block';
+                submitBtn.disabled = true;
+                return false;
+            } else {
+                alertBox.style.display = 'none';
+                submitBtn.disabled = false;
+                return true;
+            }
+        }
+
+        async function loadTrips() {
+            const tbody = document.getElementById('tripsTableBody');
+            try {
+                const res = await UteApi.getDetailedTrips();
+                if (res && res.success && Array.isArray(res.data)) {
+                    allTrips = res.data;
+                    renderTripsTable(allTrips);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Chưa có chuyến giao nào.</td></tr>`;
+                }
+            } catch (err) {
+                console.error('Lỗi load trips:', err);
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger); padding: 20px;">⚠️ Lỗi kết nối backend (${err.message})</td></tr>`;
+            }
+        }
+
+        function renderTripsTable(trips) {
+            const tbody = document.getElementById('tripsTableBody');
+            if (!trips || trips.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Không tìm thấy chuyến nào phù hợp.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = trips.map(t => {
+                const routeName = t.loaiChuyen === 'LIEN_KHO' 
+                    ? `${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`
+                    : `Giao cuối: ${t.tenKhoXuatPhat || 'Kho'} ➔ Địa chỉ khách`;
+
+                const loadPercent = t.tyLeTai != null ? t.tyLeTai : 0;
+                const loadStyle = loadPercent > 100 ? 'color: var(--danger); font-weight: 700;' : 'font-weight: 600;';
+
+                const badge = getStatusBadge(t.trangThai);
+                const formatDep = t.ngayXuatPhat ? new Date(t.ngayXuatPhat).toLocaleString('vi-VN') : '---';
+                const formatArr = t.ngayDenDuKien ? new Date(t.ngayDenDuKien).toLocaleString('vi-VN') : '---';
+
+                let actionsHtml = `<button class="btn btn-secondary btn-sm" onclick="viewTripDetail('${t.maChuyen}')" title="Xem danh sách kiện">📦 Kiện (${t.soKien || 0})</button>`;
+
+                if (t.trangThai === 'Chưa đi') {
+                    actionsHtml += `
+                        <button class="btn btn-outline-primary btn-sm" onclick="openEditTripModal('${t.maChuyen}')" title="Chỉnh sửa phân công tài xế / xe">✏️ Sửa</button>
+                        <button class="btn btn-danger btn-sm" onclick="handleCancelTrip('${t.maChuyen}')" title="Hủy chuyến giao trước khi xuất phát">🚫 Hủy</button>
+                    `;
+                } else if (t.trangThai === 'Đang đi' && t.loaiChuyen === 'LIEN_KHO') {
+                    actionsHtml += `
+                        <button class="btn btn-outline-success btn-sm" onclick="handleCompleteTripFromDispatcher('${t.maChuyen}', '${t.tenDiemDen || t.maKhoDen || 'Kho đích'}')" title="Xác nhận chuyến xe đã tới kho đích an toàn">🏁 Đến kho đích</button>
+                    `;
+                }
+
+                return `
+                    <tr>
+                        <td><strong style="color: var(--primary-blue);">${t.maChuyen}</strong></td>
+                        <td>${routeName}</td>
+                        <td>${t.tenTaiXe || t.maTx}<br><small style="color: var(--text-muted);">${t.maTx}</small></td>
+                        <td>${t.bienSo || '---'}<br><small style="${loadStyle}">${(t.tongKg || 0).toLocaleString('vi-VN')} kg / ${(t.taiTrong || 0).toLocaleString('vi-VN')} kg (${loadPercent}%)</small></td>
+                        <td>${formatDep}</td>
+                        <td>${formatArr}</td>
+                        <td>${badge}</td>
+                        <td class="cell-actions" style="display: flex; gap: 4px; flex-wrap: wrap;">
+                            ${actionsHtml}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function applyTripFilter() {
+            const q = (document.getElementById('tripSearchInput').value || '').trim().toLowerCase();
+            const st = document.getElementById('filterStatus').value;
+
+            let filtered = allTrips;
+            if (st) {
+                filtered = filtered.filter(t => t.trangThai === st);
+            }
+            if (q) {
+                filtered = filtered.filter(t => 
+                    (t.maChuyen && t.maChuyen.toLowerCase().includes(q)) ||
+                    (t.maTuyen && t.maTuyen.toLowerCase().includes(q)) ||
+                    (t.tenTaiXe && t.tenTaiXe.toLowerCase().includes(q)) ||
+                    (t.maTx && t.maTx.toLowerCase().includes(q)) ||
+                    (t.bienSo && t.bienSo.toLowerCase().includes(q)) ||
+                    (t.tenKhoXuatPhat && t.tenKhoXuatPhat.toLowerCase().includes(q)) ||
+                    (t.tenDiemDen && t.tenDiemDen.toLowerCase().includes(q))
+                );
+            }
+            renderTripsTable(filtered);
+        }
+
+        async function openCreateTripModal() {
+            initDefaultDates();
+            try {
+                const pkgsRes = await UteApi.getAvailablePackages();
+                if (pkgsRes && pkgsRes.success && Array.isArray(pkgsRes.data)) {
+                    availablePackages = pkgsRes.data;
+                }
+            } catch (e) {}
+            toggleTripType();
+            onVehicleChanged();
+            openModal('createTripModal');
+        }
+
+        async function submitCreateTrip() {
+            const totalKg = Object.values(selectedPackageWeights).reduce((a, b) => a + b, 0);
+            if (!checkCapacityConstraint(totalKg)) {
+                alert('Phương tiện không đủ tải trọng. Vui lòng chọn phương tiện khác hoặc giảm số lượng kiện.');
+                return;
+            }
+
+            const type = document.getElementById('tripType').value;
+            const maTuyen = type === 'LIEN_KHO' ? document.getElementById('tripRoute').value : null;
+            const maKhoGiao = type === 'GIAO_CUOI' ? document.getElementById('tripDepartureWarehouse').value : null;
+            const maTx = document.getElementById('tripDriver').value;
+            const maPt = document.getElementById('tripVehicle').value;
+            const depTime = document.getElementById('tripDepartureTime').value;
+            const arrTime = document.getElementById('tripArrivalTime').value;
+
+            if (!maTx || !maPt || !depTime) {
+                alert('Vui lòng điền đầy đủ các thông tin bắt buộc.');
+                return;
+            }
+
+            if (type === 'LIEN_KHO' && !maTuyen) {
+                alert('Chuyến liên kho bắt buộc phải chọn tuyến vận chuyển.');
+                return;
+            }
+
+            if (type === 'GIAO_CUOI' && !maKhoGiao) {
+                alert('Chuyến giao cuối bắt buộc phải chọn kho xuất phát.');
+                return;
+            }
+
+            const payload = {
+                loai: type,
+                maTuyen: maTuyen || null,
+                maKhoGiao: maKhoGiao || null,
+                maTx: maTx,
+                maPt: maPt,
+                ngayXuatPhat: depTime ? `${depTime}:00` : null,
+                ngayDenDuKien: arrTime ? `${arrTime}:00` : null,
+                maNvDp: 'NV003', // NV điều phối mặc định từ seed
+                maNd: 'ND004'    // Tài khoản NV điều phối
+            };
+
+            const btn = document.getElementById('btnSubmitTrip');
+            btn.disabled = true;
+
+            try {
+                const res = await UteApi.createTrip(payload);
+                if (res && res.success) {
+                    closeModal('createTripModal');
+                    const newestTripId = res.data;
+                    showToast('Thành công', `Đã khởi tạo chuyến giao mới ${newestTripId || ''}!`, 'success');
+
+                    // Gán các kiện hàng đã chọn vào chuyến (nếu có kiện được chọn)
+                    const selectedPkgCodes = Object.keys(selectedPackageWeights);
+                    if (selectedPkgCodes.length > 0 && newestTripId) {
+                        let assignCount = 0;
+                        const errorList = [];
+                        for (const pkgCode of selectedPkgCodes) {
+                            try {
+                                const assignRes = await UteApi.assignPackageToTrip({
+                                    maChuyen: newestTripId,
+                                    maKien: pkgCode,
+                                    maNd: 'ND004'
+                                });
+                                if (assignRes && assignRes.success) {
+                                    assignCount++;
+                                } else {
+                                    errorList.push(`${pkgCode}: ${assignRes ? assignRes.message : 'Lỗi không xác định'}`);
+                                }
+                            } catch (e) {
+                                console.error(`Lỗi gán kiện ${pkgCode}:`, e);
+                                errorList.push(`${pkgCode}: ${e.message}`);
+                            }
+                        }
+                        if (assignCount > 0) {
+                            showToast('Đã gán kiện', `Đã gán thành công ${assignCount}/${selectedPkgCodes.length} kiện hàng vào chuyến ${newestTripId}.`, 'success');
+                        }
+                        if (errorList.length > 0) {
+                            alert(`Chuyến ${newestTripId} đã tạo, nhưng có ${errorList.length} kiện không thể gán do vi phạm ràng buộc CSDL:\n\n- ` + errorList.join('\n- '));
+                        }
+                    }
+
+                    await Promise.all([loadTrips(), loadFormData()]);
+                }
+            } catch (err) {
+                alert('Lỗi tạo chuyến giao: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function viewTripDetail(maChuyen) {
+            document.getElementById('tripDetailTitle').innerText = `Chi tiết kiện hàng thuộc chuyến ${maChuyen}`;
+            const tbody = document.getElementById('tripDetailBody');
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 16px;">Đang tải chi tiết...</td></tr>`;
+            openModal('tripDetailModal');
+
+            try {
+                const res = await UteApi.getTripPackages(maChuyen);
+                if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+                    tbody.innerHTML = res.data.map(p => {
+                        const tgQuet = p.thoiGianQuet ? new Date(p.thoiGianQuet).toLocaleString('vi-VN') : '---';
+                        const badge = getStatusBadge(p.trangThai);
+                        const codFormatted = (p.cod || 0).toLocaleString('vi-VN') + ' đ';
+                        const receiverInfo = p.tenNguoiNhan ? `${p.tenNguoiNhan}<br><small style="color: var(--text-muted);">${p.sdtNhan || ''} - ${p.diaChiGiao || ''}</small>` : '---';
+
+                        return `
+                            <tr>
+                                <td><strong style="color: var(--primary-blue);">${p.maKien}</strong></td>
+                                <td>${p.maDh || '---'}</td>
+                                <td>${p.khoiLuong || 0} kg</td>
+                                <td>${receiverInfo}</td>
+                                <td>${codFormatted}</td>
+                                <td>${badge}</td>
+                                <td>${tgQuet}</td>
+                                <td>${p.ghiChu || '---'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 16px;">Chưa có kiện nào được gán vào chuyến này.</td></tr>`;
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger); padding: 16px;">Lỗi tải chi tiết: ${err.message}</td></tr>`;
+            }
+        }
+
+        let currentEditingTrip = null;
+
+        function openEditTripModal(maChuyen) {
+            const trip = allTrips.find(t => t.maChuyen === maChuyen);
+            if (!trip) return;
+            currentEditingTrip = trip;
+
+            document.getElementById('editTripId').value = trip.maChuyen;
+            document.getElementById('editTripModalTitle').innerText = `Chỉnh sửa phân công chuyến ${trip.maChuyen}`;
+            document.getElementById('editTripTypeDisplay').value = trip.loaiChuyen === 'LIEN_KHO' ? 'Liên kho (Hub to Hub)' : 'Giao cuối (Tới khách hàng)';
+
+            // Tuyến hoặc kho xuất phát
+            if (trip.loaiChuyen === 'LIEN_KHO') {
+                document.getElementById('editGroupRoute').style.display = 'block';
+                document.getElementById('editGroupFromWarehouse').style.display = 'none';
+                const routeSel = document.getElementById('editTripRoute');
+                routeSel.innerHTML = allRoutes.map(r => 
+                    `<option value="${r.maTuyen}" ${r.maTuyen === trip.maTuyen ? 'selected' : ''}>${r.maTuyen}: ${r.maKhoDi} ➔ ${r.maKhoDen}</option>`
+                ).join('');
+            } else {
+                document.getElementById('editGroupRoute').style.display = 'none';
+                document.getElementById('editGroupFromWarehouse').style.display = 'block';
+                const whSel = document.getElementById('editTripDepartureWarehouse');
+                whSel.innerHTML = allWarehouses.map(k => 
+                    `<option value="${k.maKho}" ${k.maKho === trip.maKhoXuatPhat ? 'selected' : ''}>${k.tenKho} (${k.maKho})</option>`
+                ).join('');
+            }
+
+            // Tài xế
+            const drvSel = document.getElementById('editTripDriver');
+            drvSel.innerHTML = allDrivers.map(d => 
+                `<option value="${d.maTx}" ${d.maTx === trip.maTx ? 'selected' : ''}>${d.hoTen} (${d.maTx})</option>`
+            ).join('');
+
+            // Phương tiện
+            const vehSel = document.getElementById('editTripVehicle');
+            vehSel.innerHTML = allVehicles.map(v => 
+                `<option value="${v.maPt}" data-capacity="${v.taiTrong}" ${v.maPt === trip.maPt ? 'selected' : ''}>${v.bienSo} (${v.loaiXe || 'Xe tải'} - Tải max ${v.taiTrong} kg)</option>`
+            ).join('');
+
+            // Thời gian
+            if (trip.ngayXuatPhat) {
+                document.getElementById('editTripDepartureTime').value = trip.ngayXuatPhat.slice(0, 16);
+            }
+            if (trip.ngayDenDuKien) {
+                document.getElementById('editTripArrivalTime').value = trip.ngayDenDuKien.slice(0, 16);
+            }
+
+            const currentKg = trip.tongKg || 0;
+            document.getElementById('editTripCurrentLoadText').innerText = currentKg.toLocaleString('vi-VN') + ' kg';
+
+            onEditVehicleChanged();
+            openModal('editTripModal');
+        }
+
+        function onEditVehicleChanged() {
+            const vehSel = document.getElementById('editTripVehicle');
+            const selectedOpt = vehSel.options[vehSel.selectedIndex];
+            const newCap = selectedOpt ? parseFloat(selectedOpt.getAttribute('data-capacity')) || 0 : 0;
+            document.getElementById('editTripMaxCapText').innerText = newCap.toLocaleString('vi-VN') + ' kg';
+
+            const currentKg = currentEditingTrip ? (currentEditingTrip.tongKg || 0) : 0;
+            const alertBox = document.getElementById('editOverloadAlert');
+            const btn = document.getElementById('btnSubmitEditTrip');
+
+            if (newCap > 0 && currentKg > newCap) {
+                alertBox.style.display = 'block';
+                btn.disabled = true;
+            } else {
+                alertBox.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+
+        async function submitEditTrip() {
+            if (!currentEditingTrip) return;
+            const maChuyen = currentEditingTrip.maChuyen;
+            const type = currentEditingTrip.loaiChuyen;
+            const maTuyen = type === 'LIEN_KHO' ? document.getElementById('editTripRoute').value : null;
+            const maKhoGiao = type === 'GIAO_CUOI' ? document.getElementById('editTripDepartureWarehouse').value : null;
+            const maTx = document.getElementById('editTripDriver').value;
+            const maPt = document.getElementById('editTripVehicle').value;
+            const depTime = document.getElementById('editTripDepartureTime').value;
+            const arrTime = document.getElementById('editTripArrivalTime').value;
+
+            if (!maTx || !maPt || !depTime) {
+                alert('Vui lòng điền đầy đủ các thông tin bắt buộc.');
+                return;
+            }
+
+            const payload = {
+                loai: type,
+                maTuyen: maTuyen,
+                maKhoGiao: maKhoGiao,
+                maTx: maTx,
+                maPt: maPt,
+                ngayXuatPhat: depTime ? `${depTime}:00` : null,
+                ngayDenDuKien: arrTime ? `${arrTime}:00` : null,
+                maNd: 'ND004'
+            };
+
+            const btn = document.getElementById('btnSubmitEditTrip');
+            btn.disabled = true;
+
+            try {
+                const res = await UteApi.updateTrip(maChuyen, payload);
+                if (res && res.success) {
+                    closeModal('editTripModal');
+                    showToast('Thành công', `Đã cập nhật phân công chuyến ${maChuyen}!`, 'success');
+                    await loadTrips();
+                }
+            } catch (err) {
+                alert('Lỗi cập nhật chuyến giao: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function handleCancelTrip(maChuyen) {
+            const trip = allTrips.find(t => t.maChuyen === maChuyen);
+            if (trip && trip.trangThai !== 'Chưa đi') {
+                alert(`Không thể hủy! Chuyến giao đang ở trạng thái [${trip.trangThai}]. Chỉ có thể hủy chuyến khi chưa xuất phát (trạng thái "Chưa đi").`);
+                return;
+            }
+
+            if (!confirm(`Bạn có chắc chắn muốn HỦY chuyến giao [${maChuyen}] trước khi xuất phát không?\n\nToàn bộ kiện hàng đã gán vào chuyến sẽ được giải phóng về kho để phân công lại.`)) {
+                return;
+            }
+
+            try {
+                const res = await UteApi.cancelTrip(maChuyen, 'ND004');
+                if (res && res.success) {
+                    showToast('Đã hủy chuyến', `Chuyến giao ${maChuyen} đã được hủy thành công và chuyển sang trạng thái "Đã hủy"!`, 'success');
+                    await Promise.all([loadTrips(), loadFormData()]);
+                } else {
+                    alert('Lỗi hủy chuyến: ' + (res ? res.message : 'Không xác định'));
+                }
+            } catch (err) {
+                alert('Không thể thực hiện hủy chuyến: ' + err.message);
+            }
+        }
+
+        async function handleCompleteTripFromDispatcher(maChuyen, khoDen) {
+            if (!confirm(`Xác nhận chuyến liên kho ${maChuyen} đã đến kho đích [${khoDen}]?\n\nToàn bộ kiện hàng sẽ được tự động nhập kho đích và chuyến giao hoàn thành.`)) {
+                return;
+            }
+
+            try {
+                const res = await UteApi.completeTrip(maChuyen, 'ND004');
+                if (res && res.success) {
+                    showToast('Đã hoàn thành', `Chuyến ${maChuyen} đã đến kho đích an toàn, kiện hàng đã được nhập kho!`, 'success');
+                    await loadTrips();
+                }
+            } catch (err) {
+                alert('Lỗi xác nhận hoàn thành: ' + err.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>

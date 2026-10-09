@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System & Component Showcase - UTE Express</title>
+    <link rel="stylesheet" href="../static/css/design-system.css">
+    <link rel="stylesheet" href="../static/css/components.css">
+    <link rel="stylesheet" href="../static/css/layout.css">
+    <style>
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .color-card {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            background: white;
+        }
+        .color-preview {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .color-meta {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+        .color-name { font-weight: 600; margin-bottom: 2px; }
+        .color-hex { color: var(--text-muted); font-family: monospace; }
+        .section-box {
+            background: white;
+            padding: 28px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-xs);
+        }
+        .component-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin: 14px 0;
+        }
+    </style>
+</head>
+<body style="background-color: #F1F5F9; padding-bottom: 80px;">
+
+    <div style="background: var(--brand-navy); color: white; padding: 28px 40px; margin-bottom: 32px; border-bottom: 4px solid var(--brand-red);">
+        <div style="max-width: var(--content-max-width); margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <img src="../../static/images/logo-ute-express.png" alt="UTE Express" style="height: 60px; background: white; padding: 4px 10px; border-radius: var(--radius-md);">
+                <div>
+                    <h1 style="color: white; font-size: 24px;">UTE Express - Design System & Component Library</h1>
+                    <p style="color: #94A3B8; font-size: 13.5px; margin-top: 2px;">Tông màu chuẩn nhận diện: <strong>Trắng - Xanh Dương UTE - Đỏ Chuyển Phát Nhanh</strong></p>
+                </div>
+            </div>
+            <div>
+                <a href="guest/03-index.html" class="btn btn-primary">Xem Trang Chủ Public</a>
+            </div>
+        </div>
+    </div>
+
+    <div style="max-width: var(--content-max-width); margin: 0 auto; padding: 0 24px;">
+
+        <!-- 1. COLOR STYLES -->
+        <div class="section-box">
+            <h2>1. Bảng Màu Chuẩn (Color Styles)</h2>
+            <p style="color: var(--text-secondary); margin-top: 4px;">Màu sắc nhận diện thương hiệu và các màu trạng thái phục vụ luồng nghiệp vụ vận chuyển logistics.</p>
+            
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #E31B23;">#E31B23</div>
+                    <div class="color-meta">
+                        <div class="color-name">Brand Red (Đỏ UTE Express)</div>
+                        <div class="color-hex">Nút bấm chính, điểm nhấn, vạch tốc độ</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #184E94;">#184E94</div>
+                    <div class="color-meta">
+                        <div class="color-name">Brand Blue (Xanh UTE)</div>
+                        <div class="color-hex">Màu trường HCMUTE, tiêu đề, link</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #FFFFFF; color: #0F172A; border-bottom: 1px solid #E2E8F0;">#FFFFFF</div>
+                    <div class="color-meta">
+                        <div class="color-name">Pure White (Trắng)</div>
+                        <div class="color-hex">Nền thẻ, Header, tương phản</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #16A34A;">#16A34A</div>
+                    <div class="color-meta">
+                        <div class="color-name">Success (Xanh lá)</div>
+                        <div class="color-hex">Giao thành công, Hoạt động</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #2563EB;">#2563EB</div>
+                    <div class="color-meta">
+                        <div class="color-name">Info (Xanh dương)</div>
+                        <div class="color-hex">Đang vận chuyển, Xử lý</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #D97706;">#D97706</div>
+                    <div class="color-meta">
+                        <div class="color-name">Warning (Cam)</div>
+                        <div class="color-hex">Đang giao, Chờ tiếp nhận</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #DC2626;">#DC2626</div>
+                    <div class="color-meta">
+                        <div class="color-name">Danger / Error (Đỏ)</div>
+                        <div class="color-hex">Hủy, Lỗi, Bị khóa, Quá tải</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #64748B;">#64748B</div>
+                    <div class="color-meta">
+                        <div class="color-name">Neutral Gray (Xám)</div>
+                        <div class="color-hex">Mới tạo, Chưa xử lý</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1.1 SIDEBAR & DASHBOARD MENU STYLES -->
+        <div class="section-box">
+            <h2>1.1 Bảng Màu Thanh Menu Dashboard (UTE Blue & Vàng Đất)</h2>
+            <p style="color: var(--text-secondary); margin-top: 4px;">Quy chuẩn màu sắc thanh điều hướng Dashboard theo nhận diện: Nền ưu tiên <strong>Xanh UTE</strong>, Chữ chức năng <strong>Màu Trắng</strong>, và khi nhấn/chọn đổi sang <strong>Màu Vàng Đất</strong>.</p>
+            
+            <div class="color-grid" style="margin-top: 16px;">
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #184E94; color: #FFFFFF;">#184E94</div>
+                    <div class="color-meta">
+                        <div class="color-name">Sidebar Background</div>
+                        <div class="color-hex">--sidebar-bg (Nền xanh UTE chủ đạo)</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #123C73; color: #FFFFFF;">#123C73</div>
+                    <div class="color-meta">
+                        <div class="color-name">Header & Footer BG</div>
+                        <div class="color-hex">--sidebar-header-bg / footer (Xanh UTE đậm)</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #FFFFFF; color: #0F172A; border-bottom: 1px solid #E2E8F0;">#FFFFFF</div>
+                    <div class="color-meta">
+                        <div class="color-name">Menu Item Text</div>
+                        <div class="color-hex">--sidebar-text (Chữ chức năng màu trắng)</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: #E5A93C; color: #0D2C54; font-weight: 700;">#E5A93C</div>
+                    <div class="color-meta">
+                        <div class="color-name">Active / Selected Text</div>
+                        <div class="color-hex">--sidebar-item-active-text (Màu Vàng Đất)</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: rgba(0, 0, 0, 0.22); color: #E5A93C; font-weight: 700;">rgba(0,0,0,0.22)</div>
+                    <div class="color-meta">
+                        <div class="color-name">Active Item Background</div>
+                        <div class="color-hex">--sidebar-item-active-bg (Nền mục đang chọn)</div>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-preview" style="background-color: rgba(255, 255, 255, 0.12); color: #FFFFFF;">rgba(255,255,255,0.12)</div>
+                    <div class="color-meta">
+                        <div class="color-name">Hover Background</div>
+                        <div class="color-hex">--sidebar-item-hover-bg (Rê chuột lướt nhẹ)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mini Sidebar Preview Demo -->
+            <div style="margin-top: 24px; padding: 20px; background: #F8FAFC; border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+                <div style="font-size: 13px; font-weight: 700; color: var(--brand-blue); margin-bottom: 12px;">MÔ PHỎNG THANH MENU DASHBOARD THỰC TẾ:</div>
+                <div style="max-width: 260px; background: #184E94; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; box-shadow: 0 8px 24px rgba(11,25,44,0.2); overflow: hidden;">
+                    <div style="padding: 12px 14px; background: #123C73; border-bottom: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: space-between;">
+                        <img src="../../static/images/logo-ute-express.png" alt="Logo" style="height: 32px; background: white; padding: 2px 6px; border-radius: 4px;">
+                        <span style="font-size: 10px; font-weight: 600; padding: 2px 7px; background: rgba(229,169,60,0.2); color: #FCD34D; border: 1px solid rgba(229,169,60,0.4); border-radius: 12px;">Khách hàng</span>
+                    </div>
+                    <div style="padding: 10px 8px; display: flex; flex-direction: column; gap: 3px;">
+                        <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.65); text-transform: uppercase; padding: 6px 10px 2px;">Nghiệp vụ</div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(0,0,0,0.22); color: #E5A93C; font-weight: 600; font-size: 13px; border-left: 3.5px solid #E5A93C; border-radius: 0 4px 4px 0;">
+                            <span style="color: #E5A93C;">📦</span> <span>Tổng quan (Active - Vàng Đất)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; color: #FFFFFF; font-size: 13px; border-radius: 4px;">
+                            <span style="color: rgba(255,255,255,0.85);">➕</span> <span>Tạo đơn hàng</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; color: #FFFFFF; font-size: 13px; border-radius: 4px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: rgba(255,255,255,0.85);">📋</span> <span>Đơn hàng của tôi</span>
+                            </div>
+                            <span style="background: #E5A93C; color: #0D2C54; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px;">12</span>
+                        </div>
+                    </div>
+                    <div style="padding: 10px 14px; background: #123C73; border-top: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; background: #E5A93C; color: #0D2C54; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">KH</div>
+                        <div>
+                            <div style="font-size: 12px; font-weight: 600; color: #FFFFFF;">Nguyễn Văn An</div>
+                            <div style="font-size: 10.5px; color: rgba(255,255,255,0.7);">KH000123</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. TYPOGRAPHY -->
+        <div class="section-box">
+            <h2>2. Hệ Thống Typography (Font Inter)</h2>
+            <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <h1>Heading 1 - Quản lý chuỗi giao nhận UTE Express</h1>
+                    <span style="color: var(--text-muted); font-size: 13px;">28px / SemiBold 700</span>
+                </div>
+                <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <h2>Heading 2 - Danh sách kiện hàng tại kho trung chuyển</h2>
+                    <span style="color: var(--text-muted); font-size: 13px;">22px / SemiBold 600</span>
+                </div>
+                <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <h3>Heading 3 - Thông tin chi tiết vận đơn DH000101</h3>
+                    <span style="color: var(--text-muted); font-size: 13px;">18px / SemiBold 600</span>
+                </div>
+                <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <p style="font-size: var(--body-size);">Body Text - Hệ thống logistics tự động điều phối xe tải, quản lý hành trình và theo dõi trạng thái giao hàng công khai.</p>
+                    <span style="color: var(--text-muted); font-size: 13px;">14px / Regular 400</span>
+                </div>
+                <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                    <span style="font-size: var(--caption-size); color: var(--text-muted);">Caption - Cập nhật lần cuối: 22/09/2026 14:30 bởi NV Điều phối</span>
+                    <span style="color: var(--text-muted); font-size: 13px;">12px / Regular 400</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. BUTTONS -->
+        <div class="section-box">
+            <h2>3. Nút Bấm (Button Components & Variants)</h2>
+            <div class="component-row">
+                <button class="btn btn-primary">Primary Button</button>
+                <button class="btn btn-secondary">Secondary Button</button>
+                <button class="btn btn-outline-primary">Outline Primary</button>
+                <button class="btn btn-danger">Danger / Hủy</button>
+                <button class="btn btn-ghost">Ghost Button</button>
+                <button class="btn btn-primary" disabled>Disabled</button>
+            </div>
+            <div class="component-row" style="margin-top: 14px;">
+                <button class="btn btn-primary btn-sm">Small Size (btn-sm)</button>
+                <button class="btn btn-primary">Medium Size (Default)</button>
+                <button class="btn btn-primary btn-lg">Large Size (btn-lg)</button>
+                <button class="btn btn-primary">
+                    <span class="spinner"></span> Đang xử lý...
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. STATUS BADGES -->
+        <div class="section-box">
+            <h2>4. Huy Hiệu Trạng Thái Thống Nhất (Status Badges)</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Tất cả trạng thái đơn hàng, chuyến giao, thanh toán và tài khoản theo đúng chu trình nghiệp vụ:</p>
+            
+            <h4 style="margin: 12px 0 6px; color: var(--text-secondary);">Trạng thái đơn hàng:</h4>
+            <div class="component-row">
+                <span class="badge badge-gray"><span class="badge-dot"></span>Mới tạo</span>
+                <span class="badge badge-warning"><span class="badge-dot"></span>Đã tiếp nhận</span>
+                <span class="badge badge-info"><span class="badge-dot"></span>Đang vận chuyển</span>
+                <span class="badge badge-warning"><span class="badge-dot"></span>Đến kho</span>
+                <span class="badge badge-warning"><span class="badge-dot"></span>Đang giao</span>
+                <span class="badge badge-success"><span class="badge-dot"></span>Giao thành công</span>
+                <span class="badge badge-danger"><span class="badge-dot"></span>Hủy</span>
+                <span class="badge badge-danger"><span class="badge-dot"></span>Trả hàng</span>
+            </div>
+
+            <h4 style="margin: 16px 0 6px; color: var(--text-secondary);">Trạng thái chuyến giao & Tài khoản & Thanh toán:</h4>
+            <div class="component-row">
+                <span class="badge badge-gray"><span class="badge-dot"></span>Chưa xuất phát</span>
+                <span class="badge badge-info"><span class="badge-dot"></span>Đang thực hiện</span>
+                <span class="badge badge-success"><span class="badge-dot"></span>Hoàn thành</span>
+                <span class="badge badge-success"><span class="badge-dot"></span>Tài khoản: Hoạt động</span>
+                <span class="badge badge-danger"><span class="badge-dot"></span>Tài khoản: Bị khóa</span>
+                <span class="badge badge-warning"><span class="badge-dot"></span>Chưa thanh toán</span>
+                <span class="badge badge-success"><span class="badge-dot"></span>Đã thanh toán</span>
+            </div>
+        </div>
+
+        <!-- 5. STATISTIC CARDS -->
+        <div class="section-box">
+            <h2>5. Thẻ Thống Kê (Statistic Cards)</h2>
+            <div class="grid-4" style="margin-top: 16px;">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Tổng số đơn hàng</span>
+                        <span class="stat-value">1,482</span>
+                        <span class="stat-change up">↑ +12.5% so với tuần trước</span>
+                    </div>
+                    <div class="stat-icon">📦</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Đang vận chuyển</span>
+                        <span class="stat-value">128</span>
+                        <span class="stat-change" style="color: var(--info);">32 xe tải đang chạy</span>
+                    </div>
+                    <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">🚚</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Giao thành công</span>
+                        <span class="stat-value">1,310</span>
+                        <span class="stat-change up">98.2% tỷ lệ hoàn thành</span>
+                    </div>
+                    <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">✓</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Đơn hủy / Trả hàng</span>
+                        <span class="stat-value">14</span>
+                        <span class="stat-change down">↓ Giảm 2.1%</span>
+                    </div>
+                    <div class="stat-icon" style="background: var(--danger-bg); color: var(--danger);">✕</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. LOGISTICS STEPPER / TIMELINE -->
+        <div class="section-box">
+            <h2>6. Stepper Tiến Trình Đơn Hàng (Logistics Stepper)</h2>
+            <p style="color: var(--text-secondary);">Mô phỏng chu trình 6 bước luân chuyển vận đơn:</p>
+            
+            <div class="stepper-horizontal">
+                <div class="stepper-step completed">
+                    <div class="stepper-circle">✓</div>
+                    <div class="stepper-label">1. Mới tạo</div>
+                </div>
+                <div class="stepper-step completed">
+                    <div class="stepper-circle">✓</div>
+                    <div class="stepper-label">2. Đã tiếp nhận</div>
+                </div>
+                <div class="stepper-step active">
+                    <div class="stepper-circle">3</div>
+                    <div class="stepper-label">3. Đang vận chuyển</div>
+                </div>
+                <div class="stepper-step">
+                    <div class="stepper-circle">4</div>
+                    <div class="stepper-label">4. Đến kho</div>
+                </div>
+                <div class="stepper-step">
+                    <div class="stepper-circle">5</div>
+                    <div class="stepper-label">5. Đang giao</div>
+                </div>
+                <div class="stepper-step">
+                    <div class="stepper-circle">6</div>
+                    <div class="stepper-label">6. Giao thành công</div>
+                </div>
+            </div>
+
+            <div style="max-width: 500px; margin: 24px auto 0;">
+                <h4 style="margin-bottom: 12px;">Timeline Hành Trình Chi Tiết:</h4>
+                <div class="timeline">
+                    <div class="timeline-item completed">
+                        <div class="timeline-point"></div>
+                        <div class="timeline-time">22/09/2026 08:30</div>
+                        <div class="timeline-title">Đơn hàng đã được tạo thành công</div>
+                        <div class="timeline-desc">Người gửi: Nguyễn Văn An - Đã ghi nhận hệ thống</div>
+                    </div>
+                    <div class="timeline-item completed">
+                        <div class="timeline-point"></div>
+                        <div class="timeline-time">22/09/2026 09:15</div>
+                        <div class="timeline-title">Bưu cục đã tiếp nhận kiện hàng</div>
+                        <div class="timeline-desc">Bưu cục Thủ Đức đã cân đo (2.5kg) và dán mã kiện KIEN000101</div>
+                    </div>
+                    <div class="timeline-item active">
+                        <div class="timeline-point"></div>
+                        <div class="timeline-time">22/09/2026 10:45 (Hiện tại)</div>
+                        <div class="timeline-title">Đang vận chuyển liên kho</div>
+                        <div class="timeline-desc">Chuyến CG00012 do Tài xế Trần Văn Dũng (Xe 51C-987.65) vận chuyển về Kho Q1</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. FORM CONTROLS & TABLE -->
+        <div class="section-box">
+            <h2>7. Form Controls & Bảng Dữ Liệu Chuẩn</h2>
+            <div class="grid-2" style="margin-top: 16px;">
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Họ và tên <span class="required">*</span></label>
+                        <input type="text" class="form-control" value="Trần Văn Dũng" placeholder="Nhập họ tên...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Chọn Bưu cục / Kho phụ trách</label>
+                        <select class="form-select">
+                            <option>Kho Trung tâm Thủ Đức (Hub)</option>
+                            <option>Bưu cục Quận 1</option>
+                            <option>Bưu cục Tân Bình</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tìm kiếm vận đơn (Search Input)</label>
+                        <div class="search-input-wrapper">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" class="form-control" placeholder="Nhập mã đơn hàng hoặc SĐT...">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái xác thực (Validation Error State)</label>
+                        <input type="text" class="form-control is-invalid" value="nguyenvana">
+                        <div class="form-error">Tài khoản đã tồn tại trong hệ thống!</div>
+                    </div>
+                    <div style="margin-top: 24px; display: flex; gap: 14px;">
+                        <button class="btn btn-primary" onclick="showToast('Thông báo thành công', 'Đã lưu thông tin tuyến vận chuyển!', 'success')">Bật Toast Thành Công</button>
+                        <button class="btn btn-danger" onclick="showToast('Cảnh báo quá tải', 'Phương tiện không đủ tải trọng!', 'danger')">Bật Toast Cảnh Báo</button>
+                        <button class="btn btn-secondary" onclick="openModal('demoModal')">Mở Modal Demo</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- DEMO MODAL -->
+    <div class="modal-backdrop" id="demoModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Cập nhật kho hiện tại cho kiện hàng</h3>
+                <button class="modal-close" onclick="closeModal('demoModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Mã kiện hàng</label>
+                    <input type="text" class="form-control" value="KIEN000101" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kho nhận tiếp theo</label>
+                    <select class="form-select">
+                        <option>Kho Trung tâm Thủ Đức</option>
+                        <option selected>Bưu cục Quận 1</option>
+                        <option>Bưu cục Tân Bình</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ghi chú xác nhận</label>
+                    <textarea class="form-control" rows="3" placeholder="Nhập tình trạng hàng hóa khi nhập kho..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('demoModal')">Hủy bỏ</button>
+                <button class="btn btn-primary" onclick="closeModal('demoModal'); showToast('Thành công', 'Đã cập nhật vị trí kho mới.', 'success');">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/js/components.js"></script>
+</body>
+</html>

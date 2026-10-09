@@ -41,11 +41,28 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Bắt JpaSystemException và DataAccessException - phát sinh từ Stored Procedure gọi qua Spring Data JPA.
+     */
+    @ExceptionHandler({org.springframework.orm.jpa.JpaSystemException.class, org.springframework.dao.DataAccessException.class})
+    public ResponseEntity<ApiResponse<Void>> handleJpaAndDataAccessException(Exception ex) {
+        String message = extractMessage(ex.getMessage());
+        if (ex.getCause() != null) {
+            String causeMsg = extractMessage(ex.getCause().getMessage());
+            if (causeMsg != null && !causeMsg.isBlank()) {
+                message = causeMsg;
+            }
+        }
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(message));
+    }
+
+    /**
      * Bắt RuntimeException (bao gồm lỗi nghiệp vụ từ Service).
      */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
-        String message = ex.getMessage() != null ? ex.getMessage() : "Đã xảy ra lỗi không xác định";
+        String message = extractMessage(ex.getMessage() != null ? ex.getMessage() : "Đã xảy ra lỗi không xác định");
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(message));
@@ -58,7 +75,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleException(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Lỗi hệ thống: " + ex.getMessage()));
+                .body(ApiResponse.error("Lỗi hệ thống: " + extractMessage(ex.getMessage())));
     }
 
     // ========================== PRIVATE HELPERS ==========================
@@ -81,18 +98,24 @@ public class GlobalExceptionHandler {
     private String extractMessage(String rawMessage) {
         if (rawMessage == null) return "Lỗi không xác định";
 
-        // PostgreSQL message thường có format: "ERROR: <message>\n  Where: ..."
         String message = rawMessage;
+        int errorIdx = message.indexOf("ERROR: ");
+        if (errorIdx >= 0) {
+            message = message.substring(errorIdx + 7);
+        }
 
-        // Lấy dòng đầu tiên (loại bỏ Where, Context...)
         int newlineIdx = message.indexOf('\n');
         if (newlineIdx > 0) {
             message = message.substring(0, newlineIdx);
         }
 
-        // Loại bỏ prefix "ERROR: " nếu có
-        if (message.startsWith("ERROR: ")) {
-            message = message.substring(7);
+        int eolIdx = message.indexOf("<EOL>");
+        if (eolIdx > 0) {
+            message = message.substring(0, eolIdx);
+        }
+
+        if (message.endsWith("]")) {
+            message = message.substring(0, message.length() - 1);
         }
 
         return message.trim();

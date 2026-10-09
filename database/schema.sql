@@ -114,11 +114,11 @@ CREATE TABLE chuyen_giao (
         (loai_chuyen = 'GIAO_CUOI' AND ma_tuyen IS NULL     AND ma_kho_giao IS NOT NULL)),
     CONSTRAINT ck_cg_thoi_gian CHECK (ngay_den_du_kien > ngay_xuat_phat),
     CONSTRAINT ck_cg_thuc CHECK (ngay_den IS NULL OR ngay_xuat_phat_thuc IS NULL OR ngay_den >= ngay_xuat_phat_thuc),
-    -- Một tài xế / một xe không được có 2 chuyến chồng thời gian
+    -- Một tài xế / một xe không được có 2 chuyến chồng thời gian (chỉ xét chuyến chưa đi hoặc đang đi)
     CONSTRAINT ex_cg_tx_trung_lich EXCLUDE USING gist
-        (ma_tx WITH =, tsrange(ngay_xuat_phat, ngay_den_du_kien) WITH &&) WHERE (trang_thai <> 'Đã hủy'),
+        (ma_tx WITH =, tsrange(ngay_xuat_phat, ngay_den_du_kien) WITH &&) WHERE (trang_thai IN ('Chưa đi', 'Đang đi')),
     CONSTRAINT ex_cg_pt_trung_lich EXCLUDE USING gist
-        (ma_pt WITH =, tsrange(ngay_xuat_phat, ngay_den_du_kien) WITH &&) WHERE (trang_thai <> 'Đã hủy')
+        (ma_pt WITH =, tsrange(ngay_xuat_phat, ngay_den_du_kien) WITH &&) WHERE (trang_thai IN ('Chưa đi', 'Đang đi'))
 );
 
 -- 10. TRẠNG THÁI ĐƠN HÀNG

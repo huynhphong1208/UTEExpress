@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12 – Dashboard Điều phối - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+    <style>
+        .interactive-card {
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            border: 2px solid transparent !important;
+            user-select: none;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.12), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+        }
+
+        .interactive-card.active-card {
+            border-color: #2563EB !important;
+            background: linear-gradient(180deg, #F0F7FF 0%, #FFFFFF 100%) !important;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18) !important;
+        }
+
+        .stt-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .click-hint {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            margin-top: 8px;
+            font-weight: 500;
+            color: #64748B;
+            transition: color 0.2s;
+        }
+
+        .interactive-card:hover .click-hint,
+        .interactive-card.active-card .click-hint {
+            color: #2563EB;
+            font-weight: 600;
+        }
+
+        .tab-nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-md, 8px);
+            font-weight: 600;
+            font-size: 13.5px;
+            border: 1px solid var(--border-color, #E2E8F0);
+            background: #FFFFFF;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-nav-btn:hover {
+            background: #F8FAFC;
+            color: #1E293B;
+            border-color: #CBD5E1;
+        }
+
+        .tab-nav-btn.active {
+            background: #2563EB;
+            color: #FFFFFF;
+            border-color: #2563EB;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .badge-count {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 12px;
+            font-size: 11.5px;
+            background: rgba(0, 0, 0, 0.08);
+            font-weight: 700;
+        }
+
+        .tab-nav-btn.active .badge-count {
+            background: rgba(255, 255, 255, 0.25);
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="12-dashboard.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA;">Điều
+                    phối</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Điều hành vận tải</div>
+                <a href="12-dashboard.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Dashboard Điều phối</span>
+                </a>
+                <a href="13-routes.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    <span>Tuyến vận chuyển</span>
+                </a>
+                <a href="14-trips.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    <span>Quản lý chuyến giao</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="12-dashboard.html" class="nav-item" style="color: #F87171; margin-top: auto;"
+                    onclick="showToast('Đăng xuất', 'Đã đăng xuất hệ thống.', 'info')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #2563EB;">DP</div>
+                <div class="user-info">
+                    <div class="user-name">Đặng Quốc Huy</div>
+                    <div class="user-sub">NV Điều phối (NV003)</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="header-search">
+                    <div class="search-input-wrapper">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input type="text" class="form-control" id="headerGlobalSearch"
+                            placeholder="Tìm kiếm nhanh đơn, chuyến, tài xế, xe..."
+                            oninput="onGlobalSearch(this.value)">
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="14-trips.html" class="btn btn-primary btn-sm">+ Lập chuyến giao mới</a>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <div class="breadcrumbs">
+                            <a href="#">Điều phối</a> <span>/</span> <span>Dashboard</span>
+                        </div>
+                        <h1 class="page-title">Bảng điều phối vận tải & Giám sát vận hành</h1>
+                        <p class="page-subtitle">Nhấn vào từng thẻ thống kê bên dưới để xem danh sách chi tiết và thực
+                            hiện phân công</p>
+                    </div>
+                </div>
+
+                <!-- 4 STATISTIC CARDS CHUẨN STT 1 ĐẾN 4 -->
+                <div class="grid-4" style="margin-bottom: 20px;">
+                    <!-- STT 1: ĐƠN CẦN ĐIỀU PHỐI -->
+                    <div class="stat-card interactive-card active-card" id="cardStt1" onclick="switchTab(1)"
+                        title="Nhấn để xem danh sách đơn chờ điều phối">
+                        <div class="stat-info">
+                            <span class="stt-pill" style="background: rgba(239, 68, 68, 0.12); color: #DC2626;">Thẻ
+                                1</span>
+                            <span class="stat-label">Đơn cần điều phối</span>
+                            <span class="stat-value" id="statDonCanDieuPhoi" style="color: #DC2626;">...</span>
+                            <div class="click-hint">
+                                <span> Nhấn xem & gán chuyến</span>
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #DC2626;">📦</div>
+                    </div>
+
+                    <!-- STT 2: CHUYẾN ĐANG CHẠY -->
+                    <div class="stat-card interactive-card" id="cardStt2" onclick="switchTab(2)"
+                        title="Nhấn để xem danh sách chuyến đang chạy">
+                        <div class="stat-info">
+                            <span class="stt-pill" style="background: rgba(37, 99, 235, 0.12); color: #2563EB;">Thẻ
+                                2</span>
+                            <span class="stat-label">Chuyến đang chạy</span>
+                            <span class="stat-value" id="statChuyenDangChay" style="color: #2563EB;">...</span>
+                            <div class="click-hint">
+                                <span> Giám sát tiến độ</span>
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(37, 99, 235, 0.1); color: #2563EB;">🚚</div>
+                    </div>
+
+                    <!-- STT 3: TÀI XẾ KHẢ DỤNG -->
+                    <div class="stat-card interactive-card" id="cardStt3" onclick="switchTab(3)"
+                        title="Nhấn để xem danh sách tài xế khả dụng">
+                        <div class="stat-info">
+                            <span class="stt-pill" style="background: rgba(16, 185, 129, 0.12); color: #059669;">Thẻ
+                                3</span>
+                            <span class="stat-label">Tài xế khả dụng</span>
+                            <span class="stat-value" id="statTaiXeKhaDung" style="color: #059669;">...</span>
+                            <div class="click-hint">
+                                <span> Sẵn sàng nhận chuyến</span>
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #059669;">👨‍✈️</div>
+                    </div>
+
+                    <!-- STT 4: XE KHẢ DỤNG -->
+                    <div class="stat-card interactive-card" id="cardStt4" onclick="switchTab(4)"
+                        title="Nhấn để xem danh sách xe khả dụng">
+                        <div class="stat-info">
+                            <span class="stt-pill" style="background: rgba(245, 158, 11, 0.12); color: #D97706;">Thẻ
+                                4</span>
+                            <span class="stat-label">Xe khả dụng</span>
+                            <span class="stat-value" id="statXeKhaDung" style="color: #D97706;">...</span>
+                            <div class="click-hint">
+                                <span> Sẵn sàng sử dụng</span>
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #D97706;">🚛</div>
+                    </div>
+                </div>
+
+                <div class="card" id="detailSection">
+                    <div class="card-header"
+                        style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+                        <!-- Tiêu đề chi tiết danh mục đang chọn từ các thẻ lớn phía trên -->
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h3 class="card-title" id="activeSectionTitle"
+                                style="margin: 0; font-size: 16px; font-weight: 700; color: #1E293B;">
+                                📦 Đơn cần điều phối
+                            </h3>
+                            <span class="badge badge-primary" id="activeSectionBadge">0 đơn/kiện</span>
+                        </div>
+
+                        <!-- Search & Action Buttons -->
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <input type="text" class="form-control form-control-sm" id="tableFilterInput"
+                                placeholder="Lọc trong danh sách..." style="width: 230px;"
+                                oninput="onFilterTable(this.value)">
+                            <a href="14-trips.html" class="btn btn-primary btn-sm" id="tabActionButton">
+                                🚀 Lập chuyến & Gán đơn
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- PANE 1: ĐƠN CẦN ĐIỀU PHỐI (STT 1) -->
+                    <div class="tab-pane active" id="tabPane1">
+                        <div
+                            style="padding: 12px 20px; background: #FEF2F2; border-bottom: 1px solid #FEE2E2; font-size: 13.5px; color: #991B1B; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                📌 <strong>Tổng số đơn/kiện đang chờ điều phối, chờ xuất bến:</strong> Nhân viên kiểm
+                                tra và gán vào các chuyến liên kho hoặc giao cuối phù hợp.
+                            </div>
+
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã kiện</th>
+                                        <th>Mã đơn</th>
+                                        <th>Loại hàng</th>
+                                        <th>Khối lượng</th>
+                                        <th>Kho hiện tại</th>
+                                        <th>Kho nhận / Nơi giao</th>
+                                        <th>Người nhận & SĐT</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyPendingPackages">
+                                    <tr>
+                                        <td colspan="8"
+                                            style="text-align: center; color: var(--text-muted); padding: 24px;">Đang
+                                            tải danh sách đơn cần điều phối...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- PANE 2: CHUYẾN ĐANG CHẠY (STT 2) -->
+                    <div class="tab-pane" id="tabPane2">
+                        <div
+                            style="padding: 12px 20px; background: #EFF6FF; border-bottom: 1px solid #DBEAFE; font-size: 13.5px; color: #1E40AF;">
+                            🚚 <strong>Danh sách các chuyến đang chạy (trạng thái: Đang đi):</strong> Giám sát thời gian
+                            xuất phát, thời gian dự kiến và tình trạng kiện hàng trên từng chuyến.
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã chuyến</th>
+                                        <th>Tuyến vận chuyển</th>
+                                        <th>Tài xế</th>
+                                        <th>Phương tiện</th>
+                                        <th>Tải trọng / Đã xếp</th>
+                                        <th>Thời gian xuất phát</th>
+                                        <th>Ngày đến dự kiến</th>
+                                        <th>Trạng thái</th>
+                                        <th>Chi tiết kiện</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyRunningTrips">
+                                    <tr>
+                                        <td colspan="9"
+                                            style="text-align: center; color: var(--text-muted); padding: 24px;">Đang
+                                            tải danh sách chuyến đang chạy...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- PANE 3: TÀI XẾ KHẢ DỤNG (STT 3) -->
+                    <div class="tab-pane" id="tabPane3">
+                        <div
+                            style="padding: 12px 20px; background: #ECFDF5; border-bottom: 1px solid #D1FAE5; font-size: 13.5px; color: #065F46;">
+                            👨‍✈️ <strong>Danh sách tài xế khả dụng:</strong> Các tài xế đang sẵn sàng nhận phân công,
+                            không bị trùng lịch chuyến đang vận chuyển.
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã tài xế</th>
+                                        <th>Họ và tên</th>
+                                        <th>Số điện thoại</th>
+                                        <th>Hạng bằng lái</th>
+                                        <th>Tài khoản</th>
+                                        <th>Thông tin phân công hiện tại</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyAvailableDrivers">
+                                    <tr>
+                                        <td colspan="7"
+                                            style="text-align: center; color: var(--text-muted); padding: 24px;">Đang
+                                            tải danh sách tài xế khả dụng...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- PANE 4: XE KHẢ DỤNG (STT 4) -->
+                    <div class="tab-pane" id="tabPane4">
+                        <div
+                            style="padding: 12px 20px; background: #FFFBEB; border-bottom: 1px solid #FEF3C7; font-size: 13.5px; color: #92400E;">
+                            🚛 <strong>Danh sách xe khả dụng:</strong> Các phương tiện có trạng thái Sẵn sàng, không bảo
+                            trì và không bị trùng lịch chuyến đang chạy.
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã phương tiện</th>
+                                        <th>Biển số</th>
+                                        <th>Loại xe</th>
+                                        <th>Tải trọng tối đa</th>
+                                        <th>Trạng thái</th>
+                                        <th>Chuyến hiện tại / gần nhất</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyAvailableVehicles">
+                                    <tr>
+                                        <td colspan="7"
+                                            style="text-align: center; color: var(--text-muted); padding: 24px;">Đang
+                                            tải danh sách xe khả dụng...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL XEM NHANH TÌNH TRẠNG KIỆN HÀNG TRÊN TỪNG CHUYẾN -->
+    <div class="modal-backdrop" id="modalKienChuyen">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalKienChuyenTitle">Tình trạng kiện hàng trên chuyến</h3>
+                <button class="modal-close" onclick="closeModal('modalKienChuyen')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã kiện</th>
+                                <th>Thời gian gán</th>
+                                <th>Thời gian quét</th>
+                                <th>Trạng thái kiện</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalKienTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">
+                                    Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalKienChuyen')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/api-client.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        // State storage
+        let currentTab = 1;
+        let pendingPackagesData = [];
+        let runningTripsData = [];
+        let availableDriversData = [];
+        let availableVehiclesData = [];
+
+        // LOAD DASHBOARD DATA
+        async function loadDashboardData() {
+            try {
+                // 1. Thống kê tổng quan
+                const dashRes = await UteApi.getDispatcherDashboard();
+                if (dashRes && dashRes.success && dashRes.data) {
+                    const d = dashRes.data;
+                    document.getElementById('statDonCanDieuPhoi').innerText = d.donCanDieuPhoi ?? 0;
+                    document.getElementById('statChuyenDangChay').innerText = d.chuyenDangDi ?? (d.chuyenDangHoatDong ?? 0);
+                    document.getElementById('statTaiXeKhaDung').innerText = d.taiXeKhaDung ?? 0;
+                    document.getElementById('statXeKhaDung').innerText = d.phuongTienKhaDung ?? 0;
+                }
+
+                // 2. Tải song song danh sách chi tiết của 4 STT
+                const [pRes, rRes, dRes, vRes] = await Promise.allSettled([
+                    UteApi.getPendingDispatches(),
+                    UteApi.getRunningTrips(),
+                    UteApi.getAvailableDrivers(),
+                    UteApi.getAvailableVehicles()
+                ]);
+
+                // STT 1: Đơn cần điều phối
+                if (pRes.status === 'fulfilled' && pRes.value && pRes.value.success) {
+                    pendingPackagesData = pRes.value.data || [];
+                    document.getElementById('statDonCanDieuPhoi').innerText = pendingPackagesData.length;
+                    renderPendingPackages(pendingPackagesData);
+                } else {
+                    document.getElementById('tbodyPendingPackages').innerHTML = `
+                        <tr><td colspan="10" style="text-align:center; color: var(--text-muted); padding: 24px;">Không có kiện hàng nào cần điều phối.</td></tr>`;
+                }
+
+                // STT 2: Chuyến đang chạy
+                if (rRes.status === 'fulfilled' && rRes.value && rRes.value.success) {
+                    runningTripsData = rRes.value.data || [];
+                    document.getElementById('statChuyenDangChay').innerText = runningTripsData.length;
+                    renderRunningTrips(runningTripsData);
+                } else {
+                    document.getElementById('tbodyRunningTrips').innerHTML = `
+                        <tr><td colspan="9" style="text-align:center; color: var(--text-muted); padding: 24px;">Không có chuyến nào đang chạy.</td></tr>`;
+                }
+
+                // STT 3: Tài xế khả dụng
+                if (dRes.status === 'fulfilled' && dRes.value && dRes.value.success) {
+                    availableDriversData = dRes.value.data || [];
+                    document.getElementById('statTaiXeKhaDung').innerText = availableDriversData.length;
+                    renderAvailableDrivers(availableDriversData);
+                } else {
+                    document.getElementById('tbodyAvailableDrivers').innerHTML = `
+                        <tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Không tìm thấy dữ liệu tài xế khả dụng.</td></tr>`;
+                }
+
+                // STT 4: Xe khả dụng
+                if (vRes.status === 'fulfilled' && vRes.value && vRes.value.success) {
+                    availableVehiclesData = vRes.value.data || [];
+                    document.getElementById('statXeKhaDung').innerText = availableVehiclesData.length;
+                    renderAvailableVehicles(availableVehiclesData);
+                } else {
+                    document.getElementById('tbodyAvailableVehicles').innerHTML = `
+                        <tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Không tìm thấy phương tiện khả dụng.</td></tr>`;
+                }
+
+                // Cập nhật nhãn và số lượng cho mục chi tiết hiện tại
+                updateHeaderInfo(currentTab);
+
+            } catch (err) {
+                console.error('Lỗi tải dữ liệu dashboard:', err);
+                showToast('Lỗi hệ thống', 'Không thể kết nối đến máy chủ: ' + err.message, 'error');
+            }
+        }
+
+        // Cập nhật tiêu đề và huy hiệu số lượng ở đầu bảng chi tiết
+        function updateHeaderInfo(tabIndex) {
+            const titleEl = document.getElementById('activeSectionTitle');
+            const badgeEl = document.getElementById('activeSectionBadge');
+            const actBtn = document.getElementById('tabActionButton');
+
+            if (tabIndex === 1) {
+                if (titleEl) titleEl.innerHTML = '📦 Đơn cần điều phối';
+                if (badgeEl) {
+                    badgeEl.className = 'badge badge-primary';
+                    badgeEl.innerText = `${pendingPackagesData.length} đơn/kiện`;
+                }
+                if (actBtn) {
+                    actBtn.innerText = '🚀 Tạo chuyến & Gán đơn';
+                    actBtn.href = '14-trips.html';
+                }
+            } else if (tabIndex === 2) {
+                if (titleEl) titleEl.innerHTML = '🚚 Chuyến đang chạy';
+                if (badgeEl) {
+                    badgeEl.className = 'badge badge-info';
+                    badgeEl.innerText = `${runningTripsData.length} chuyến`;
+                }
+                if (actBtn) {
+                    actBtn.innerText = '🗺️ Quản lý & Lập chuyến mới';
+                    actBtn.href = '14-trips.html';
+                }
+            } else if (tabIndex === 3) {
+                if (titleEl) titleEl.innerHTML = '👨‍✈️ Tài xế khả dụng';
+                if (badgeEl) {
+                    badgeEl.className = 'badge badge-success';
+                    badgeEl.innerText = `${availableDriversData.length} tài xế`;
+                }
+                if (actBtn) {
+                    actBtn.innerText = '📋 Phân công chuyến';
+                    actBtn.href = '14-trips.html';
+                }
+            } else if (tabIndex === 4) {
+                if (titleEl) titleEl.innerHTML = '🚛 Xe khả dụng';
+                if (badgeEl) {
+                    badgeEl.className = 'badge badge-warning';
+                    badgeEl.innerText = `${availableVehiclesData.length} xe`;
+                }
+                if (actBtn) {
+                    actBtn.innerText = '🚛 Điều động phương tiện';
+                    actBtn.href = '14-trips.html';
+                }
+            }
+        }
+
+        // CHUYỂN TAB THEO STT 1, 2, 3, 4 KHI NHẤN CÁC THẺ LỚN PHÍA TRÊN
+        function switchTab(tabIndex) {
+            currentTab = tabIndex;
+
+            // Update Cards Active State
+            [1, 2, 3, 4].forEach(i => {
+                const card = document.getElementById(`cardStt${i}`);
+                const pane = document.getElementById(`tabPane${i}`);
+
+                if (i === tabIndex) {
+                    if (card) card.classList.add('active-card');
+                    if (pane) pane.classList.add('active');
+                } else {
+                    if (card) card.classList.remove('active-card');
+                    if (pane) pane.classList.remove('active');
+                }
+            });
+
+            // Update Header Title, Badge, and Action Button
+            updateHeaderInfo(tabIndex);
+
+            // Reset table filter input
+            document.getElementById('tableFilterInput').value = '';
+
+            // Cuộn mượt xuống khu vực chi tiết nếu người dùng nhấn
+            const detailSec = document.getElementById('detailSection');
+            if (detailSec) {
+                detailSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // RENDER STT 1: ĐƠN CẦN ĐIỀU PHỐI (Bỏ cột Thu hộ COD và Trạng thái)
+        function renderPendingPackages(list) {
+            const tbody = document.getElementById('tbodyPendingPackages');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 24px;">Không có kiện hàng nào đang chờ điều phối.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(item => {
+                const khoNhan = item.tenKhoNhan ? `Kho nhận: ${item.tenKhoNhan}` : (item.diaChiGiao || '---');
+                return `
+                    <tr>
+                        <td><strong style="color: var(--primary-blue);">${item.maKien}</strong></td>
+                        <td><strong>${item.maDh || '---'}</strong></td>
+                        <td>${item.loaiHang || 'Hàng phổ thông'}</td>
+                        <td><span style="font-weight: 600;">${item.khoiLuong ? item.khoiLuong + ' kg' : '---'}</span></td>
+                        <td><span class="badge badge-secondary">${item.tenKhoHienTai || item.maKhoHienTai || '---'}</span></td>
+                        <td style="max-width: 250px; white-space: normal;">${khoNhan}</td>
+                        <td>
+                            <div>${item.tenNguoiNhan || '---'}</div>
+                            <small style="color: var(--text-muted);">${item.sdtNhan || ''}</small>
+                        </td>
+                        <td>
+                            <a href="14-trips.html?action=create&package=${item.maKien}&warehouse=${item.maKhoHienTai || ''}" class="btn btn-primary btn-sm" title="Chuyển đến quản lý chuyến để gán">
+                                Gán chuyến
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // RENDER STT 2: CHUYẾN ĐANG CHẠY
+        function renderRunningTrips(list) {
+            const tbody = document.getElementById('tbodyRunningTrips');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color: var(--text-muted); padding: 24px;">Hiện không có chuyến giao nào đang di chuyển trên đường.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(t => {
+                const routeName = t.loaiChuyen === 'LIEN_KHO'
+                    ? `${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`
+                    : `Giao cuối: ${t.tenKhoXuatPhat || 'Kho'} ➔ Địa chỉ khách`;
+
+                const loadPercent = t.tyLeTai != null ? t.tyLeTai : 0;
+                const loadStyle = loadPercent > 100 ? 'color: var(--danger); font-weight: 700;' : 'font-weight: 600;';
+
+                const formatDep = t.ngayXuatPhat ? new Date(t.ngayXuatPhat).toLocaleString('vi-VN') : '---';
+                const formatArr = t.ngayDenDuKien ? new Date(t.ngayDenDuKien).toLocaleString('vi-VN') : '---';
+
+                return `
+                    <tr>
+                        <td><strong style="color: var(--primary-blue);">${t.maChuyen}</strong></td>
+                        <td style="max-width: 220px; white-space: normal;"><strong>${routeName}</strong></td>
+                        <td>${t.tenTaiXe || t.maTx || '---'}</td>
+                        <td>${t.bienSo || '---'} (${t.taiTrong ? t.taiTrong + ' kg' : '---'})</td>
+                        <td><span style="${loadStyle}">${(t.tongKg || 0).toLocaleString('vi-VN')} kg / ${(t.taiTrong || 0).toLocaleString('vi-VN')} kg (${loadPercent}%)</span></td>
+                        <td>${formatDep}</td>
+                        <td>${formatArr}</td>
+                        <td><span class="badge badge-info">Đang đi</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="viewTripPackages('${t.maChuyen}')">
+                                📦 Kiện (${t.soKien || 0})
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // RENDER STT 3: TÀI XẾ KHẢ DỤNG
+        function renderAvailableDrivers(list) {
+            const tbody = document.getElementById('tbodyAvailableDrivers');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Không có tài xế nào sẵn sàng.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(d => {
+                const isReady = !d.chuyenHienTai;
+                const badgeStatus = isReady
+                    ? `<span class="badge badge-success">Sẵn sàng</span>`
+                    : `<span class="badge badge-warning">Đã xếp chuyến</span>`;
+
+                return `
+                    <tr>
+                        <td><strong style="color: var(--primary-blue);">${d.maTx}</strong></td>
+                        <td><strong style="font-size: 14px;">${d.hoTen || '---'}</strong></td>
+                        <td>${d.sdt || '---'}</td>
+                        <td><span class="badge badge-secondary">${d.bangLai || '---'}</span></td>
+                        <td><span class="badge badge-success">${d.trangThaiTaiKhoan || 'Hoạt động'}</span></td>
+                        <td>
+                            <span style="${isReady ? 'color: #059669; font-weight: 600;' : 'color: #D97706; font-weight: 600;'}">
+                                ${d.thongTinPhanCong || (isReady ? 'Sẵn sàng nhận chuyến (Chưa gán)' : 'Đã phân công ' + d.chuyenHienTai)}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="14-trips.html?action=create&driver=${d.maTx}" class="btn btn-primary btn-sm">
+                                🚀 Phân công
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // RENDER STT 4: XE KHẢ DỤNG
+        function renderAvailableVehicles(list) {
+            const tbody = document.getElementById('tbodyAvailableVehicles');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Không có phương tiện nào khả dụng.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(v => {
+                const taiTrongFormatted = v.taiTrong ? Number(v.taiTrong).toLocaleString('vi-VN') + ' kg' : '---';
+                return `
+                    <tr>
+                        <td><strong style="color: var(--primary-blue);">${v.maPt}</strong></td>
+                        <td><strong style="color: #1E293B; font-size: 14px;">${v.bienSo || '---'}</strong></td>
+                        <td>${v.loaiXe || 'Xe tải'}</td>
+                        <td style="font-weight: 600; color: #2563EB;">${taiTrongFormatted}</td>
+                        <td><span class="badge badge-success">${v.trangThai || 'Sẵn sàng'}</span></td>
+                        <td>
+                            ${v.chuyenHienTai ? `<span class="badge badge-warning">Chờ chạy chuyến ${v.chuyenHienTai}</span>` : '<span style="color: #059669; font-weight: 500;">Chưa xếp chuyến</span>'}
+                        </td>
+                        <td>
+                            <a href="14-trips.html?action=create&vehicle=${v.maPt}" class="btn btn-secondary btn-sm">
+                                🚛 Điều xe
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // MODAL XEM KIỆN TRÊN CHUYẾN
+        async function viewTripPackages(maChuyen) {
+            document.getElementById('modalKienChuyenTitle').innerText = `Tình trạng kiện hàng trên chuyến ${maChuyen}`;
+            const tbody = document.getElementById('modalKienTableBody');
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">Đang tải...</td></tr>`;
+            openModal('modalKienChuyen');
+
+            try {
+                const res = await UteApi.getTripPackages(maChuyen);
+                if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+                    tbody.innerHTML = res.data.map(p => {
+                        const tgGan = p.thoiGianGan ? new Date(p.thoiGianGan).toLocaleString('vi-VN') : '---';
+                        const tgQuet = p.thoiGianQuet ? new Date(p.thoiGianQuet).toLocaleString('vi-VN') : '---';
+                        const badge = getStatusBadge(p.trangThai);
+                        const kienCode = p.maKien || (p.id ? p.id.maKien : '---');
+                        return `
+                            <tr>
+                                <td><strong style="color: var(--primary-blue);">${kienCode}</strong></td>
+                                <td>${tgGan}</td>
+                                <td>${tgQuet}</td>
+                                <td>${badge}</td>
+                                <td>${p.ghiChu || '---'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">Chưa có kiện nào được gán vào chuyến này.</td></tr>`;
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 16px;">Lỗi tải chi tiết: ${e.message}</td></tr>`;
+            }
+        }
+
+        // LỌC DỮ LIỆU BẢNG ĐANG ACTIVE THEO TỪ KHÓA
+        function onFilterTable(query) {
+            const q = (query || '').toLowerCase().trim();
+
+            if (currentTab === 1) {
+                if (!q) { renderPendingPackages(pendingPackagesData); return; }
+                const filtered = pendingPackagesData.filter(item =>
+                    (item.maKien && item.maKien.toLowerCase().includes(q)) ||
+                    (item.maDh && item.maDh.toLowerCase().includes(q)) ||
+                    (item.loaiHang && item.loaiHang.toLowerCase().includes(q)) ||
+                    (item.tenKhoHienTai && item.tenKhoHienTai.toLowerCase().includes(q)) ||
+                    (item.tenNguoiNhan && item.tenNguoiNhan.toLowerCase().includes(q)) ||
+                    (item.sdtNhan && item.sdtNhan.includes(q))
+                );
+                renderPendingPackages(filtered);
+            } else if (currentTab === 2) {
+                if (!q) { renderRunningTrips(runningTripsData); return; }
+                const filtered = runningTripsData.filter(t =>
+                    (t.maChuyen && t.maChuyen.toLowerCase().includes(q)) ||
+                    (t.tenTaiXe && t.tenTaiXe.toLowerCase().includes(q)) ||
+                    (t.bienSo && t.bienSo.toLowerCase().includes(q)) ||
+                    (t.tenKhoXuatPhat && t.tenKhoXuatPhat.toLowerCase().includes(q)) ||
+                    (t.tenDiemDen && t.tenDiemDen.toLowerCase().includes(q))
+                );
+                renderRunningTrips(filtered);
+            } else if (currentTab === 3) {
+                if (!q) { renderAvailableDrivers(availableDriversData); return; }
+                const filtered = availableDriversData.filter(d =>
+                    (d.maTx && d.maTx.toLowerCase().includes(q)) ||
+                    (d.hoTen && d.hoTen.toLowerCase().includes(q)) ||
+                    (d.sdt && d.sdt.includes(q)) ||
+                    (d.bangLai && d.bangLai.toLowerCase().includes(q))
+                );
+                renderAvailableDrivers(filtered);
+            } else if (currentTab === 4) {
+                if (!q) { renderAvailableVehicles(availableVehiclesData); return; }
+                const filtered = availableVehiclesData.filter(v =>
+                    (v.maPt && v.maPt.toLowerCase().includes(q)) ||
+                    (v.bienSo && v.bienSo.toLowerCase().includes(q)) ||
+                    (v.loaiXe && v.loaiXe.toLowerCase().includes(q))
+                );
+                renderAvailableVehicles(filtered);
+            }
+        }
+
+        // TÌM KIẾM TOÀN CỤC TRÊN THANH HEADER
+        function onGlobalSearch(query) {
+            document.getElementById('tableFilterInput').value = query;
+            onFilterTable(query);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+    </script>
+</body>
+
+</html>

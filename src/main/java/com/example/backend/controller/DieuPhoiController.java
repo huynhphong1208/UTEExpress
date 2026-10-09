@@ -1,11 +1,7 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.ApiResponse;
-import com.example.backend.dto.GanKienRequest;
-import com.example.backend.dto.TaoChuyenGiaoRequest;
-import com.example.backend.entity.ChiTietChuyenGiao;
-import com.example.backend.entity.ChuyenGiao;
-import com.example.backend.entity.TuyenVanChuyen;
+import com.example.backend.dto.*;
+import com.example.backend.entity.*;
 import com.example.backend.service.DieuPhoiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +11,7 @@ import java.util.List;
 
 /**
  * Controller cho vai trò Nhân viên điều phối.
- * Quản lý tuyến vận chuyển, tạo chuyến giao, gán kiện, tra cứu.
+ * Quản lý tuyến vận chuyển, tạo chuyến giao, gán kiện, tra cứu và dashboard.
  */
 @RestController
 @RequestMapping("/api/dieu-phoi")
@@ -23,6 +19,38 @@ import java.util.List;
 public class DieuPhoiController {
 
     private final DieuPhoiService dieuPhoiService;
+
+    // ========================== DASHBOARD ==========================
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<ApiResponse<DieuPhoiDashboardDTO>> getDashboard() {
+        DieuPhoiDashboardDTO stats = dieuPhoiService.getDashboardStats();
+        return ResponseEntity.ok(ApiResponse.ok(stats, "Lấy dữ liệu Dashboard thành công"));
+    }
+
+    @GetMapping("/don-can-dieu-phoi")
+    public ResponseEntity<ApiResponse<List<DonCanDieuPhoiDTO>>> getDonCanDieuPhoi() {
+        List<DonCanDieuPhoiDTO> list = dieuPhoiService.getDonCanDieuPhoiList();
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách đơn cần điều phối thành công"));
+    }
+
+    @GetMapping("/chuyen-dang-chay")
+    public ResponseEntity<ApiResponse<List<ChuyenGiaoChiTietDTO>>> getChuyenDangChay() {
+        List<ChuyenGiaoChiTietDTO> list = dieuPhoiService.getChuyenDangChayList();
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách chuyến đang chạy thành công"));
+    }
+
+    @GetMapping("/tai-xe-kha-dung")
+    public ResponseEntity<ApiResponse<List<TaiXeKhaDungDTO>>> getTaiXeKhaDung() {
+        List<TaiXeKhaDungDTO> list = dieuPhoiService.getTaiXeKhaDungList();
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách tài xế khả dụng thành công"));
+    }
+
+    @GetMapping("/phuong-tien-kha-dung")
+    public ResponseEntity<ApiResponse<List<PhuongTienKhaDungDTO>>> getPhuongTienKhaDung() {
+        List<PhuongTienKhaDungDTO> list = dieuPhoiService.getPhuongTienKhaDungList();
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách phương tiện khả dụng thành công"));
+    }
 
     // ========================== TUYẾN VẬN CHUYỂN (CRUD) ==========================
 
@@ -58,12 +86,39 @@ public class DieuPhoiController {
         return ResponseEntity.ok(ApiResponse.ok("Xóa tuyến vận chuyển thành công"));
     }
 
+    // ========================== DANH MỤC HỖ TRỢ ĐIỀU PHỐI ==========================
+
+    @GetMapping("/kho")
+    public ResponseEntity<ApiResponse<List<Kho>>> getAllKho() {
+        List<Kho> list = dieuPhoiService.getAllKho();
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách kho thành công"));
+    }
+
+    @GetMapping("/tai-xe")
+    public ResponseEntity<ApiResponse<List<TaiXe>>> getAllTaiXe() {
+        List<TaiXe> list = dieuPhoiService.getAllTaiXe();
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách tài xế thành công"));
+    }
+
+    @GetMapping("/phuong-tien")
+    public ResponseEntity<ApiResponse<List<PhuongTien>>> getAllPhuongTien() {
+        List<PhuongTien> list = dieuPhoiService.getAllPhuongTien();
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách phương tiện thành công"));
+    }
+
+    @GetMapping("/kien-hang-kha-dung")
+    public ResponseEntity<ApiResponse<List<KienHang>>> getAvailableKienHang(
+            @RequestParam(required = false) String maKho) {
+        List<KienHang> list = dieuPhoiService.getAvailableKienHang(maKho);
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách kiện hàng khả dụng thành công"));
+    }
+
     // ========================== CHUYẾN GIAO ==========================
 
     @PostMapping("/chuyen-giao")
-    public ResponseEntity<ApiResponse<Void>> taoChuyenGiao(@RequestBody TaoChuyenGiaoRequest request) {
-        dieuPhoiService.taoChuyenGiao(request);
-        return ResponseEntity.ok(ApiResponse.ok("Tạo chuyến giao thành công"));
+    public ResponseEntity<ApiResponse<String>> taoChuyenGiao(@RequestBody TaoChuyenGiaoRequest request) {
+        String maChuyen = dieuPhoiService.taoChuyenGiao(request);
+        return ResponseEntity.ok(ApiResponse.ok(maChuyen, "Tạo chuyến giao thành công"));
     }
 
     @PostMapping("/chuyen-giao/gan-kien")
@@ -73,16 +128,54 @@ public class DieuPhoiController {
     }
 
     @GetMapping("/chuyen-giao")
-    public ResponseEntity<ApiResponse<List<ChuyenGiao>>> getChuyenGiaoByNvDieuPhoi(
-            @RequestParam String maNvDieuPhoi) {
+    public ResponseEntity<ApiResponse<List<ChuyenGiao>>> getChuyenGiao(
+            @RequestParam(required = false) String maNvDieuPhoi) {
         List<ChuyenGiao> list = dieuPhoiService.getChuyenGiaoByNvDieuPhoi(maNvDieuPhoi);
         return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách chuyến giao thành công"));
     }
 
+    @GetMapping("/chuyen-giao-chi-tiet")
+    public ResponseEntity<ApiResponse<List<ChuyenGiaoChiTietDTO>>> getChuyenGiaoChiTiet() {
+        List<ChuyenGiaoChiTietDTO> list = dieuPhoiService.getChuyenGiaoChiTietList();
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách chuyến giao chi tiết thành công"));
+    }
+
     @GetMapping("/chuyen-giao/{maChuyen}/chi-tiet")
-    public ResponseEntity<ApiResponse<List<ChiTietChuyenGiao>>> getChiTietChuyen(
+    public ResponseEntity<ApiResponse<List<KienTrongChuyenDTO>>> getChiTietChuyen(
             @PathVariable String maChuyen) {
-        List<ChiTietChuyenGiao> list = dieuPhoiService.getChiTietChuyen(maChuyen);
-        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy chi tiết chuyến giao thành công"));
+        List<KienTrongChuyenDTO> list = dieuPhoiService.getKienTrongChuyen(maChuyen);
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy chi tiết kiện hàng trong chuyến thành công"));
+    }
+
+    @PutMapping("/chuyen-giao/{maChuyen}")
+    public ResponseEntity<ApiResponse<ChuyenGiao>> capNhatChuyenGiao(
+            @PathVariable String maChuyen,
+            @RequestBody CapNhatChuyenGiaoRequest request) {
+        ChuyenGiao cg = dieuPhoiService.capNhatChuyenGiao(maChuyen, request);
+        return ResponseEntity.ok(ApiResponse.ok(cg, "Cập nhật phân công chuyến giao thành công"));
+    }
+
+    @PostMapping("/chuyen-giao/{maChuyen}/huy")
+    public ResponseEntity<ApiResponse<Void>> huyChuyenGiao(
+            @PathVariable String maChuyen,
+            @RequestParam(required = false, defaultValue = "ND004") String maNd) {
+        dieuPhoiService.huyChuyenGiao(maChuyen, maNd);
+        return ResponseEntity.ok(ApiResponse.ok("Hủy chuyến giao thành công"));
+    }
+
+    @DeleteMapping("/chuyen-giao/{maChuyen}")
+    public ResponseEntity<ApiResponse<Void>> xoaChuyenGiao(
+            @PathVariable String maChuyen,
+            @RequestParam(required = false, defaultValue = "ND004") String maNd) {
+        dieuPhoiService.xoaChuyenGiao(maChuyen, maNd);
+        return ResponseEntity.ok(ApiResponse.ok("Xóa chuyến giao thành công"));
+    }
+
+    @PostMapping("/chuyen-giao/{maChuyen}/hoan-thanh")
+    public ResponseEntity<ApiResponse<Void>> hoanThanhChuyen(
+            @PathVariable String maChuyen,
+            @RequestParam(required = false, defaultValue = "ND004") String maNd) {
+        dieuPhoiService.hoanThanhChuyen(maChuyen, maNd);
+        return ResponseEntity.ok(ApiResponse.ok("Xác nhận hoàn thành chuyến giao thành công"));
     }
 }
