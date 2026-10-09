@@ -665,8 +665,9 @@ BEGIN
     SELECT * INTO v_kh FROM khach_hang WHERE sdt = p_sdt;
     IF v_kh.ma_kh IS NOT NULL AND v_kh.ma_nd IS NOT NULL THEN RAISE EXCEPTION 'Tài khoản đã tồn tại!'; END IF;
     IF p_email IS NOT NULL AND EXISTS (SELECT 1 FROM khach_hang WHERE lower(email) = lower(p_email)
-                                        AND ma_kh IS DISTINCT FROM v_kh.ma_kh) THEN
-        RAISE EXCEPTION 'Email đã được sử dụng';
+                                        AND ma_kh IS DISTINCT FROM v_kh.ma_kh
+                                        AND ma_nd IS NOT NULL) THEN
+        RAISE EXCEPTION 'Email đã được sử dụng bởi tài khoản khác';
     END IF;
 
     INSERT INTO nguoi_dung (ten_dang_nhap, mat_khau, ma_vai_tro)

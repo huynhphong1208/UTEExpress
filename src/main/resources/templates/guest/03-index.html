@@ -8,7 +8,6 @@
     <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
     <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
     <style>
-        /* Hero Auto-Slider Section */
         .hero-slider-section {
             position: relative;
             width: 100%;
@@ -160,6 +159,21 @@
             font-weight: 600;
             color: var(--brand-blue);
         }
+        /* Fee Estimator Section */
+        .fee-estimator-section {
+            padding: 50px 24px;
+            background: var(--bg-main);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .fee-estimator-card {
+            max-width: 860px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border-radius: var(--radius-xl);
+            padding: 32px 36px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
         .service-card {
             background: white;
             border-radius: var(--radius-lg);
@@ -202,6 +216,20 @@
             justify-content: center;
             margin: 0 auto 14px;
         }
+        /* Network hubs */
+        .hub-card {
+            background: #FFFFFF;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-xs);
+        }
+        .hub-card:hover {
+            border-color: var(--brand-blue);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
     </style>
 </head>
 <body>
@@ -215,14 +243,14 @@
         <nav class="public-nav">
             <a th:href="@{/}" href="/" class="active">Trang chủ</a>
             <a th:href="@{/tracking}" href="/tracking">Tra cứu đơn hàng</a>
+            <a href="#estimator">Tính cước phí</a>
             <a href="#services">Dịch vụ</a>
-            <a href="#process">Quy trình</a>
-            <a href="#support">Hỗ trợ</a>
+            <a href="#hubs">Bưu cục</a>
         </nav>
 
         <div style="display: flex; align-items: center; gap: 12px;">
             <a th:href="@{/login}" href="/login" class="btn btn-secondary btn-sm">Đăng nhập</a>
-            <a th:href="@{/register}" href="/register" class="btn btn-primary btn-sm">Đăng ký gửi hàng</a>
+            <a th:href="@{/register}" href="/register" class="btn btn-primary btn-sm">Đăng ký</a>
         </div>
     </header>
 
@@ -265,6 +293,63 @@
         </div>
     </section>
 
+    <!-- SECTION 2: CÔNG CỤ TÍNH CƯỚC VẬN CHUYỂN DỰ KIẾN -->
+    <section id="estimator" class="fee-estimator-section">
+        <div class="fee-estimator-card">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <h2 style="font-size: 22px; font-weight: 700; color: var(--brand-blue); margin-bottom: 6px;">💡 Ước tính cước phí vận chuyển</h2>
+                <p style="font-size: 13.5px; color: var(--text-secondary);">Nhập tuyến đường và kích thước kiện hàng để ước tính chi phí giao hàng tự động</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Kho đi (Bưu cục gửi)</label>
+                    <select id="estKhoGui" class="form-select">
+                        <option value="KHO01" selected>KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
+                        <option value="KHO02">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
+                        <option value="KHO03">KHO03 - Bưu cục Đà Nẵng</option>
+                        <option value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kho đến (Bưu cục nhận)</label>
+                    <select id="estKhoNhan" class="form-select">
+                        <option value="KHO01">KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
+                        <option value="KHO03" selected>KHO03 - Bưu cục Đà Nẵng</option>
+                        <option value="KHO02">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
+                        <option value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Khối lượng kiện hàng (kg)</label>
+                    <input type="number" id="estWeight" class="form-control" placeholder="1.5" value="1.5" step="0.1" min="0.1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kích thước Dài x Rộng x Cao (cm)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="estLength" class="form-control" placeholder="Dài" value="20">
+                        <input type="number" id="estWidth" class="form-control" placeholder="Rộng" value="15">
+                        <input type="number" id="estHeight" class="form-control" placeholder="Cao" value="10">
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 12px;">
+                <button class="btn btn-primary btn-lg" onclick="calculateEstimatedFee()">⚡ Tính cước phí ngay</button>
+            </div>
+
+            <!-- Kết quả tính cước -->
+            <div id="calcResult" style="display: none; margin-top: 24px; padding: 20px; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: var(--radius-lg); text-align: center;">
+                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">Ước tính cước phí vận chuyển:</div>
+                <div id="calcFeeText" style="font-size: 28px; font-weight: 800; color: var(--brand-red);">0 đ</div>
+                <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 6px;">Cước phí chưa bao gồm tiền thu hộ COD. Giá thực tế có thể thay đổi nhẹ tùy theo địa chỉ chi tiết.</div>
+            </div>
+        </div>
+    </section>
+
     <!-- Services -->
     <section id="services" style="padding: 70px 40px; background-color: var(--bg-main);">
         <div style="max-width: var(--content-max-width); margin: 0 auto;">
@@ -298,38 +383,32 @@
         </div>
     </section>
 
-    <!-- Process -->
-    <section id="process" style="padding: 70px 40px; background: white; border-top: 1px solid var(--border-color);">
+    <!-- SECTION 3: MẠNG LƯỚI BƯU CỤC UTE EXPRESS -->
+    <section id="hubs" style="padding: 70px 40px; background: white; border-top: 1px solid var(--border-color);">
         <div style="max-width: var(--content-max-width); margin: 0 auto;">
-            <div style="text-align: center; margin-bottom: 48px;">
-                <h2 style="font-size: 28px; margin-bottom: 8px; color: var(--brand-red);">Quy trình Vận hành Chuẩn 5 Bước</h2>
+            <div style="text-align: center; margin-bottom: 44px;">
+                <h2 style="font-size: 28px; margin-bottom: 8px; color: var(--brand-blue);">Mạng lưới Bưu cục Trọng điểm</h2>
+                <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">Hệ thống trung tâm khai thác & bưu cục phủ sóng miền Bắc, Trung, Nam</p>
             </div>
 
-            <div class="process-grid">
-                <div class="process-item">
-                    <div class="process-num">1</div>
-                    <h4 style="font-size: 16px; margin-bottom: 6px;">1. Tạo đơn</h4>
-                    <p style="color: var(--text-secondary); font-size: 13px;">Khách tạo đơn trên web hoặc gửi tại bưu cục gần nhất.</p>
+            <div class="grid-3">
+                <div class="hub-card">
+                    <div style="font-size: 12px; color: var(--brand-red); font-weight: 700; text-transform: uppercase;">Bưu cục Miền Nam</div>
+                    <h3 style="font-size: 18px; color: var(--brand-navy); margin: 6px 0 10px;">KHO01 - Bưu cục Thủ Đức (TP.HCM)</h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">📍 12 Võ Văn Ngân, P. Linh Chiểu, TP. Thủ Đức, TP.HCM</p>
+                    <p style="font-size: 13px; color: var(--brand-blue); font-weight: 600;">📞 Hotline: 028 1111 111</p>
                 </div>
-                <div class="process-item">
-                    <div class="process-num">2</div>
-                    <h4 style="font-size: 16px; margin-bottom: 6px;">2. Tiếp nhận</h4>
-                    <p style="color: var(--text-secondary); font-size: 13px;">NV Bưu cục kiểm tra, cân đo khối lượng và dán mã kiện.</p>
+                <div class="hub-card">
+                    <div style="font-size: 12px; color: var(--brand-red); font-weight: 700; text-transform: uppercase;">Bưu cục Miền Trung</div>
+                    <h3 style="font-size: 18px; color: var(--brand-navy); margin: 6px 0 10px;">KHO03 - Bưu cục Đà Nẵng</h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">📍 45 Nguyễn Văn Linh, Q. Hải Châu, Đà Nẵng</p>
+                    <p style="font-size: 13px; color: var(--brand-blue); font-weight: 600;">📞 Hotline: 0236 3333 333</p>
                 </div>
-                <div class="process-item">
-                    <div class="process-num">3</div>
-                    <h4 style="font-size: 16px; margin-bottom: 6px;">3. Vận chuyển</h4>
-                    <p style="color: var(--text-secondary); font-size: 13px;">Điều phối xếp xe tải liên kho theo tuyến và đúng tải trọng.</p>
-                </div>
-                <div class="process-item">
-                    <div class="process-num">4</div>
-                    <h4 style="font-size: 16px; margin-bottom: 6px;">4. Đang giao</h4>
-                    <p style="color: var(--text-secondary); font-size: 13px;">Tài xế nhận kiện tại kho đích và đi phát tận tay người nhận.</p>
-                </div>
-                <div class="process-item">
-                    <div class="process-num">5</div>
-                    <h4 style="font-size: 16px; margin-bottom: 6px;">5. Thành công</h4>
-                    <p style="color: var(--text-secondary); font-size: 13px;">Xác nhận giao thành công, thu COD và hoàn tất đơn hàng.</p>
+                <div class="hub-card">
+                    <div style="font-size: 12px; color: var(--brand-red); font-weight: 700; text-transform: uppercase;">Bưu cục Miền Bắc</div>
+                    <h3 style="font-size: 18px; color: var(--brand-navy); margin: 6px 0 10px;">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">📍 25 Trần Thái Tông, Q. Cầu Giấy, Hà Nội</p>
+                    <p style="font-size: 13px; color: var(--brand-blue); font-weight: 600;">📞 Hotline: 024 2222 222</p>
                 </div>
             </div>
         </div>
@@ -351,7 +430,7 @@
                 <div>
                     <h4 style="color: white; margin-bottom: 14px; font-size: 15px; border-left: 3px solid var(--brand-red); padding-left: 8px;">Liên kết nhanh</h4>
                     <p style="font-size: 13.5px; margin-bottom: 6px;"><a th:href="@{/tracking}" href="/tracking" style="color: #94A3B8;">Tra cứu vận đơn</a></p>
-                    <p style="font-size: 13.5px; margin-bottom: 6px;"><a th:href="@{/register}" href="/register" style="color: #94A3B8;">Đăng ký gửi hàng</a></p>
+                    <p style="font-size: 13.5px; margin-bottom: 6px;"><a th:href="@{/register}" href="/register" style="color: #94A3B8;">Đăng ký</a></p>
                 </div>
                 <div>
                     <h4 style="color: white; margin-bottom: 14px; font-size: 15px; border-left: 3px solid var(--brand-red); padding-left: 8px;">Chính sách</h4>
@@ -364,6 +443,9 @@
         </div>
     </footer>
 
+    <!-- Shared Prototype & Component Scripts -->
+    <script th:src="@{/js/mock-data.js}" src="/js/mock-data.js"></script>
+    <script th:src="@{/js/components.js}" src="/js/components.js"></script>
     <script>
         let currentSlide = 0;
         const totalSlides = 2;
@@ -382,17 +464,41 @@
         function nextHeroSlide() {
             currentSlide = (currentSlide + 1) % totalSlides;
             updateSliderUI();
+            restartSlideTimer();
         }
 
         function prevHeroSlide() {
             currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
             updateSliderUI();
+            restartSlideTimer();
         }
 
         function jumpToHeroSlide(index) {
             currentSlide = index;
             updateSliderUI();
+            restartSlideTimer();
         }
+
+        function startSlideTimer() {
+            if (slideTimer) clearInterval(slideTimer);
+            slideTimer = setInterval(() => {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                updateSliderUI();
+            }, 4500);
+        }
+
+        function restartSlideTimer() {
+            startSlideTimer();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startSlideTimer();
+            const slider = document.getElementById('heroSliderSection');
+            if (slider) {
+                slider.addEventListener('mouseenter', () => { if (slideTimer) clearInterval(slideTimer); });
+                slider.addEventListener('mouseleave', () => { startSlideTimer(); });
+            }
+        });
 
         function fillTrackingCode(code) {
             document.getElementById('quickTrackingCode').value = code;
@@ -402,10 +508,28 @@
         function handleQuickTrack() {
             const code = document.getElementById('quickTrackingCode').value.trim();
             if (!code) {
-                alert('Vui lòng nhập mã đơn hàng!');
+                showToast('Thông báo', 'Vui lòng nhập mã đơn hàng!', 'warning');
                 return;
             }
             window.location.href = `/tracking?maDh=${code}`;
+        }
+
+        function calculateEstimatedFee() {
+            const w = parseFloat(document.getElementById('estWeight').value) || 1;
+            const l = parseFloat(document.getElementById('estLength').value) || 10;
+            const wi = parseFloat(document.getElementById('estWidth').value) || 10;
+            const h = parseFloat(document.getElementById('estHeight').value) || 10;
+            const kg = document.getElementById('estKhoGui').value;
+            const kn = document.getElementById('estKhoNhan').value;
+
+            let distance = 15;
+            if ((kg === 'KHO01' && kn === 'KHO03') || (kg === 'KHO03' && kn === 'KHO01')) distance = 960;
+            else if ((kg === 'KHO01' && kn === 'KHO02') || (kg === 'KHO02' && kn === 'KHO01')) distance = 1700;
+            else if ((kg === 'KHO03' && kn === 'KHO02') || (kg === 'KHO02' && kn === 'KHO03')) distance = 770;
+
+            const fee = calculateShippingFee(w, l, wi, h, distance);
+            document.getElementById('calcResult').style.display = 'block';
+            document.getElementById('calcFeeText').innerText = fee.toLocaleString('vi-VN') + ' đ';
         }
     </script>
 </body>

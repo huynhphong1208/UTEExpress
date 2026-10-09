@@ -20,6 +20,7 @@ public class RegisterVerifyRequest {
     @Schema(description = "Số điện thoại", example = "0901234567")
     private String sdt;
 
+    @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không hợp lệ")
     @Schema(description = "Email", example = "user@gmail.com")
     private String email;

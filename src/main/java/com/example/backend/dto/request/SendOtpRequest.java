@@ -20,6 +20,7 @@ public class SendOtpRequest {
     @Schema(description = "Số điện thoại (dùng làm tên đăng nhập)", example = "0901234567")
     private String sdt;
 
+    @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không hợp lệ")
     @Schema(description = "Địa chỉ email nhận OTP", example = "user@gmail.com")
     private String email;

@@ -94,6 +94,9 @@
 
     </div>
 
+    <!-- Shared Prototype & Component Scripts -->
+    <script th:src="@{/js/mock-data.js}" src="/js/mock-data.js"></script>
+    <script th:src="@{/js/components.js}" src="/js/components.js"></script>
     <script>
         function fillTrack(code) {
             document.getElementById('trackInput').value = code;
@@ -123,7 +126,7 @@
                     const dh = data.data;
 
                     document.getElementById('resCode').innerText = dh.maDh;
-                    document.getElementById('resBadge').innerHTML = `<span class="badge badge-info"><span class="badge-dot"></span>${dh.tenTrangThai}</span>`;
+                    document.getElementById('resBadge').innerHTML = getStatusBadge(dh.tenTrangThai || dh.maTt);
                     document.getElementById('resDate').innerText = dh.ngayTao ? new Date(dh.ngayTao).toLocaleString('vi-VN') : '---';
                     document.getElementById('resUpdated').innerText = dh.capNhatLuc ? new Date(dh.capNhatLuc).toLocaleString('vi-VN') : '---';
                     document.getElementById('resPackage').innerText = `${dh.soKien || 1} kiện hàng`;

@@ -63,13 +63,13 @@ public class AuthService {
     // UC01 - Step 1: Gửi OTP đăng ký
     // =========================================================
     public void sendRegisterOtp(SendOtpRequest request) {
-        // Kiểm tra SĐT đã tồn tại chưa (SĐT = tên đăng nhập)
+        // Kiểm tra SĐT đã tồn tại chưa (SĐT = tên đăng nhập trong bảng nguoi_dung)
         if (nguoiDungRepository.existsByTenDangNhap(request.getSdt())) {
             throw new BusinessException("Số điện thoại này đã được đăng ký tài khoản");
         }
 
-        // Kiểm tra email trùng
-        if (request.getEmail() != null && khachHangRepository.existsByEmail(request.getEmail())) {
+        // Kiểm tra email trùng với các tài khoản ĐÃ KÍCH HOẠT (đã có tài khoản người dùng nguoi_dung)
+        if (request.getEmail() != null && khachHangRepository.existsByEmailAndNguoiDungIsNotNull(request.getEmail())) {
             throw new BusinessException("Email này đã được sử dụng bởi tài khoản khác");
         }
 

@@ -37,6 +37,17 @@
             color: var(--primary-blue);
             margin-bottom: 12px;
         }
+        .field-error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+            font-weight: 500;
+        }
+        .form-control.is-invalid {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+        }
     </style>
 </head>
 <body>
@@ -54,31 +65,36 @@
             <div id="alertBox" style="display: none; padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 20px;"></div>
 
             <!-- Step 1: Điền thông tin & nhận OTP -->
-            <form id="step1Form" onsubmit="handleSendOtp(event)">
+            <form id="step1Form" onsubmit="handleSendOtp(event)" novalidate>
                 <div class="form-group">
                     <label class="form-label">Họ và tên <span style="color: red;">*</span></label>
-                    <input type="text" class="form-control" id="fullName" placeholder="Ví dụ: Nguyễn Văn An" required>
+                    <input type="text" class="form-control" id="fullName" placeholder="Ví dụ: Nguyễn Văn An">
+                    <div class="field-error" id="fullNameError"></div>
                 </div>
 
                 <div class="grid-2">
                     <div class="form-group">
                         <label class="form-label">Số điện thoại (Tên đăng nhập) <span style="color: red;">*</span></label>
-                        <input type="tel" class="form-control" id="phone" placeholder="10 chữ số..." pattern="[0-9]{10}" required>
+                        <input type="tel" class="form-control" id="phone" placeholder="10 chữ số...">
+                        <div class="field-error" id="phoneError"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email <span style="color: red;">*</span></label>
-                        <input type="email" class="form-control" id="email" placeholder="example@email.com" required>
+                        <input type="email" class="form-control" id="email" placeholder="example@email.com">
+                        <div class="field-error" id="emailError"></div>
                     </div>
                 </div>
 
                 <div class="grid-2">
                     <div class="form-group">
                         <label class="form-label">Mật khẩu <span style="color: red;">*</span></label>
-                        <input type="password" class="form-control" id="password" placeholder="••••••••" minlength="6" required>
+                        <input type="password" class="form-control" id="password" placeholder="••••••••">
+                        <div class="field-error" id="passwordError"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Nhập lại mật khẩu <span style="color: red;">*</span></label>
-                        <input type="password" class="form-control" id="confirmPassword" placeholder="••••••••" minlength="6" required>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="••••••••">
+                        <div class="field-error" id="confirmPasswordError"></div>
                     </div>
                 </div>
 
@@ -88,14 +104,15 @@
             </form>
 
             <!-- Step 2: Nhập OTP -->
-            <form id="step2Form" onsubmit="handleVerifyOtp(event)" style="display: none;">
+            <form id="step2Form" onsubmit="handleVerifyOtp(event)" style="display: none;" novalidate>
                 <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px; font-size: 13px; color: #1E40AF;">
                     📩 Mã OTP 6 chữ số đã được gửi tới Email của bạn. Vui lòng kiểm tra hộp thư!
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Mã OTP (6 chữ số) <span style="color: red;">*</span></label>
-                    <input type="text" class="form-control" id="otpCode" placeholder="123456" maxlength="6" pattern="[0-9]{6}" required style="font-size: 20px; letter-spacing: 6px; text-align: center;">
+                    <input type="text" class="form-control" id="otpCode" placeholder="123456" maxlength="6" style="font-size: 20px; letter-spacing: 6px; text-align: center;">
+                    <div class="field-error" id="otpCodeError" style="text-align: center;"></div>
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -121,22 +138,139 @@
             box.innerText = msg;
         }
 
+        function clearAllErrors() {
+            document.getElementById('alertBox').style.display = 'none';
+            document.querySelectorAll('.field-error').forEach(el => {
+                el.innerText = '';
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('.form-control').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+        }
+
+        function setFieldError(inputId, errorId, message) {
+            const input = document.getElementById(inputId);
+            const errDiv = document.getElementById(errorId);
+            if (input) input.classList.add('is-invalid');
+            if (errDiv) {
+                errDiv.innerText = message;
+                errDiv.style.display = 'block';
+            }
+        }
+
+        function handleApiError(data) {
+            let hasFieldError = false;
+
+            const fieldMap = {
+                'hoTen': { inputId: 'fullName', errorId: 'fullNameError' },
+                'sdt': { inputId: 'phone', errorId: 'phoneError' },
+                'email': { inputId: 'email', errorId: 'emailError' },
+                'matKhau': { inputId: 'password', errorId: 'passwordError' },
+                'otp': { inputId: 'otpCode', errorId: 'otpCodeError' }
+            };
+
+            if (data && data.data && typeof data.data === 'object') {
+                for (const [key, msg] of Object.entries(data.data)) {
+                    if (fieldMap[key]) {
+                        setFieldError(fieldMap[key].inputId, fieldMap[key].errorId, msg);
+                        hasFieldError = true;
+                    }
+                }
+            }
+
+            const msg = data ? data.message : 'Có lỗi xảy ra, vui lòng thử lại';
+
+            if (msg && msg.toLowerCase().includes('số điện thoại')) {
+                setFieldError('phone', 'phoneError', msg);
+                hasFieldError = true;
+            } else if (msg && msg.toLowerCase().includes('email')) {
+                setFieldError('email', 'emailError', msg);
+                hasFieldError = true;
+            } else if (msg && (msg.toLowerCase().includes('otp') || msg.toLowerCase().includes('mã xác thực'))) {
+                setFieldError('otpCode', 'otpCodeError', msg);
+                hasFieldError = true;
+            }
+
+            if (hasFieldError && msg === 'Dữ liệu đầu vào không hợp lệ') {
+                showAlert('Vui lòng kiểm tra và sửa các thông tin chưa hợp lệ bên dưới.');
+            } else {
+                showAlert(msg || 'Lỗi thao tác!');
+            }
+        }
+
         function backToStep1() {
+            clearAllErrors();
             document.getElementById('step1Form').style.display = 'block';
             document.getElementById('step2Form').style.display = 'none';
-            document.getElementById('alertBox').style.display = 'none';
         }
+
+        // Tự động xóa báo lỗi khi người dùng gõ lại vào ô input
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                const formGroup = this.closest('.form-group');
+                if (formGroup) {
+                    const errDiv = formGroup.querySelector('.field-error');
+                    if (errDiv) {
+                        errDiv.innerText = '';
+                        errDiv.style.display = 'none';
+                    }
+                }
+            });
+        });
 
         async function handleSendOtp(e) {
             e.preventDefault();
+            clearAllErrors();
+
             const hoTen = document.getElementById('fullName').value.trim();
             const sdt = document.getElementById('phone').value.trim();
             const email = document.getElementById('email').value.trim();
             const matKhau = document.getElementById('password').value.trim();
             const cpw = document.getElementById('confirmPassword').value.trim();
 
-            if (matKhau !== cpw) {
-                showAlert('Mật khẩu và xác nhận mật khẩu không trùng khớp!');
+            let isValid = true;
+
+            if (!hoTen) {
+                setFieldError('fullName', 'fullNameError', 'Vui lòng nhập họ và tên');
+                isValid = false;
+            }
+
+            if (!sdt) {
+                setFieldError('phone', 'phoneError', 'Vui lòng nhập số điện thoại');
+                isValid = false;
+            } else if (!/^[0-9]{10}$/.test(sdt)) {
+                setFieldError('phone', 'phoneError', 'Số điện thoại phải bao gồm đúng 10 chữ số');
+                isValid = false;
+            }
+
+            if (!email) {
+                setFieldError('email', 'emailError', 'Vui lòng nhập email');
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                setFieldError('email', 'emailError', 'Địa chỉ email không hợp lệ');
+                isValid = false;
+            }
+
+            if (!matKhau) {
+                setFieldError('password', 'passwordError', 'Vui lòng nhập mật khẩu');
+                isValid = false;
+            } else if (matKhau.length < 6) {
+                setFieldError('password', 'passwordError', 'Mật khẩu phải có ít nhất 6 ký tự');
+                isValid = false;
+            }
+
+            if (!cpw) {
+                setFieldError('confirmPassword', 'confirmPasswordError', 'Vui lòng nhập lại mật khẩu');
+                isValid = false;
+            } else if (matKhau !== cpw) {
+                setFieldError('confirmPassword', 'confirmPasswordError', 'Mật khẩu nhập lại không trùng khớp');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                showAlert('Vui lòng kiểm tra lại thông tin nhập trong các ô bên dưới.');
                 return;
             }
 
@@ -149,7 +283,7 @@
                 const res = await fetch('/api/auth/register/send-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sdt, email })
+                    body: JSON.stringify({ hoTen, sdt, email })
                 });
                 const data = await res.json();
 
@@ -158,7 +292,7 @@
                     document.getElementById('step1Form').style.display = 'none';
                     document.getElementById('step2Form').style.display = 'block';
                 } else {
-                    showAlert(data.message || 'Lỗi gửi OTP');
+                    handleApiError(data);
                 }
             } catch (err) {
                 showAlert('Lỗi kết nối máy chủ!');
@@ -170,7 +304,21 @@
 
         async function handleVerifyOtp(e) {
             e.preventDefault();
+            clearAllErrors();
+
             const otp = document.getElementById('otpCode').value.trim();
+            let isValid = true;
+
+            if (!otp) {
+                setFieldError('otpCode', 'otpCodeError', 'Vui lòng nhập mã OTP');
+                isValid = false;
+            } else if (!/^[0-9]{6}$/.test(otp)) {
+                setFieldError('otpCode', 'otpCodeError', 'Mã OTP phải gồm 6 chữ số');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
             const btn = document.getElementById('btnVerify');
             btn.disabled = true;
             btn.innerText = 'Đang xác thực...';
@@ -193,7 +341,7 @@
                     showAlert('Đăng ký tài khoản thành công! Đang chuyển hướng...', true);
                     setTimeout(() => { window.location.href = '/login'; }, 1000);
                 } else {
-                    showAlert(data.message || 'Xác thực OTP không đúng!');
+                    handleApiError(data);
                 }
             } catch (err) {
                 showAlert('Lỗi kết nối máy chủ!');
@@ -205,3 +353,4 @@
     </script>
 </body>
 </html>
+
