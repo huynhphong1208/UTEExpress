@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13 – Quản lý tuyến vận chuyển - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ĐIỀU PHỐI -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA;">Điều phối</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Điều hành vận tải</div>
+                <a href="12-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Điều phối</span>
+                </a>
+                <a href="13-routes.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    <span>Tuyến vận chuyển</span>
+                </a>
+                <a href="14-trips.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>Quản lý chuyến giao</span>
+                    <span class="nav-badge">4</span>
+                </a>
+                <a href="../guest/04-tracking.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Tra cứu vận đơn</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #2563EB;">DP</div>
+                <div class="user-info">
+                    <div class="user-name">Trần Minh Tuấn</div>
+                    <div class="user-sub">NV Điều phối trung tâm</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="12-dashboard.html">Điều phối</a> <span>/</span> <span>Danh mục tuyến vận chuyển</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openModal('routeModal')">+ Thêm tuyến mới</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý tuyến vận chuyển liên kho</h1>
+                        <p class="page-subtitle">Thiết lập lộ trình từ kho đi đến kho đích, khoảng cách và thời gian di chuyển tiêu chuẩn</p>
+                    </div>
+                </div>
+
+                <!-- Table Routes -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Danh sách các tuyến đang khai thác</h3>
+                        <div class="search-input-wrapper">
+                            <input type="text" class="form-control" style="width: 240px; padding: 6px 12px;" placeholder="Tìm theo tên kho...">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã tuyến</th>
+                                    <th>Kho đi (Xuất phát)</th>
+                                    <th>Kho đến (Đích nhận)</th>
+                                    <th>Khoảng cách (km)</th>
+                                    <th>Thời gian dự kiến</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">TU0001</strong></td>
+                                    <td>Kho Trung tâm Thủ Đức (KHO0001)</td>
+                                    <td>Bưu cục Quận 1 (KHO0002)</td>
+                                    <td>15.5 km</td>
+                                    <td>0.8 giờ (~48 phút)</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editRoute('TU0001', 'Kho Trung tâm Thủ Đức', 'Bưu cục Quận 1', 15.5, 0.8)">Sửa</button>
+                                        <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="deleteRoute('TU0001')">Xóa</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">TU0002</strong></td>
+                                    <td>Kho Trung tâm Thủ Đức (KHO0001)</td>
+                                    <td>Bưu cục Tân Bình (KHO0003)</td>
+                                    <td>18.2 km</td>
+                                    <td>1.0 giờ (~60 phút)</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editRoute('TU0002', 'Kho Trung tâm Thủ Đức', 'Bưu cục Tân Bình', 18.2, 1.0)">Sửa</button>
+                                        <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="deleteRoute('TU0002')">Xóa</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">TU0003</strong></td>
+                                    <td>Kho Trung tâm Thủ Đức (KHO0001)</td>
+                                    <td>Bưu cục Biên Hòa (KHO0004)</td>
+                                    <td>22.0 km</td>
+                                    <td>1.2 giờ (~72 phút)</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editRoute('TU0003', 'Kho Trung tâm Thủ Đức', 'Bưu cục Biên Hòa', 22.0, 1.2)">Sửa</button>
+                                        <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="deleteRoute('TU0003')">Xóa</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">TU0004</strong></td>
+                                    <td>Kho Trung tâm Thủ Đức (KHO0001)</td>
+                                    <td>Bưu cục Dĩ An (KHO0005)</td>
+                                    <td>12.0 km</td>
+                                    <td>0.6 giờ (~36 phút)</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editRoute('TU0004', 'Kho Trung tâm Thủ Đức', 'Bưu cục Dĩ An', 12.0, 0.6)">Sửa</button>
+                                        <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="deleteRoute('TU0004')">Xóa</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL THÊM / SỬA TUYẾN VẬN CHUYỂN -->
+    <div class="modal-backdrop" id="routeModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="routeModalTitle">Thêm tuyến vận chuyển mới</h3>
+                <button class="modal-close" onclick="closeModal('routeModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Kho đi (Xuất phát) <span class="required">*</span></label>
+                    <select class="form-select" id="routeFrom">
+                        <option>Kho Trung tâm Thủ Đức</option>
+                        <option>Bưu cục Quận 1</option>
+                        <option>Bưu cục Tân Bình</option>
+                        <option>Bưu cục Biên Hòa</option>
+                        <option>Bưu cục Dĩ An</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kho đến (Đích nhận) <span class="required">*</span></label>
+                    <select class="form-select" id="routeTo">
+                        <option>Bưu cục Quận 1</option>
+                        <option>Kho Trung tâm Thủ Đức</option>
+                        <option>Bưu cục Tân Bình</option>
+                        <option>Bưu cục Biên Hòa</option>
+                        <option>Bưu cục Dĩ An</option>
+                    </select>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Khoảng cách (km) <span class="required">*</span></label>
+                        <input type="number" step="0.1" class="form-control" id="routeDist" value="15.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Thời gian dự kiến (giờ) <span class="required">*</span></label>
+                        <input type="number" step="0.1" class="form-control" id="routeTime" value="0.8" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('routeModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="saveRoute()">✓ Lưu tuyến</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function editRoute(code, from, to, dist, time) {
+            document.getElementById('routeModalTitle').innerText = `Sửa thông tin tuyến ${code}`;
+            document.getElementById('routeFrom').value = from;
+            document.getElementById('routeTo').value = to;
+            document.getElementById('routeDist').value = dist;
+            document.getElementById('routeTime').value = time;
+            openModal('routeModal');
+        }
+
+        function deleteRoute(code) {
+            if (confirm(`Bạn có chắc chắn muốn xóa tuyến vận chuyển ${code}?`)) {
+                showToast('Đã xóa', `Tuyến ${code} đã được xóa khỏi hệ thống.`, 'success');
+            }
+        }
+
+        function saveRoute() {
+            closeModal('routeModal');
+            showToast('Thành công', 'Đã lưu cấu hình tuyến vận chuyển.', 'success');
+        }
+    </script>
+</body>
+</html>

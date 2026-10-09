@@ -61,10 +61,14 @@ public class SecurityConfig {
 
             // Phân quyền Endpoints
             .authorizeHttpRequests(auth -> auth
-                // Public: Auth APIs
-                .requestMatchers("/api/auth/**").permitAll()
+                // Static Assets (CSS, JS, Images, Favicon)
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
+                
+                // HTML Web View Pages (Rendered by Thymeleaf)
+                .requestMatchers("/", "/login", "/register", "/tracking", "/customer/**", "/admin/**").permitAll()
 
-                // Public: Tra cứu công khai
+                // Public REST APIs
+                .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tra-cuu/**").permitAll()
 
                 // Swagger UI
@@ -75,13 +79,9 @@ public class SecurityConfig {
                     "/v3/api-docs"
                 ).permitAll()
 
-                // Admin APIs
+                // Protected REST APIs (Secured by JWT Token)
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-
-                // Customer APIs
                 .requestMatchers("/api/khach-hang/**").hasAuthority("KHACH_HANG")
-
-                // Order creation - KHACH_HANG
                 .requestMatchers(HttpMethod.POST, "/api/don-hang").hasAuthority("KHACH_HANG")
 
                 // All other endpoints require authentication

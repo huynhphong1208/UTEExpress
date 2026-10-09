@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>14 – Quản lý chuyến giao - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ĐIỀU PHỐI -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA;">Điều phối</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Điều hành vận tải</div>
+                <a href="12-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Điều phối</span>
+                </a>
+                <a href="13-routes.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    <span>Tuyến vận chuyển</span>
+                </a>
+                <a href="14-trips.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>Quản lý chuyến giao</span>
+                    <span class="nav-badge">4</span>
+                </a>
+                <a href="../guest/04-tracking.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Tra cứu vận đơn</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #2563EB;">DP</div>
+                <div class="user-info">
+                    <div class="user-name">Trần Minh Tuấn</div>
+                    <div class="user-sub">NV Điều phối trung tâm</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="12-dashboard.html">Điều phối</a> <span>/</span> <span>Quản lý chuyến giao vận</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openModal('createTripModal')">+ Lên lịch chuyến mới</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý chuyến giao & Phân công phương tiện</h1>
+                        <p class="page-subtitle">Tạo chuyến, chọn xe theo tải trọng thực tế và gán tài xế tránh xung đột trùng lịch</p>
+                    </div>
+                </div>
+
+                <!-- Bảng chuyến giao -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Danh sách các chuyến giao hàng</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <select class="form-select" style="width: 180px; padding: 6px 10px; font-size: 13px;">
+                                <option value="">Tất cả trạng thái</option>
+                                <option>Chưa xuất phát</option>
+                                <option>Đang thực hiện</option>
+                                <option>Hoàn thành</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã chuyến</th>
+                                    <th>Tuyến vận chuyển</th>
+                                    <th>Tài xế phụ trách</th>
+                                    <th>Phương tiện</th>
+                                    <th>Thời gian xuất phát</th>
+                                    <th>Thời gian đến dự kiến</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">CG00012</strong></td>
+                                    <td>Kho TT Thủ Đức ➔ Bưu cục Q1</td>
+                                    <td>Trần Văn Dũng<br><small style="color: var(--text-muted);">0903112233 (Hạng C)</small></td>
+                                    <td>51C-987.65<br><small style="color: var(--text-muted);">Xe tải 1.5 tấn (850kg kiện)</small></td>
+                                    <td>22/09/2026 10:30</td>
+                                    <td>22/09/2026 11:15</td>
+                                    <td><span class="badge badge-info"><span class="badge-dot"></span>Đang thực hiện</span></td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="alert('Đang theo dõi GPS xe 51C-987.65 trên tuyến Thủ Đức - Q1');">Theo dõi GPS</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">CG00013</strong></td>
+                                    <td>Kho TT Thủ Đức ➔ Bưu cục Biên Hòa</td>
+                                    <td>Lê Hoàng Nam<br><small style="color: var(--text-muted);">0918445566 (Hạng D)</small></td>
+                                    <td>51D-123.45<br><small style="color: var(--text-muted);">Xe tải 2.5 tấn (1800kg kiện)</small></td>
+                                    <td>22/09/2026 11:15</td>
+                                    <td>22/09/2026 12:30</td>
+                                    <td><span class="badge badge-gray"><span class="badge-dot"></span>Chưa xuất phát</span></td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-primary btn-sm" onclick="openAssignModal('CG00013')">Gán thêm kiện</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL TẠO CHUYẾN & KIỂM TRA TẢI TRỌNG (Ràng buộc nghiệp vụ quan trọng) -->
+    <div class="modal-backdrop" id="createTripModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title">Tạo chuyến vận chuyển & Phân công tải trọng</h3>
+                <button class="modal-close" onclick="closeModal('createTripModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Cảnh báo lỗi tải trọng theo đúng yêu cầu -->
+                <div id="overloadAlert" style="display: none; padding: 12px 16px; background-color: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); color: var(--danger); font-size: 13.5px; font-weight: 600; margin-bottom: 16px;">
+                    ⚠️ Phương tiện không đủ tải trọng. Vui lòng chọn phương tiện khác hoặc tách chuyến.
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Chọn tuyến vận chuyển <span class="required">*</span></label>
+                        <select class="form-select" id="tripRoute">
+                            <option>TU0001: Kho TT Thủ Đức ➔ Bưu cục Quận 1 (15.5 km)</option>
+                            <option>TU0002: Kho TT Thủ Đức ➔ Bưu cục Tân Bình (18.2 km)</option>
+                            <option>TU0003: Kho TT Thủ Đức ➔ Bưu cục Biên Hòa (22.0 km)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Loại chuyến</label>
+                        <select class="form-select">
+                            <option selected>Liên kho (Hub to Branch)</option>
+                            <option>Giao cuối (Branch to Customer)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Phân công Tài xế (Kiểm tra lịch rảnh) <span class="required">*</span></label>
+                        <select class="form-select" id="tripDriver">
+                            <option value="TX00001">Trần Văn Dũng (TX00001) - Khả dụng</option>
+                            <option value="TX00003">Phạm Minh Tuấn (TX00003) - Khả dụng</option>
+                            <option value="TX00002" disabled>Lê Hoàng Nam (TX00002) - Đang chạy chuyến CG00013</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phân công Phương tiện <span class="required">*</span></label>
+                        <select class="form-select" id="tripVehicle" onchange="checkVehicleCapacity()">
+                            <option value="1500" selected>51C-987.65 (Xe tải 1.5 tấn - Tải trọng max 1500 kg)</option>
+                            <option value="2500">51D-123.45 (Xe tải 2.5 tấn - Tải trọng max 2500 kg)</option>
+                            <option value="850">59B-444.22 (Xe van - Tải trọng max 850 kg)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Ngày xuất phát dự kiến</label>
+                        <input type="datetime-local" class="form-control" value="2026-09-22T14:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ngày đến dự kiến</label>
+                        <input type="datetime-local" class="form-control" value="2026-09-22T15:30">
+                    </div>
+                </div>
+
+                <!-- Danh sách kiện hàng gán vào chuyến -->
+                <div style="margin-top: 10px;">
+                    <label class="form-label" style="font-weight: 600;">Gán kiện hàng vào chuyến:</label>
+                    <div style="background: var(--bg-alt); padding: 14px; border-radius: var(--radius-md); max-height: 180px; overflow-y: auto;">
+                        <label class="checkbox-label" style="display: flex; margin-bottom: 8px;">
+                            <input type="checkbox" checked onchange="togglePkg(this, 500)">
+                            <span>KIEN000101 (Đơn DH000101 - Thiết bị điện tử - 500 kg)</span>
+                        </label>
+                        <label class="checkbox-label" style="display: flex; margin-bottom: 8px;">
+                            <input type="checkbox" checked onchange="togglePkg(this, 600)">
+                            <span>KIEN000102 (Đơn DH000102 - Hàng gia dụng - 600 kg)</span>
+                        </label>
+                        <label class="checkbox-label" style="display: flex;">
+                            <input type="checkbox" id="heavyPkgCheck" onchange="togglePkg(this, 900)">
+                            <span>KIEN000105 (Đơn DH000105 - Máy công nghiệp - 900 kg)</span>
+                        </label>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                        <span>Tổng khối lượng kiện gán: <strong id="currentLoadText">1,100 kg</strong></span>
+                        <span>Sức chứa xe: <strong id="maxCapText">1,500 kg</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createTripModal')">Hủy bỏ</button>
+                <button class="btn btn-primary" onclick="submitTrip()">✓ Xác nhận tạo chuyến</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        let currentLoad = 1100;
+
+        function togglePkg(checkbox, weight) {
+            if (checkbox.checked) {
+                currentLoad += weight;
+            } else {
+                currentLoad -= weight;
+            }
+            document.getElementById('currentLoadText').innerText = currentLoad.toLocaleString('vi-VN') + ' kg';
+            checkVehicleCapacity();
+        }
+
+        function checkVehicleCapacity() {
+            const vehicleMax = parseInt(document.getElementById('tripVehicle').value);
+            document.getElementById('maxCapText').innerText = vehicleMax.toLocaleString('vi-VN') + ' kg';
+
+            const alertBox = document.getElementById('overloadAlert');
+            if (currentLoad > vehicleMax) {
+                alertBox.style.display = 'block';
+                return false;
+            } else {
+                alertBox.style.display = 'none';
+                return true;
+            }
+        }
+
+        function submitTrip() {
+            if (!checkVehicleCapacity()) {
+                alert('Phương tiện không đủ tải trọng. Vui lòng chọn phương tiện khác hoặc tách chuyến.');
+                return;
+            }
+            closeModal('createTripModal');
+            showToast('Thành công', 'Đã khởi tạo chuyến giao mới và phân công tài xế/xe thành công!', 'success');
+        }
+    </script>
+</body>
+</html>

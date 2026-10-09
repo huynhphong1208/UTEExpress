@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>01 – Đăng ký tài khoản Khách hàng - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
+            padding: 30px 20px;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 520px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            padding: 36px 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .auth-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="03-index.html" class="auth-logo" style="display: block; text-align: center;">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express" style="height: 64px; object-fit: contain; margin-bottom: 8px;">
+                </a>
+                <h1 style="font-size: 24px; font-weight: 700; color: var(--brand-blue);">Tạo tài khoản Khách hàng</h1>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Đăng ký để gửi hàng nhanh chóng và quản lý cước phí trực tuyến</p>
+            </div>
+
+            <!-- Error alert box (Mô phỏng validation) -->
+            <div id="errorAlert" style="display: none; padding: 12px 16px; background-color: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); color: var(--danger); font-size: 13px; margin-bottom: 20px;">
+                Tài khoản hoặc số điện thoại đã tồn tại trong hệ thống!
+            </div>
+
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Họ và tên <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="fullName" placeholder="Ví dụ: Nguyễn Văn An" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại <span class="required">*</span></label>
+                        <input type="tel" class="form-control" id="phone" placeholder="10 chữ số..." pattern="[0-9]{10}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email <span class="required">*</span></label>
+                        <input type="email" class="form-control" id="email" placeholder="example@email.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tên đăng nhập <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="username" placeholder="Tối thiểu 5 ký tự..." required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu <span class="required">*</span></label>
+                        <input type="password" class="form-control" id="password" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nhập lại mật khẩu <span class="required">*</span></label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 8px;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="agreeTerms" required>
+                        <span>Tôi đồng ý với <a href="#" style="color: var(--primary-blue);">Điều khoản dịch vụ</a> và Chính sách bảo mật của UTE Express.</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 20px;">
+                    Đăng ký tài khoản
+                </button>
+
+                <div style="text-align: center; margin-top: 20px; font-size: 13.5px; color: var(--text-secondary);">
+                    Đã có tài khoản? <a href="02-login.html" style="color: var(--primary-blue); font-weight: 600;">Đăng nhập ngay</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function handleRegister(e) {
+            e.preventDefault();
+            const pw = document.getElementById('password').value;
+            const cpw = document.getElementById('confirmPassword').value;
+            const phone = document.getElementById('phone').value;
+
+            if (pw !== cpw) {
+                alert('Mật khẩu và xác nhận mật khẩu không trùng nhau!');
+                return;
+            }
+
+            if (phone === '0912345678') {
+                document.getElementById('errorAlert').style.display = 'block';
+                return;
+            }
+
+            showToast('Đăng ký thành công', 'Tài khoản khách hàng đã được tạo. Chuyển đến trang Đăng nhập...', 'success');
+            setTimeout(() => {
+                window.location.href = '02-login.html';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>

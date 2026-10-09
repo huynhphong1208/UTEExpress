@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo đơn hàng mới - UTE Express</title>
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR KHÁCH HÀNG -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/}" href="/" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag">Khách hàng</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ giao nhận</div>
+                <a th:href="@{/customer/dashboard}" href="/customer/dashboard" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Tổng quan & Đơn hàng</span>
+                </a>
+                <a th:href="@{/customer/create-order}" href="/customer/create-order" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>Tạo đơn hàng mới</span>
+                </a>
+                <a th:href="@{/tracking}" href="/tracking" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Theo dõi / Tra cứu</span>
+                </a>
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: 30px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a th:href="@{/customer/dashboard}" href="/customer/dashboard">Dashboard</a> <span>/</span> <span>Tạo đơn hàng mới</span>
+                </div>
+            </header>
+
+            <div class="page-container" style="max-width: 980px;">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Tạo đơn gửi hàng mới (UC04)</h1>
+                        <p class="page-subtitle">Nhập thông tin người nhận và kiện hàng để gửi đơn hàng</p>
+                    </div>
+                </div>
+
+                <div id="errorAlert" style="display: none; padding: 12px 16px; background-color: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); color: var(--danger); font-size: 13px; margin-bottom: 20px;"></div>
+
+                <form id="createOrderForm" onsubmit="handleCreateOrder(event)">
+                    <div class="grid-12">
+                        <!-- Left Column -->
+                        <div class="col-8">
+                            <!-- SECTION A: THÔNG TIN LẤY HÀNG -->
+                            <div class="card" style="margin-bottom: 20px;">
+                                <div class="card-header" style="background-color: var(--bg-alt);">
+                                    <h3 class="card-title">A. Thông tin lấy hàng (Người gửi)</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label">Địa chỉ lấy hàng chi tiết <span style="color: red;">*</span></label>
+                                        <input type="text" class="form-control" id="senderAddress" value="12 Võ Văn Ngân, Thủ Đức, TP.HCM" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION B: THÔNG TIN NGƯỜI NHẬN -->
+                            <div class="card" style="margin-bottom: 20px;">
+                                <div class="card-header" style="background-color: var(--bg-alt);">
+                                    <h3 class="card-title">B. Thông tin người nhận & điểm giao</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="grid-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Họ tên người nhận <span style="color: red;">*</span></label>
+                                            <input type="text" class="form-control" id="receiverName" value="Trần Thị Bích" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Số điện thoại người nhận <span style="color: red;">*</span></label>
+                                            <input type="tel" class="form-control" id="receiverPhone" value="0901000002" pattern="[0-9]{10}" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label">Địa chỉ giao hàng chi tiết <span style="color: red;">*</span></label>
+                                        <input type="text" class="form-control" id="receiverAddress" value="34 Lê Lợi, Q1, TP.HCM" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION C: KHO & KIỆN HÀNG -->
+                            <div class="card">
+                                <div class="card-header" style="background-color: var(--bg-alt);">
+                                    <h3 class="card-title">C. Kho tiếp nhận & Thông tin kiện hàng</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="grid-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Kho gửi <span style="color: red;">*</span></label>
+                                            <select class="form-select" id="maKhoGui">
+                                                <option value="KHO01">KHO01 - Bưu cục Thủ Đức</option>
+                                                <option value="KHO02">KHO02 - Bưu cục Cầu Giấy</option>
+                                                <option value="KHO03">KHO03 - Bưu cục Đà Nẵng</option>
+                                                <option value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Kho nhận <span style="color: red;">*</span></label>
+                                            <select class="form-select" id="maKhoNhan">
+                                                <option value="KHO01">KHO01 - Bưu cục Thủ Đức</option>
+                                                <option value="KHO03" selected>KHO03 - Bưu cục Đà Nẵng</option>
+                                                <option value="KHO02">KHO02 - Bưu cục Cầu Giấy</option>
+                                                <option value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Khối lượng (kg) <span style="color: red;">*</span></label>
+                                            <input type="number" step="0.1" min="0.1" class="form-control" id="pkgWeight" value="2.5" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Loại hàng hóa <span style="color: red;">*</span></label>
+                                            <input type="text" class="form-control" id="pkgType" value="Điện tử" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label">Kích thước (Dài x Rộng x Cao cm)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="number" class="form-control" id="pkgLength" placeholder="Dài (cm)" value="30">
+                                            <input type="number" class="form-control" id="pkgWidth" placeholder="Rộng (cm)" value="20">
+                                            <input type="number" class="form-control" id="pkgHeight" placeholder="Cao (cm)" value="15">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-4">
+                            <div class="card" style="position: sticky; top: 88px;">
+                                <div class="card-header" style="background-color: var(--primary-light);">
+                                    <h3 class="card-title" style="color: var(--primary-blue);">D. Thu hộ & Xác nhận</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label class="form-label">Tiền thu hộ COD (đ)</label>
+                                        <input type="number" step="1000" class="form-control" id="codAmount" value="500000">
+                                    </div>
+
+                                    <button type="submit" id="btnSubmit" class="btn btn-primary btn-block btn-lg" style="margin-top: 20px;">
+                                        ✓ Tạo đơn hàng mới
+                                    </button>
+
+                                    <a th:href="@{/customer/dashboard}" href="/customer/dashboard" class="btn btn-ghost btn-block" style="margin-top: 10px;">
+                                        Hủy thao tác
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            alert('Bạn chưa đăng nhập! Vui lòng đăng nhập tài khoản Khách hàng.');
+            window.location.href = '/login';
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+
+        async function handleCreateOrder(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('errorAlert');
+            const btn = document.getElementById('btnSubmit');
+
+            alertBox.style.display = 'none';
+            btn.disabled = true;
+            btn.innerText = 'Đang khởi tạo đơn hàng...';
+
+            const requestData = {
+                tenNguoiNhan: document.getElementById('receiverName').value.trim(),
+                sdtNhan: document.getElementById('receiverPhone').value.trim(),
+                diaChiLay: document.getElementById('senderAddress').value.trim(),
+                diaChiGiao: document.getElementById('receiverAddress').value.trim(),
+                maKhoGui: document.getElementById('maKhoGui').value,
+                maKhoNhan: document.getElementById('maKhoNhan').value,
+                cod: parseFloat(document.getElementById('codAmount').value) || 0,
+                danhSachKien: [
+                    {
+                        khoiLuong: parseFloat(document.getElementById('pkgWeight').value) || 1,
+                        dai: parseFloat(document.getElementById('pkgLength').value) || 10,
+                        rong: parseFloat(document.getElementById('pkgWidth').value) || 10,
+                        cao: parseFloat(document.getElementById('pkgHeight').value) || 10,
+                        loaiHang: document.getElementById('pkgType').value || 'Tiêu chuẩn'
+                    }
+                ]
+            };
+
+            try {
+                const res = await fetch('/api/don-hang', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    alert(`🎉 Tạo đơn hàng thành công! Mã vận đơn: ${data.data}`);
+                    window.location.href = '/customer/dashboard';
+                } else {
+                    alertBox.style.display = 'block';
+                    alertBox.innerText = data.message || 'Lỗi khi tạo đơn hàng!';
+                }
+            } catch (err) {
+                alertBox.style.display = 'block';
+                alertBox.innerText = 'Lỗi kết nối máy chủ!';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '✓ Tạo đơn hàng mới';
+            }
+        }
+    </script>
+</body>
+</html>

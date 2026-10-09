@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15 – Dashboard Tài xế - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR TÀI XẾ -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(234, 179, 8, 0.2); color: #FACC15;">Tài xế</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nhiệm vụ vận chuyển</div>
+                <a href="15-dashboard.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Tài xế</span>
+                </a>
+                <a href="16-trip-detail.html?id=CG00012" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Chuyến giao của tôi</span>
+                    <span class="nav-badge" style="background-color: var(--primary-blue);">1</span>
+                </a>
+                <a href="17-delivery-update.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                    <span>Quét kiện & Cập nhật</span>
+                </a>
+                <a href="../guest/04-tracking.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Tra cứu đơn hàng</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #D97706;">TX</div>
+                <div class="user-info">
+                    <div class="user-name">Trần Văn Dũng</div>
+                    <div class="user-sub">Xe 51C-987.65 (TX0001)</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="#">Tài xế</a> <span>/</span> <span>Dashboard</span>
+                </div>
+                <div class="header-actions">
+                    <a href="17-delivery-update.html" class="btn btn-primary btn-sm">📷 Quét kiện giao hàng</a>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Bảng phân công nhiệm vụ Tài xế</h1>
+                        <p class="page-subtitle">Xin chào Trần Văn Dũng, bạn đang phụ trách xe 51C-987.65 (Xe tải 1.5T)</p>
+                    </div>
+                </div>
+
+                <!-- 4 Statistic Cards chuẩn TX -->
+                <div class="grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Chuyến được phân công</span>
+                            <span class="stat-value">2</span>
+                            <span class="stat-change">Hôm nay</span>
+                        </div>
+                        <div class="stat-icon">📋</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Chuyến đang thực hiện</span>
+                            <span class="stat-value" style="color: var(--info);">1</span>
+                            <span class="stat-change" style="color: var(--info);">CG00012 (Trên đường)</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">🚚</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Kiện cần giao</span>
+                            <span class="stat-value" style="color: var(--warning);">14</span>
+                            <span class="stat-change" style="color: var(--warning);">Đang trên thùng xe</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">📦</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Kiện đã giao thành công</span>
+                            <span class="stat-value" style="color: var(--success);">32</span>
+                            <span class="stat-change up">Đã thu đủ COD</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">✓</div>
+                    </div>
+                </div>
+
+                <!-- Chuyến giao hiện tại -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header" style="background: var(--primary-light);">
+                        <h3 class="card-title" style="color: var(--primary-blue);">Chuyến giao đang phụ trách trực tiếp (CG00012)</h3>
+                        <span class="badge badge-info"><span class="badge-dot"></span>Đang thực hiện</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-4" style="margin-bottom: 16px;">
+                            <div>
+                                <span style="font-size: 12px; color: var(--text-muted);">Tuyến đường</span>
+                                <div style="font-weight: 700; margin-top: 2px;">Kho TT Thủ Đức ➔ Bưu cục Q1</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: var(--text-muted);">Phương tiện</span>
+                                <div style="font-weight: 600; margin-top: 2px;">51C-987.65 (Tải 1.5 tấn)</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: var(--text-muted);">Số lượng kiện</span>
+                                <div style="font-weight: 600; margin-top: 2px;">14 kiện (850 kg)</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: var(--text-muted);">Dự kiến đến kho đích</span>
+                                <div style="font-weight: 600; color: var(--primary-blue); margin-top: 2px;">11:15 (còn 20 phút)</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <a href="16-trip-detail.html?id=CG00012" class="btn btn-primary">Xem chi tiết kiện & lộ trình</a>
+                            <a href="17-delivery-update.html" class="btn btn-secondary">Quét mã cập nhật giao hàng</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+</body>
+</html>

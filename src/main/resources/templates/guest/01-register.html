@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký tài khoản Khách hàng - UTE Express</title>
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
+            padding: 30px 20px;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 520px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            padding: 36px 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .auth-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a th:href="@{/}" href="/" class="auth-logo" style="display: block; text-align: center;">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express" style="height: 64px; object-fit: contain; margin-bottom: 8px;">
+                </a>
+                <h1 style="font-size: 24px; font-weight: 700; color: var(--brand-blue);">Tạo tài khoản Khách hàng</h1>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Đăng ký để gửi hàng nhanh chóng và quản lý đơn hàng trực tuyến</p>
+            </div>
+
+            <!-- Alert Box -->
+            <div id="alertBox" style="display: none; padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 20px;"></div>
+
+            <!-- Step 1: Điền thông tin & nhận OTP -->
+            <form id="step1Form" onsubmit="handleSendOtp(event)">
+                <div class="form-group">
+                    <label class="form-label">Họ và tên <span style="color: red;">*</span></label>
+                    <input type="text" class="form-control" id="fullName" placeholder="Ví dụ: Nguyễn Văn An" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại (Tên đăng nhập) <span style="color: red;">*</span></label>
+                        <input type="tel" class="form-control" id="phone" placeholder="10 chữ số..." pattern="[0-9]{10}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email <span style="color: red;">*</span></label>
+                        <input type="email" class="form-control" id="email" placeholder="example@email.com" required>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu <span style="color: red;">*</span></label>
+                        <input type="password" class="form-control" id="password" placeholder="••••••••" minlength="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nhập lại mật khẩu <span style="color: red;">*</span></label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="••••••••" minlength="6" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSendOtp" class="btn btn-primary btn-block btn-lg" style="margin-top: 16px;">
+                    Gửi mã OTP xác thực
+                </button>
+            </form>
+
+            <!-- Step 2: Nhập OTP -->
+            <form id="step2Form" onsubmit="handleVerifyOtp(event)" style="display: none;">
+                <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px; font-size: 13px; color: #1E40AF;">
+                    📩 Mã OTP 6 chữ số đã được gửi tới Email của bạn. Vui lòng kiểm tra hộp thư!
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mã OTP (6 chữ số) <span style="color: red;">*</span></label>
+                    <input type="text" class="form-control" id="otpCode" placeholder="123456" maxlength="6" pattern="[0-9]{6}" required style="font-size: 20px; letter-spacing: 6px; text-align: center;">
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="backToStep1()" style="flex: 1;">Quay lại</button>
+                    <button type="submit" id="btnVerify" class="btn btn-primary" style="flex: 2;">Hoàn tất đăng ký</button>
+                </div>
+            </form>
+
+            <div style="text-align: center; margin-top: 20px; font-size: 13.5px; color: var(--text-secondary);">
+                Đã có tài khoản? <a th:href="@{/login}" href="/login" style="color: var(--primary-blue); font-weight: 600;">Đăng nhập ngay</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let regData = {};
+
+        function showAlert(msg, isSuccess = false) {
+            const box = document.getElementById('alertBox');
+            box.style.display = 'block';
+            box.style.backgroundColor = isSuccess ? 'var(--success-bg)' : 'var(--danger-bg)';
+            box.style.color = isSuccess ? 'var(--success)' : 'var(--danger)';
+            box.innerText = msg;
+        }
+
+        function backToStep1() {
+            document.getElementById('step1Form').style.display = 'block';
+            document.getElementById('step2Form').style.display = 'none';
+            document.getElementById('alertBox').style.display = 'none';
+        }
+
+        async function handleSendOtp(e) {
+            e.preventDefault();
+            const hoTen = document.getElementById('fullName').value.trim();
+            const sdt = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const matKhau = document.getElementById('password').value.trim();
+            const cpw = document.getElementById('confirmPassword').value.trim();
+
+            if (matKhau !== cpw) {
+                showAlert('Mật khẩu và xác nhận mật khẩu không trùng khớp!');
+                return;
+            }
+
+            regData = { hoTen, sdt, email, matKhau };
+            const btn = document.getElementById('btnSendOtp');
+            btn.disabled = true;
+            btn.innerText = 'Đang gửi OTP...';
+
+            try {
+                const res = await fetch('/api/auth/register/send-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sdt, email })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showAlert('Gửi mã OTP thành công!', true);
+                    document.getElementById('step1Form').style.display = 'none';
+                    document.getElementById('step2Form').style.display = 'block';
+                } else {
+                    showAlert(data.message || 'Lỗi gửi OTP');
+                }
+            } catch (err) {
+                showAlert('Lỗi kết nối máy chủ!');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Gửi mã OTP xác thực';
+            }
+        }
+
+        async function handleVerifyOtp(e) {
+            e.preventDefault();
+            const otp = document.getElementById('otpCode').value.trim();
+            const btn = document.getElementById('btnVerify');
+            btn.disabled = true;
+            btn.innerText = 'Đang xác thực...';
+
+            try {
+                const res = await fetch('/api/auth/register/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sdt: regData.sdt,
+                        otp: otp,
+                        hoTen: regData.hoTen,
+                        matKhau: regData.matKhau,
+                        email: regData.email
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showAlert('Đăng ký tài khoản thành công! Đang chuyển hướng...', true);
+                    setTimeout(() => { window.location.href = '/login'; }, 1000);
+                } else {
+                    showAlert(data.message || 'Xác thực OTP không đúng!');
+                }
+            } catch (err) {
+                showAlert('Lỗi kết nối máy chủ!');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Hoàn tất đăng ký';
+            }
+        }
+    </script>
+</body>
+</html>

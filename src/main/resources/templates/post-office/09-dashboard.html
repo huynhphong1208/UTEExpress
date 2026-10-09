@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>09 – Dashboard Nhân viên Bưu cục - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR BƯU CỤC -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(34, 197, 94, 0.2); color: #4ADE80;">NV Bưu cục</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ bưu cục</div>
+                <a href="09-dashboard.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Bưu cục</span>
+                </a>
+                <a href="09-dashboard.html#order-management" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Quản lý đơn hàng</span>
+                    <span class="nav-badge">12</span>
+                </a>
+                <a href="10-packages.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <span>Quản lý kiện hàng</span>
+                </a>
+                <a href="11-update-status.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Cập nhật trạng thái</span>
+                </a>
+                <a href="../guest/04-tracking.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Tra cứu vận đơn</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #16A34A;">BC</div>
+                <div class="user-info">
+                    <div class="user-name">Lê Văn Bình</div>
+                    <div class="user-sub">Bưu cục Thủ Đức (NV0001)</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="header-search">
+                    <div class="search-input-wrapper">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" class="form-control" placeholder="Quét hoặc nhập mã đơn / mã kiện...">
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openModal('quickAcceptModal')">+ Tiếp nhận đơn nhanh</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <div class="breadcrumbs">
+                            <a href="#">Bưu cục</a> <span>/</span> <span>Kho Trung tâm Thủ Đức</span> <span>/</span> <span>Dashboard</span>
+                        </div>
+                        <h1 class="page-title">Bảng điều khiển Bưu cục & Tiếp nhận</h1>
+                        <p class="page-subtitle">Quản lý luồng hàng hóa nhập xuất, tiếp nhận đơn mới và phân loại kiện tại kho</p>
+                    </div>
+                </div>
+
+                <!-- 4 Statistic Cards chuẩn NV Bưu cục -->
+                <div class="grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đơn chờ tiếp nhận</span>
+                            <span class="stat-value" style="color: var(--warning);">12</span>
+                            <span class="stat-change" style="color: var(--warning);">Cần cân đo & dán nhãn</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">📥</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đơn đã tiếp nhận</span>
+                            <span class="stat-value">48</span>
+                            <span class="stat-change up">Hôm nay</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">✓</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Kiện hàng tại kho</span>
+                            <span class="stat-value">86</span>
+                            <span class="stat-change" style="color: var(--info);">Chờ điều phối xuất xe</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">📦</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Cần cập nhật trạng thái</span>
+                            <span class="stat-value">5</span>
+                            <span class="stat-change down">Đến kho hoặc chuyển hoàn</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--danger-bg); color: var(--danger);">🔄</div>
+                    </div>
+                </div>
+
+                <!-- Bảng danh sách đơn hàng -->
+                <div class="card" id="order-management">
+                    <div class="card-header">
+                        <h3 class="card-title">Danh sách đơn hàng tại bưu cục</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" class="form-control" style="width: 200px; padding: 6px 10px; font-size: 13px;" placeholder="Lọc mã đơn / SĐT...">
+                            <select class="form-select" style="width: 170px; padding: 6px 10px; font-size: 13px;">
+                                <option value="">Tất cả trạng thái</option>
+                                <option selected>Mới tạo (Chờ tiếp nhận)</option>
+                                <option>Đã tiếp nhận</option>
+                                <option>Đang vận chuyển</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Khách hàng (Người gửi)</th>
+                                    <th>Người nhận</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Phí VC</th>
+                                    <th>Tiền COD</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="background-color: #FEF9C3;">
+                                    <td><strong style="color: var(--primary-blue);">DH000102</strong></td>
+                                    <td>Cty TNHH Thiết bị Sao Mai<br><small style="color: var(--text-muted);">0903998877</small></td>
+                                    <td>Hoàng Minh Quân<br><small style="color: var(--text-muted);">Tân Bình, TP.HCM</small></td>
+                                    <td><span class="badge badge-gray"><span class="badge-dot"></span>Mới tạo</span></td>
+                                    <td>22/09/2026 09:15</td>
+                                    <td>45,000 đ</td>
+                                    <td>1,200,000 đ</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-primary btn-sm" onclick="acceptOrder('DH000102')">📥 Tiếp nhận</button>
+                                        <a href="11-update-status.html?id=DH000102" class="btn btn-secondary btn-sm">Cập nhật</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">DH000101</strong></td>
+                                    <td>Nguyễn Văn An<br><small style="color: var(--text-muted);">0912345678</small></td>
+                                    <td>Trần Thị Bích<br><small style="color: var(--text-muted);">Quận 1, TP.HCM</small></td>
+                                    <td><span class="badge badge-info"><span class="badge-dot"></span>Đang vận chuyển</span></td>
+                                    <td>22/09/2026 08:30</td>
+                                    <td>35,000 đ</td>
+                                    <td>550,000 đ</td>
+                                    <td class="cell-actions">
+                                        <a href="../customer/07-order-detail.html?id=DH000101" class="btn btn-secondary btn-sm">Xem</a>
+                                        <a href="11-update-status.html?id=DH000101" class="btn btn-outline-primary btn-sm">Cập nhật TT</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">DH000104</strong></td>
+                                    <td>Phạm Đức Long<br><small style="color: var(--text-muted);">0944778899</small></td>
+                                    <td>Vũ Quốc Cường<br><small style="color: var(--text-muted);">Dĩ An, Bình Dương</small></td>
+                                    <td><span class="badge badge-warning"><span class="badge-dot"></span>Đã tiếp nhận</span></td>
+                                    <td>22/09/2026 10:00</td>
+                                    <td>22,000 đ</td>
+                                    <td>0 đ</td>
+                                    <td class="cell-actions">
+                                        <a href="10-packages.html" class="btn btn-secondary btn-sm">Xem kiện</a>
+                                        <a href="11-update-status.html?id=DH000104" class="btn btn-outline-primary btn-sm">Cập nhật TT</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL TIẾP NHẬN ĐƠN NHANH -->
+    <div class="modal-backdrop" id="quickAcceptModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Tiếp nhận & Tạo kiện hàng mới</h3>
+                <button class="modal-close" onclick="closeModal('quickAcceptModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Mã đơn hàng <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="acceptOrderCode" value="DH000102" readonly>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Khối lượng cân thực tế (kg) <span class="required">*</span></label>
+                        <input type="number" step="0.1" class="form-control" id="acceptWeight" value="5.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mã kiện tự sinh</label>
+                        <input type="text" class="form-control" value="KIEN000102" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gán vào Kho hiện tại <span class="required">*</span></label>
+                    <select class="form-select">
+                        <option selected>Kho Trung tâm Thủ Đức (KHO0001)</option>
+                        <option>Bưu cục Quận 1 (KHO0002)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Ghi chú kiểm hàng</label>
+                    <textarea class="form-control" rows="2" placeholder="Hàng nguyên đai nguyên kiện..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('quickAcceptModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="confirmAccept()">✓ Xác nhận tiếp nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function acceptOrder(code) {
+            document.getElementById('acceptOrderCode').value = code;
+            openModal('quickAcceptModal');
+        }
+
+        function confirmAccept() {
+            closeModal('quickAcceptModal');
+            showToast('Tiếp nhận thành công', 'Đơn hàng đã chuyển sang trạng thái "Đã tiếp nhận" và sinh mã kiện KIEN000102.', 'success');
+        }
+    </script>
+</body>
+</html>

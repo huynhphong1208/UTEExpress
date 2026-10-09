@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 – Quản lý kiện hàng - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR BƯU CỤC -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(34, 197, 94, 0.2); color: #4ADE80;">NV Bưu cục</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ bưu cục</div>
+                <a href="09-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Bưu cục</span>
+                </a>
+                <a href="09-dashboard.html#order-management" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Quản lý đơn hàng</span>
+                    <span class="nav-badge">12</span>
+                </a>
+                <a href="10-packages.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <span>Quản lý kiện hàng</span>
+                </a>
+                <a href="11-update-status.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Cập nhật trạng thái</span>
+                </a>
+                <a href="../guest/04-tracking.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Tra cứu vận đơn</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #16A34A;">BC</div>
+                <div class="user-info">
+                    <div class="user-name">Lê Văn Bình</div>
+                    <div class="user-sub">Bưu cục Thủ Đức (NV0001)</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="09-dashboard.html">Bưu cục</a> <span>/</span> <span>Quản lý kiện hàng</span>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý kiện hàng lưu kho</h1>
+                        <p class="page-subtitle">Theo dõi vị trí kho hiện tại, kiểm tra trọng lượng kích thước và gán trạng thái lưu trữ</p>
+                    </div>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="card" style="margin-bottom: 20px; padding: 16px;">
+                    <div class="grid-3">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Tìm kiếm</label>
+                            <input type="text" class="form-control" placeholder="Nhập mã kiện (KIEN...) hoặc mã đơn...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Lọc theo Kho hiện tại</label>
+                            <select class="form-select">
+                                <option value="">Tất cả các kho</option>
+                                <option selected>Kho Trung tâm Thủ Đức</option>
+                                <option>Bưu cục Quận 1</option>
+                                <option>Bưu cục Tân Bình</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Trạng thái kiện</label>
+                            <select class="form-select">
+                                <option value="">Tất cả trạng thái</option>
+                                <option>Tại kho</option>
+                                <option>Đang trên xe tải</option>
+                                <option>Đang giao</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Packages -->
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã kiện</th>
+                                    <th>Mã đơn</th>
+                                    <th>Khối lượng</th>
+                                    <th>Kích thước</th>
+                                    <th>Loại hàng</th>
+                                    <th>Kho hiện tại</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thời gian cập nhật</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">KIEN000101</strong></td>
+                                    <td><a href="../customer/07-order-detail.html?id=DH000101">DH000101</a></td>
+                                    <td>2.5 kg</td>
+                                    <td>20x15x10 cm</td>
+                                    <td>Điện tử</td>
+                                    <td><span style="font-weight: 600; color: var(--info);">Kho TT Thủ Đức</span></td>
+                                    <td><span class="badge badge-info"><span class="badge-dot"></span>Đang vận chuyển</span></td>
+                                    <td>22/09/2026 10:45</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editPackage('KIEN000101', 'Kho TT Thủ Đức', 2.5)">Sửa kho</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">KIEN000102</strong></td>
+                                    <td><a href="../customer/07-order-detail.html?id=DH000102">DH000102</a></td>
+                                    <td>5.0 kg</td>
+                                    <td>30x20x15 cm</td>
+                                    <td>Gia dụng</td>
+                                    <td><span style="font-weight: 600; color: var(--warning);">Kho TT Thủ Đức</span></td>
+                                    <td><span class="badge badge-warning"><span class="badge-dot"></span>Tại kho chờ xuất</span></td>
+                                    <td>22/09/2026 09:15</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editPackage('KIEN000102', 'Kho TT Thủ Đức', 5.0)">Sửa kho</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">KIEN000104</strong></td>
+                                    <td><a href="../customer/07-order-detail.html?id=DH000104">DH000104</a></td>
+                                    <td>0.8 kg</td>
+                                    <td>15x10x5 cm</td>
+                                    <td>Tài liệu</td>
+                                    <td><span style="font-weight: 600;">Bưu cục Dĩ An</span></td>
+                                    <td><span class="badge badge-warning"><span class="badge-dot"></span>Đang giao</span></td>
+                                    <td>22/09/2026 10:00</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editPackage('KIEN000104', 'Bưu cục Dĩ An', 0.8)">Sửa kho</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL SỬA THÔNG TIN KIỆN / CẬP NHẬT KHO HIỆN TẠI -->
+    <div class="modal-backdrop" id="pkgModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Cập nhật vị trí kho hiện tại cho kiện hàng</h3>
+                <button class="modal-close" onclick="closeModal('pkgModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Mã kiện hàng</label>
+                    <input type="text" class="form-control" id="modalPkgCode" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kho lưu trữ hiện tại <span class="required">*</span></label>
+                    <select class="form-select" id="modalWarehouse">
+                        <option>Kho Trung tâm Thủ Đức</option>
+                        <option>Bưu cục Quận 1</option>
+                        <option>Bưu cục Tân Bình</option>
+                        <option>Bưu cục Dĩ An</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Khối lượng cân lại (kg)</label>
+                    <input type="number" step="0.1" class="form-control" id="modalPkgWeight">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Ghi chú xác nhận nhập/xuất kho</label>
+                    <textarea class="form-control" rows="2" placeholder="Nhập tình trạng kiện hàng khi thay đổi vị trí..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('pkgModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="savePackageUpdate()">✓ Lưu cập nhật kho</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function editPackage(code, warehouse, weight) {
+            document.getElementById('modalPkgCode').value = code;
+            document.getElementById('modalWarehouse').value = warehouse;
+            document.getElementById('modalPkgWeight').value = weight;
+            openModal('pkgModal');
+        }
+
+        function savePackageUpdate() {
+            closeModal('pkgModal');
+            showToast('Thành công', 'Đã cập nhật vị trí kho mới cho kiện hàng!', 'success');
+        }
+    </script>
+</body>
+</html>

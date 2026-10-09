@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>06 – Tạo đơn hàng - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR KHÁCH HÀNG -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag">Khách hàng</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ giao nhận</div>
+                <a href="05-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Tổng quan</span>
+                </a>
+                <a href="06-create-order.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>Tạo đơn hàng</span>
+                </a>
+                <a href="05-dashboard.html#orders-table" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Đơn hàng của tôi</span>
+                </a>
+                <a href="../guest/04-tracking.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Theo dõi / Tra cứu</span>
+                </a>
+
+                <div class="nav-section-title">Tài chính & Cá nhân</div>
+                <a href="08-payment.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    <span>Thanh toán & COD</span>
+                </a>
+                <a href="#" class="nav-item" onclick="alert('Trang Thông tin cá nhân đang cập nhật.')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span>Thông tin cá nhân</span>
+                </a>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar">KH</div>
+                <div class="user-info">
+                    <div class="user-name">Nguyễn Văn An</div>
+                    <div class="user-sub">KH000123 (Cá nhân)</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="05-dashboard.html">Dashboard</a> <span>/</span> <span>Tạo đơn hàng mới</span>
+                </div>
+                <div class="header-actions">
+                    <a href="05-dashboard.html" class="btn btn-ghost btn-sm">Quay lại danh sách</a>
+                </div>
+            </header>
+
+            <div class="page-container" style="max-width: 980px;">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Tạo đơn gửi hàng mới</h1>
+                        <p class="page-subtitle">Nhập chính xác thông tin để hệ thống tối ưu tuyến giao và tính cước phí tự động</p>
+                    </div>
+                </div>
+
+                <form id="createOrderForm" onsubmit="handleCreateOrder(event)">
+                    <div class="grid-12">
+                        <!-- Left Column: Thông tin giao nhận & kiện hàng -->
+                        <div class="col-8">
+                            
+                            <!-- SECTION A: THÔNG TIN LẤY HÀNG -->
+                            <div class="card" style="margin-bottom: 20px;">
+                                <div class="card-header" style="background-color: var(--bg-alt);">
+                                    <h3 class="card-title">A. Thông tin người gửi & lấy hàng</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="grid-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Người gửi <span class="required">*</span></label>
+                                            <input type="text" class="form-control" id="senderName" value="Nguyễn Văn An" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Số điện thoại lấy hàng <span class="required">*</span></label>
+                                            <input type="tel" class="form-control" id="senderPhone" value="0912345678" pattern="[0-9]{10}" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label">Địa chỉ lấy hàng chi tiết <span class="required">*</span></label>
+                                        <input type="text" class="form-control" id="senderAddress" value="Số 1 Võ Văn Ngân, P. Linh Chiểu, TP. Thủ Đức, TP.HCM" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION B: THÔNG TIN NGƯỜI NHẬN -->
+                            <div class="card" style="margin-bottom: 20px;">
+                                <div class="card-header" style="background-color: var(--bg-alt);">
+                                    <h3 class="card-title">B. Thông tin người nhận & điểm giao</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="grid-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Người nhận <span class="required">*</span></label>
+                                            <input type="text" class="form-control" id="receiverName" placeholder="Tên người nhận..." required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Số điện thoại người nhận <span class="required">*</span></label>
+                                            <input type="tel" class="form-control" id="receiverPhone" placeholder="10 chữ số..." pattern="[0-9]{10}" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label">Địa chỉ giao hàng chi tiết <span class="required">*</span></label>
+                                        <input type="text" class="form-control" id="receiverAddress" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành..." required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION C: THÔNG TIN KIỆN HÀNG -->
+                            <div class="card">
+                                <div class="card-header" style="background-color: var(--bg-alt);">
+                                    <h3 class="card-title">C. Thông tin kiện hàng hóa</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="grid-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Khối lượng thực (kg) <span class="required">*</span></label>
+                                            <input type="number" step="0.1" min="0.1" class="form-control" id="pkgWeight" value="1.5" oninput="autoCalculate()" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Loại hàng hóa <span class="required">*</span></label>
+                                            <select class="form-select" id="pkgType">
+                                                <option>Hàng tiêu chuẩn / Tiêu dùng</option>
+                                                <option>Hàng điện tử / Dễ vỡ</option>
+                                                <option>Thời trang & May mặc</option>
+                                                <option>Tài liệu / Chứng từ</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Kích thước (Dài x Rộng x Cao cm)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="number" class="form-control" id="pkgLength" placeholder="Dài (cm)" value="20" oninput="autoCalculate()">
+                                            <input type="number" class="form-control" id="pkgWidth" placeholder="Rộng (cm)" value="15" oninput="autoCalculate()">
+                                            <input type="number" class="form-control" id="pkgHeight" placeholder="Cao (cm)" value="10" oninput="autoCalculate()">
+                                        </div>
+                                        <span class="form-hint">Quy đổi thể tích theo quy chuẩn logistics: (D x R x C) / 5000</span>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label">Ghi chú giao hàng</label>
+                                        <textarea class="form-control" rows="2" placeholder="Ví dụ: Cho xem hàng, gọi trước khi giao 15 phút..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: SECTION D - TÍNH PHÍ VÀ THANH TOÁN -->
+                        <div class="col-4">
+                            <div class="card" style="position: sticky; top: 88px;">
+                                <div class="card-header" style="background-color: var(--primary-light);">
+                                    <h3 class="card-title" style="color: var(--primary-blue);">D. Cước phí & Thanh toán</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label class="form-label">Tiền thu hộ (COD)</label>
+                                        <input type="number" step="1000" class="form-control" id="codAmount" value="350000" oninput="autoCalculate()">
+                                        <span class="form-hint">Nhập 0 nếu khách đã thanh toán tiền hàng</span>
+                                    </div>
+
+                                    <div style="margin: 18px 0; padding: 14px; background: var(--bg-alt); border-radius: var(--radius-md);">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13.5px;">
+                                            <span style="color: var(--text-secondary);">Phí vận chuyển dự kiến:</span>
+                                            <strong id="displayShippingFee">25,000 đ</strong>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13.5px;">
+                                            <span style="color: var(--text-secondary);">Tiền thu hộ COD:</span>
+                                            <strong id="displayCod">350,000 đ</strong>
+                                        </div>
+                                        <hr style="border: none; border-top: 1px dashed var(--border-color); margin: 10px 0;">
+                                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                            <span style="font-weight: 600; font-size: 14px;">Tổng thu người nhận:</span>
+                                            <strong style="color: var(--primary-blue); font-size: 20px;" id="displayTotal">375,000 đ</strong>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" class="btn btn-secondary btn-block" style="margin-bottom: 10px;" onclick="autoCalculate(); showToast('Tính cước', 'Đã tính lại cước phí chuẩn quy định.', 'info');">
+                                        🔄 Tính phí lại
+                                    </button>
+
+                                    <button type="submit" class="btn btn-primary btn-block btn-lg">
+                                        ✓ Xác nhận tạo đơn hàng
+                                    </button>
+
+                                    <a href="05-dashboard.html" class="btn btn-ghost btn-block" style="margin-top: 6px;">
+                                        Hủy tạo đơn
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- SUCCESS MODAL (Tạo đơn thành công theo nghiệp vụ) -->
+    <div class="modal-backdrop" id="successOrderModal">
+        <div class="modal-dialog">
+            <div class="modal-header" style="background-color: var(--success-bg);">
+                <h3 class="modal-title" style="color: var(--success);">🎉 Tạo đơn hàng thành công!</h3>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 28px 20px;">
+                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 6px;">Mã vận đơn khởi tạo:</div>
+                <div style="font-size: 28px; font-weight: 800; color: var(--primary-blue); letter-spacing: 0.05em; margin-bottom: 12px;">DH000105</div>
+                
+                <div style="margin-bottom: 16px;">
+                    <span class="badge badge-gray"><span class="badge-dot"></span>Trạng thái ban đầu: Mới tạo</span>
+                </div>
+
+                <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
+                    Hệ thống đã ghi nhận lịch sử trạng thái đầu tiên. Nhân viên bưu cục gần nhất sẽ sớm tiếp nhận và phân loại kiện hàng.
+                </p>
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 12px;">
+                <a href="07-order-detail.html?id=DH000105" class="btn btn-primary">Xem chi tiết đơn hàng</a>
+                <a href="05-dashboard.html" class="btn btn-secondary">Về Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function autoCalculate() {
+            const w = parseFloat(document.getElementById('pkgWeight').value) || 1;
+            const l = parseFloat(document.getElementById('pkgLength').value) || 10;
+            const wi = parseFloat(document.getElementById('pkgWidth').value) || 10;
+            const h = parseFloat(document.getElementById('pkgHeight').value) || 10;
+            const cod = parseInt(document.getElementById('codAmount').value) || 0;
+
+            const fee = calculateShippingFee(w, l, wi, h, 15);
+            const total = fee + cod;
+
+            document.getElementById('displayShippingFee').innerText = fee.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('displayCod').innerText = cod.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('displayTotal').innerText = total.toLocaleString('vi-VN') + ' đ';
+        }
+
+        function handleCreateOrder(e) {
+            e.preventDefault();
+            openModal('successOrderModal');
+        }
+
+        // Run calculation once on load
+        window.addEventListener('DOMContentLoaded', autoCalculate);
+    </script>
+</body>
+</html>

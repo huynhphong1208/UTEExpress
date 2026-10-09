@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>19 – Quản lý người dùng - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ADMIN -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Admin</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Trung tâm điều hành</div>
+                <a href="18-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Admin Dashboard</span>
+                </a>
+                <a href="27-orders.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Giám sát đơn hàng</span>
+                </a>
+
+                <div class="nav-section-title">Quản lý thực thể</div>
+                <a href="19-users.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <span>Người dùng & Phân quyền</span>
+                </a>
+                <a href="24-warehouses.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>Quản lý Kho & Bưu cục</span>
+                </a>
+                <a href="25-vehicles.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>Quản lý Phương tiện</span>
+                </a>
+
+                <div class="nav-section-title">Tài chính & Thống kê</div>
+                <a href="28-payments.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Doanh thu & COD</span>
+                </a>
+                <a href="29-reports.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Báo cáo thống kê</span>
+                </a>
+                <a href="30-settings.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                    <span>Cấu hình & Sao lưu</span>
+                </a>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #DC2626;">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Quản trị viên Hệ thống</div>
+                    <div class="user-sub">ADMINISTRATOR</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="18-dashboard.html">Admin</a> <span>/</span> <span>Quản lý người dùng & tài khoản</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openModal('userModal')">+ Thêm tài khoản mới</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý người dùng & Tài khoản hệ thống</h1>
+                        <p class="page-subtitle">Phân quyền vai trò (Role-Based Access Control) và quản lý trạng thái khóa/mở khóa</p>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 20px; padding: 16px;">
+                    <div class="grid-3">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Tìm kiếm</label>
+                            <input type="text" class="form-control" placeholder="Tên đăng nhập, họ tên, email...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Lọc theo Vai trò</label>
+                            <select class="form-select">
+                                <option value="">Tất cả vai trò</option>
+                                <option>Khách hàng</option>
+                                <option>Nhân viên bưu cục</option>
+                                <option>Nhân viên điều phối</option>
+                                <option>Tài xế</option>
+                                <option>Quản trị viên (Admin)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Trạng thái tài khoản</label>
+                            <select class="form-select">
+                                <option value="">Tất cả trạng thái</option>
+                                <option>Hoạt động</option>
+                                <option>Bị khóa</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Users -->
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã ND</th>
+                                    <th>Tên đăng nhập</th>
+                                    <th>Họ và tên</th>
+                                    <th>Vai trò</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>ND000001</strong></td>
+                                    <td>admin_master</td>
+                                    <td>Quản trị viên Hệ thống</td>
+                                    <td><span class="badge badge-danger" style="background:#FEE2E2; color:#B91C1C;">Admin</span></td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Hoạt động</span></td>
+                                    <td>10/01/2026</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" disabled>Cố định</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ND000002</strong></td>
+                                    <td>levanbinh_bc</td>
+                                    <td>Lê Văn Bình</td>
+                                    <td><span class="badge badge-warning">NV Bưu cục</span></td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Hoạt động</span></td>
+                                    <td>15/02/2026</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editUser('ND000002', 'levanbinh_bc', 'Lê Văn Bình', 'Nhân viên bưu cục')">Sửa</button>
+                                        <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="toggleLock(this, 'ND000002')">Khóa</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ND000003</strong></td>
+                                    <td>tranminhtuan_dp</td>
+                                    <td>Trần Minh Tuấn</td>
+                                    <td><span class="badge badge-info">NV Điều phối</span></td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Hoạt động</span></td>
+                                    <td>18/02/2026</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editUser('ND000003', 'tranminhtuan_dp', 'Trần Minh Tuấn', 'Nhân viên điều phối')">Sửa</button>
+                                        <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="toggleLock(this, 'ND000003')">Khóa</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ND000004</strong></td>
+                                    <td>trandung_driver</td>
+                                    <td>Trần Văn Dũng</td>
+                                    <td><span class="badge badge-warning" style="background:#FEF3C7; color:#D97706;">Tài xế</span></td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Hoạt động</span></td>
+                                    <td>20/02/2026</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editUser('ND000004', 'trandung_driver', 'Trần Văn Dũng', 'Tài xế')">Sửa</button>
+                                        <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="toggleLock(this, 'ND000004')">Khóa</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ND000005</strong></td>
+                                    <td>khachhang_demo</td>
+                                    <td>Nguyễn Văn An</td>
+                                    <td><span class="badge badge-gray">Khách hàng</span></td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Hoạt động</span></td>
+                                    <td>01/03/2026</td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editUser('ND000005', 'khachhang_demo', 'Nguyễn Văn An', 'Khách hàng')">Sửa</button>
+                                        <button class="btn btn-ghost btn-sm" style="color: var(--danger);" onclick="toggleLock(this, 'ND000005')">Khóa</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL THÊM / SỬA NGƯỜI DÙNG -->
+    <div class="modal-backdrop" id="userModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="userModalTitle">Thêm người dùng mới</h3>
+                <button class="modal-close" onclick="closeModal('userModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Tên đăng nhập <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="modalUsername" placeholder="Nhập username...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Họ và tên đầy đủ <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="modalUserFullName" placeholder="Họ và tên...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phân quyền vai trò <span class="required">*</span></label>
+                    <select class="form-select" id="modalUserRole">
+                        <option>Khách hàng</option>
+                        <option>Nhân viên bưu cục</option>
+                        <option>Nhân viên điều phối</option>
+                        <option>Tài xế</option>
+                        <option>Quản trị viên (Admin)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu khởi tạo</label>
+                    <input type="password" class="form-control" value="UteExpress@2026">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('userModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="saveUser()">✓ Lưu thông tin</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function editUser(code, username, name, role) {
+            document.getElementById('userModalTitle').innerText = `Sửa thông tin tài khoản ${code}`;
+            document.getElementById('modalUsername').value = username;
+            document.getElementById('modalUserFullName').value = name;
+            document.getElementById('modalUserRole').value = role;
+            openModal('userModal');
+        }
+
+        function toggleLock(btn, code) {
+            if (btn.innerText === 'Khóa') {
+                if (confirm(`Bạn có chắc chắn muốn KHÓA tài khoản ${code}? Người dùng sẽ không thể đăng nhập vào hệ thống.`)) {
+                    btn.innerText = 'Mở khóa';
+                    btn.style.color = 'var(--success)';
+                    showToast('Đã khóa tài khoản', `Tài khoản ${code} đã bị khóa theo chính sách an toàn.`, 'danger');
+                }
+            } else {
+                btn.innerText = 'Khóa';
+                btn.style.color = 'var(--danger)';
+                showToast('Mở khóa', `Tài khoản ${code} đã hoạt động trở lại.`, 'success');
+            }
+        }
+
+        function saveUser() {
+            closeModal('userModal');
+            showToast('Thành công', 'Đã lưu thông tin người dùng và phân quyền vào cơ sở dữ liệu.', 'success');
+        }
+    </script>
+</body>
+</html>

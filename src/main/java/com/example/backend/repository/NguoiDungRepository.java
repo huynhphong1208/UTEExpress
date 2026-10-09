@@ -19,9 +19,9 @@ public interface NguoiDungRepository extends JpaRepository<NguoiDung, String> {
 
     @Query("""
             SELECT n FROM NguoiDung n
-            WHERE (:keyword IS NULL OR
+            WHERE (:keyword IS NULL OR :keyword = '' OR
                    LOWER(n.tenDangNhap) LIKE LOWER(CONCAT('%', :keyword, '%')))
-              AND (:maVaiTro IS NULL OR n.vaiTro.maVaiTro = :maVaiTro)
+              AND (:maVaiTro IS NULL OR :maVaiTro = '' OR n.vaiTro.maVaiTro = :maVaiTro)
             """)
     Page<NguoiDung> searchUsers(@Param("keyword") String keyword,
                                 @Param("maVaiTro") String maVaiTro,

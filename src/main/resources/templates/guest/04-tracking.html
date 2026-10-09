@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra cứu đơn hàng - UTE Express</title>
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body style="background-color: var(--bg-main);">
+
+    <!-- Public Header -->
+    <header class="public-header">
+        <a th:href="@{/}" href="/" class="public-logo-wrapper">
+            <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo" class="public-logo-img">
+        </a>
+        <nav class="public-nav">
+            <a th:href="@{/}" href="/">Trang chủ</a>
+            <a th:href="@{/tracking}" href="/tracking" class="active">Tra cứu đơn hàng</a>
+        </nav>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <a th:href="@{/login}" href="/login" class="btn btn-secondary btn-sm">Đăng nhập</a>
+            <a th:href="@{/register}" href="/register" class="btn btn-primary btn-sm">Đăng ký</a>
+        </div>
+    </header>
+
+    <div class="page-container" style="max-width: 860px; margin: 40px auto;">
+        
+        <!-- Search Box -->
+        <div class="card" style="padding: 28px; margin-bottom: 24px;">
+            <h2 style="font-size: 22px; text-align: center; margin-bottom: 8px;">Tra cứu hành trình vận đơn</h2>
+            <p style="text-align: center; color: var(--text-secondary); font-size: 13.5px; margin-bottom: 20px;">
+                Nhập mã đơn hàng của bạn để kiểm tra trạng thái cập nhật mới nhất từ hệ thống bưu cục và kho trung chuyển
+            </p>
+
+            <div style="display: flex; gap: 12px; max-width: 600px; margin: 0 auto;">
+                <input type="text" id="trackInput" class="form-control" style="font-size: 15px; padding: 12px 16px;" placeholder="Ví dụ: DH000001, DH000002..." th:value="${maDh}">
+                <button class="btn btn-primary btn-lg" onclick="searchTracking()">Tra cứu</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                💡 Mã mẫu: <strong style="cursor: pointer; color: var(--primary-blue);" onclick="fillTrack('DH000001')">DH000001</strong>, <strong style="cursor: pointer; color: var(--primary-blue);" onclick="fillTrack('DH000002')">DH000002</strong>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingBox" style="display: none; text-align: center; padding: 30px;" class="card">
+            <div style="font-size: 14px; color: var(--text-secondary);">⏳ Đang truy vấn dữ liệu vận đơn...</div>
+        </div>
+
+        <!-- Not Found Message -->
+        <div id="notFoundBox" style="display: none;" class="card">
+            <div class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <div class="empty-state-title" style="color: var(--danger);">Không tìm thấy đơn hàng!</div>
+                <div class="empty-state-desc" id="notFoundMsg">Vui lòng kiểm tra lại chính xác mã đơn hàng (định dạng DHxxxxxx).</div>
+            </div>
+        </div>
+
+        <!-- Result Card -->
+        <div id="resultBox" class="card" style="display: none;">
+            <div class="card-header" style="background-color: var(--bg-alt); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Mã đơn hàng</span>
+                    <h3 id="resCode" style="font-size: 20px; color: var(--primary-blue); margin-top: 2px;"></h3>
+                </div>
+                <div id="resBadge"></div>
+            </div>
+
+            <div class="card-body" style="padding: 24px;">
+                <!-- General Info -->
+                <div class="grid-3" style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px;">
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Ngày tạo đơn</div>
+                        <div id="resDate" style="font-weight: 600; font-size: 13.5px; margin-top: 4px;"></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Cập nhật mới nhất</div>
+                        <div id="resUpdated" style="font-weight: 600; font-size: 13.5px; margin-top: 4px;"></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Số lượng kiện hàng</div>
+                        <div id="resPackage" style="font-weight: 600; font-size: 13.5px; margin-top: 4px;"></div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-alt); padding: 12px 16px; border-radius: var(--radius-md); font-size: 12.5px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+                    <span>🔒</span>
+                    <span>Vì lý do bảo mật quyền riêng tư của Khách hàng, thông tin cá nhân được che bớt trên cổng tra cứu công cộng.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function fillTrack(code) {
+            document.getElementById('trackInput').value = code;
+            searchTracking();
+        }
+
+        async function searchTracking() {
+            const code = document.getElementById('trackInput').value.trim();
+            if (!code) return;
+
+            const loadingBox = document.getElementById('loadingBox');
+            const notFoundBox = document.getElementById('notFoundBox');
+            const resultBox = document.getElementById('resultBox');
+
+            loadingBox.style.display = 'block';
+            notFoundBox.style.display = 'none';
+            resultBox.style.display = 'none';
+
+            try {
+                const res = await fetch(`/api/tra-cuu/${code}`);
+                const data = await res.json();
+
+                loadingBox.style.display = 'none';
+
+                if (res.ok && data.success && data.data) {
+                    resultBox.style.display = 'block';
+                    const dh = data.data;
+
+                    document.getElementById('resCode').innerText = dh.maDh;
+                    document.getElementById('resBadge').innerHTML = `<span class="badge badge-info"><span class="badge-dot"></span>${dh.tenTrangThai}</span>`;
+                    document.getElementById('resDate').innerText = dh.ngayTao ? new Date(dh.ngayTao).toLocaleString('vi-VN') : '---';
+                    document.getElementById('resUpdated').innerText = dh.capNhatLuc ? new Date(dh.capNhatLuc).toLocaleString('vi-VN') : '---';
+                    document.getElementById('resPackage').innerText = `${dh.soKien || 1} kiện hàng`;
+                } else {
+                    notFoundBox.style.display = 'block';
+                    document.getElementById('notFoundMsg').innerText = data.message || 'Không tìm thấy thông tin đơn hàng!';
+                }
+            } catch (err) {
+                loadingBox.style.display = 'none';
+                notFoundBox.style.display = 'block';
+                document.getElementById('notFoundMsg').innerText = 'Lỗi kết nối máy chủ!';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const initialCode = document.getElementById('trackInput').value;
+            if (initialCode) {
+                searchTracking();
+            }
+        });
+    </script>
+</body>
+</html>

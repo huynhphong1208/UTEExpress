@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11 – Cập nhật trạng thái đơn - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR BƯU CỤC -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(34, 197, 94, 0.2); color: #4ADE80;">NV Bưu cục</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ bưu cục</div>
+                <a href="09-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Bưu cục</span>
+                </a>
+                <a href="09-dashboard.html#order-management" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Quản lý đơn hàng</span>
+                    <span class="nav-badge">12</span>
+                </a>
+                <a href="10-packages.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <span>Quản lý kiện hàng</span>
+                </a>
+                <a href="11-update-status.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Cập nhật trạng thái</span>
+                </a>
+                <a href="../guest/04-tracking.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Tra cứu vận đơn</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #16A34A;">BC</div>
+                <div class="user-info">
+                    <div class="user-name">Lê Văn Bình</div>
+                    <div class="user-sub">Bưu cục Thủ Đức (NV0001)</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="09-dashboard.html">Bưu cục</a> <span>/</span> <span>Cập nhật trạng thái luân chuyển</span>
+                </div>
+            </header>
+
+            <div class="page-container" style="max-width: 960px;">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Cập nhật trạng thái vận đơn & kiện hàng</h1>
+                        <p class="page-subtitle">Thực hiện cập nhật tuần tự theo đúng quy trình máy trạng thái (State Machine) của hệ thống</p>
+                    </div>
+                </div>
+
+                <div class="grid-12">
+                    <!-- Left: Form cập nhật hợp lệ -->
+                    <div class="col-7">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Biểu mẫu chuyển đổi trạng thái</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label class="form-label">Chọn mã đơn hàng cần cập nhật</label>
+                                    <select class="form-select" id="orderSelect" onchange="changeOrder(this.value)">
+                                        <option value="DH000102">DH000102 - [Mới tạo] - Cty TNHH Thiết bị Sao Mai</option>
+                                        <option value="DH000104">DH000104 - [Đã tiếp nhận] - Phạm Đức Long</option>
+                                        <option value="DH000101">DH000101 - [Đang vận chuyển] - Nguyễn Văn An</option>
+                                    </select>
+                                </div>
+
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-alt); border-radius: var(--radius-md); margin-bottom: 16px;">
+                                    <div>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Trạng thái hiện tại:</div>
+                                        <div id="currentBadge" style="margin-top: 4px;">
+                                            <span class="badge badge-gray"><span class="badge-dot"></span>Mới tạo</span>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 20px; color: var(--text-muted);">➔</div>
+                                    <div>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Bước tiếp theo hợp lệ:</div>
+                                        <div id="nextAllowedText" style="font-weight: 700; color: var(--primary-blue); margin-top: 4px;">
+                                            Đã tiếp nhận
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Chọn trạng thái chuyển đổi <span class="required">*</span></label>
+                                    <select class="form-select" id="nextStatusSelect">
+                                        <option value="Đã tiếp nhận">Đã tiếp nhận (Hợp lệ)</option>
+                                        <option value="Hủy">Hủy đơn hàng</option>
+                                    </select>
+                                    <span class="form-hint" style="color: var(--info);">
+                                        ℹ Hệ thống chỉ cho phép các trạng thái kế tiếp theo đúng sơ đồ luân chuyển.
+                                    </span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Kho / Địa điểm cập nhật</label>
+                                    <input type="text" class="form-control" value="Kho Trung tâm Thủ Đức" readonly>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Người cập nhật</label>
+                                    <input type="text" class="form-control" value="Lê Văn Bình (NV0001 - NV Bưu cục)" readonly>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Ghi chú lịch sử cập nhật <span class="required">*</span></label>
+                                    <textarea class="form-control" id="statusNote" rows="3" placeholder="Nhập lý do hoặc ghi chú chi tiết tiến trình (vd: Kiện đã nhập kho an toàn, đã bàn giao tài xế...)" required></textarea>
+                                </div>
+
+                                <button class="btn btn-primary btn-block btn-lg" onclick="saveStatusUpdate()">
+                                    ✓ Lưu và tạo lịch sử trạng thái mới
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Sơ đồ luồng trạng thái & Timeline -->
+                    <div class="col-5">
+                        <div class="card" style="margin-bottom: 20px;">
+                            <div class="card-header" style="background-color: var(--bg-alt);">
+                                <h3 class="card-title">Quy trình chuyển đổi chuẩn</h3>
+                            </div>
+                            <div class="card-body" style="font-size: 13px; line-height: 1.8;">
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <div>1️⃣ <strong style="color: var(--neutral-gray);">Mới tạo</strong></div>
+                                    <div>⬇ Tiếp nhận tại bưu cục</div>
+                                    <div>2️⃣ <strong style="color: var(--warning);">Đã tiếp nhận</strong></div>
+                                    <div>⬇ Xếp lên xe trung chuyển</div>
+                                    <div>3️⃣ <strong style="color: var(--info);">Đang vận chuyển</strong></div>
+                                    <div>⬇ Xe đến kho phát</div>
+                                    <div>4️⃣ <strong style="color: var(--warning);">Đến kho</strong></div>
+                                    <div>⬇ Bàn giao tài xế giao cuối</div>
+                                    <div>5️⃣ <strong style="color: var(--warning);">Đang giao</strong></div>
+                                    <div>⬇ Phát thành công cho khách</div>
+                                    <div>6️⃣ <strong style="color: var(--success);">Giao thành công</strong></div>
+                                    <hr style="border: none; border-top: 1px dashed var(--border-color); margin: 6px 0;">
+                                    <div style="color: var(--danger);">* Nhánh ngoại lệ: <strong>Hủy</strong> hoặc <strong>Trả hàng</strong></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Lịch sử trạng thái đã lưu</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="timeline" id="miniTimeline">
+                                    <div class="timeline-item completed">
+                                        <div class="timeline-point"></div>
+                                        <div class="timeline-time">22/09/2026 09:15</div>
+                                        <div class="timeline-title">Mới tạo</div>
+                                        <div class="timeline-desc">Tạo bởi Cty Thiết bị Sao Mai</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function changeOrder(code) {
+            const currentBadge = document.getElementById('currentBadge');
+            const nextAllowedText = document.getElementById('nextAllowedText');
+            const nextSelect = document.getElementById('nextStatusSelect');
+
+            if (code === 'DH000102') {
+                currentBadge.innerHTML = '<span class="badge badge-gray"><span class="badge-dot"></span>Mới tạo</span>';
+                nextAllowedText.innerText = 'Đã tiếp nhận';
+                nextSelect.innerHTML = `
+                    <option value="Đã tiếp nhận">Đã tiếp nhận (Hợp lệ)</option>
+                    <option value="Hủy">Hủy đơn hàng</option>
+                `;
+            } else if (code === 'DH000104') {
+                currentBadge.innerHTML = '<span class="badge badge-warning"><span class="badge-dot"></span>Đã tiếp nhận</span>';
+                nextAllowedText.innerText = 'Đang vận chuyển';
+                nextSelect.innerHTML = `
+                    <option value="Đang vận chuyển">Đang vận chuyển (Hợp lệ)</option>
+                    <option value="Hủy">Hủy đơn</option>
+                `;
+            } else if (code === 'DH000101') {
+                currentBadge.innerHTML = '<span class="badge badge-info"><span class="badge-dot"></span>Đang vận chuyển</span>';
+                nextAllowedText.innerText = 'Đến kho';
+                nextSelect.innerHTML = `
+                    <option value="Đến kho">Đến kho (Hợp lệ)</option>
+                    <option value="Trả hàng">Trả hàng</option>
+                `;
+            }
+        }
+
+        function saveStatusUpdate() {
+            const note = document.getElementById('statusNote').value.trim();
+            if (!note) {
+                alert('Vui lòng nhập ghi chú cập nhật!');
+                return;
+            }
+
+            const nextStatus = document.getElementById('nextStatusSelect').value;
+            showToast('Thành công', `Đã cập nhật trạng thái đơn thành "${nextStatus}" và lưu lịch sử.`, 'success');
+            document.getElementById('statusNote').value = '';
+        }
+    </script>
+</body>
+</html>

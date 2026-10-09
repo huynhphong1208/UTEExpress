@@ -53,9 +53,13 @@ public class AdminUserService {
 
         validateInternalRequest(request);
 
+        // Sinh mã người dùng từ sequence seq_nd
+        String maNd = (String) entityManager.createNativeQuery("SELECT 'ND' || lpad(nextval('seq_nd')::text, 6, '0')").getSingleResult();
+
         // Tạo NguoiDung
         VaiTro vaiTro = entityManager.getReference(VaiTro.class, request.getMaVaiTro());
         NguoiDung nd = NguoiDung.builder()
+                .maNd(maNd)
                 .tenDangNhap(request.getSdt())
                 .matKhau(passwordEncoder.encode(DEFAULT_PASSWORD))
                 .trangThai("Hoạt động")
@@ -66,7 +70,9 @@ public class AdminUserService {
         // Tạo hồ sơ tương ứng
         switch (request.getMaVaiTro()) {
             case "NVBC" -> {
+                String maNv = (String) entityManager.createNativeQuery("SELECT 'NV' || lpad(nextval('seq_nv')::text, 5, '0')").getSingleResult();
                 NhanVien nv = NhanVien.builder()
+                        .maNv(maNv)
                         .hoTen(request.getHoTen())
                         .sdt(request.getSdt())
                         .email(request.getEmail())
@@ -77,7 +83,9 @@ public class AdminUserService {
                 nhanVienRepository.save(nv);
             }
             case "NVDP" -> {
+                String maNv = (String) entityManager.createNativeQuery("SELECT 'NV' || lpad(nextval('seq_nv')::text, 5, '0')").getSingleResult();
                 NhanVien nv = NhanVien.builder()
+                        .maNv(maNv)
                         .hoTen(request.getHoTen())
                         .sdt(request.getSdt())
                         .email(request.getEmail())
@@ -88,7 +96,9 @@ public class AdminUserService {
                 nhanVienRepository.save(nv);
             }
             case "TAI_XE" -> {
+                String maTx = (String) entityManager.createNativeQuery("SELECT 'TX' || lpad(nextval('seq_tx')::text, 5, '0')").getSingleResult();
                 TaiXe tx = TaiXe.builder()
+                        .maTx(maTx)
                         .hoTen(request.getHoTen())
                         .sdt(request.getSdt())
                         .bangLai(request.getBangLai())

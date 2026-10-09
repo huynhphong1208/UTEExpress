@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>02 – Đăng nhập - UTE Express Logistics</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
+            padding: 30px 20px;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 460px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            padding: 36px 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .auth-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 12px;
+        }
+        .quick-role-box {
+            margin-top: 24px;
+            padding: 14px;
+            background-color: var(--bg-alt);
+            border-radius: var(--radius-md);
+            border: 1px dashed #CBD5E1;
+            font-size: 12.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="03-index.html" class="auth-logo" style="display: block; text-align: center;">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express" style="height: 64px; object-fit: contain; margin-bottom: 8px;">
+                </a>
+                <h1 style="font-size: 24px; font-weight: 700; color: var(--brand-blue);">Đăng nhập hệ thống</h1>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Chào mừng bạn trở lại với cổng quản lý giao nhận UTE Express</p>
+            </div>
+
+            <!-- Error alert box demo -->
+            <div id="loginError" style="display: none; padding: 10px 14px; background-color: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); color: var(--danger); font-size: 13px; margin-bottom: 16px;">
+                Tài khoản hoặc mật khẩu không đúng!
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Tên đăng nhập</label>
+                    <input type="text" class="form-control" id="loginUsername" placeholder="Nhập tên đăng nhập..." value="khachhang_demo" required>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" style="margin-bottom: 0;">Mật khẩu</label>
+                        <a href="#" style="font-size: 12px; color: var(--primary-blue);" onclick="alert('Vui lòng liên hệ hotline 1900 1234 hoặc Quản trị viên để cấp lại mật khẩu.');">Quên mật khẩu?</a>
+                    </div>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" value="password123" required>
+                </div>
+
+                <div class="form-group" style="margin: 16px 0;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMe" checked>
+                        <span>Ghi nhớ đăng nhập</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg">
+                    Đăng nhập
+                </button>
+
+                <div style="text-align: center; margin-top: 18px; font-size: 13.5px; color: var(--text-secondary);">
+                    Chưa có tài khoản? <a href="01-register.html" style="color: var(--primary-blue); font-weight: 600;">Đăng ký ngay</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function directLogin(path) {
+            showToast('Đăng nhập thành công', 'Đang chuyển hướng tới Dashboard tương ứng...', 'success');
+            setTimeout(() => { window.location.href = path; }, 600);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUsername').value.toLowerCase();
+            
+            if (u.includes('admin')) {
+                directLogin('../admin/18-dashboard.html');
+            } else if (u.includes('buucuc') || u.includes('nvbc')) {
+                directLogin('../post-office/09-dashboard.html');
+            } else if (u.includes('dieuphoi') || u.includes('nvdp')) {
+                directLogin('../dispatcher/12-dashboard.html');
+            } else if (u.includes('taixe') || u.includes('tx')) {
+                directLogin('../driver/15-dashboard.html');
+            } else {
+                directLogin('../customer/05-dashboard.html');
+            }
+        }
+    </script>
+</body>
+</html>

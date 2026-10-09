@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12 – Dashboard Điều phối - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA;">Điều phối</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Điều hành vận tải</div>
+                <a href="12-dashboard.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Điều phối</span>
+                </a>
+                <a href="13-routes.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    <span>Tuyến vận chuyển</span>
+                </a>
+                <a href="14-trips.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>Quản lý chuyến giao</span>
+                    <span class="nav-badge">4</span>
+                </a>
+                <a href="../guest/04-tracking.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Tra cứu vận đơn</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #2563EB;">DP</div>
+                <div class="user-info">
+                    <div class="user-name">Trần Minh Tuấn</div>
+                    <div class="user-sub">NV Điều phối trung tâm</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="header-search">
+                    <div class="search-input-wrapper">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" class="form-control" placeholder="Tìm chuyến xe, biển số, tài xế...">
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="14-trips.html#new-trip" class="btn btn-primary btn-sm">+ Tạo chuyến giao mới</a>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <div class="breadcrumbs">
+                            <a href="#">Điều phối</a> <span>/</span> <span>Tổng quan</span>
+                        </div>
+                        <h1 class="page-title">Bảng điều phối vận tải & phương tiện</h1>
+                        <p class="page-subtitle">Giám sát xe tải, cân đối tải trọng và phân công tài xế liên bưu cục</p>
+                    </div>
+                </div>
+
+                <!-- 4 Statistic Cards chuẩn NVDP -->
+                <div class="grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đơn cần điều phối</span>
+                            <span class="stat-value" style="color: var(--warning);">18</span>
+                            <span class="stat-change" style="color: var(--warning);">Chờ gán xe xuất bến</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">⏳</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Chuyến đang hoạt động</span>
+                            <span class="stat-value" style="color: var(--info);">6</span>
+                            <span class="stat-change" style="color: var(--info);">Đang trên đường</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">🚚</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tài xế khả dụng</span>
+                            <span class="stat-value" style="color: var(--success);">8</span>
+                            <span class="stat-change up">Sẵn sàng nhận chuyến</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">👤</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Phương tiện khả dụng</span>
+                            <span class="stat-value">5</span>
+                            <span class="stat-change">Đang đỗ tại các Hub</span>
+                        </div>
+                        <div class="stat-icon">🚛</div>
+                    </div>
+                </div>
+
+                <!-- Danh sách chuyến xe đang hoạt động -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Chuyến giao vận hành gần đây</h3>
+                        <a href="14-trips.html" class="btn btn-secondary btn-sm">Xem tất cả chuyến</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã chuyến</th>
+                                    <th>Tuyến vận chuyển</th>
+                                    <th>Phương tiện</th>
+                                    <th>Tài xế phụ trách</th>
+                                    <th>Tải trọng / Đã xếp</th>
+                                    <th>Ngày xuất phát</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">CG00012</strong></td>
+                                    <td>Kho TT Thủ Đức ➔ Bưu cục Q1</td>
+                                    <td>51C-987.65 (1.5T)</td>
+                                    <td>Trần Văn Dũng (TX0001)</td>
+                                    <td><span style="font-weight: 600;">850 kg / 1500 kg (56%)</span></td>
+                                    <td>22/09/2026 10:30</td>
+                                    <td><span class="badge badge-info"><span class="badge-dot"></span>Đang thực hiện</span></td>
+                                    <td class="cell-actions">
+                                        <a href="14-trips.html?id=CG00012" class="btn btn-secondary btn-sm">Theo dõi</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">CG00013</strong></td>
+                                    <td>Kho TT Thủ Đức ➔ Bưu cục Biên Hòa</td>
+                                    <td>51D-123.45 (2.5T)</td>
+                                    <td>Lê Hoàng Nam (TX0002)</td>
+                                    <td><span style="font-weight: 600;">1,800 kg / 2500 kg (72%)</span></td>
+                                    <td>22/09/2026 11:15</td>
+                                    <td><span class="badge badge-gray"><span class="badge-dot"></span>Chưa xuất phát</span></td>
+                                    <td class="cell-actions">
+                                        <a href="14-trips.html?id=CG00013" class="btn btn-secondary btn-sm">Chi tiết</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+</body>
+</html>

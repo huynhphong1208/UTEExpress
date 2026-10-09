@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>17 – Cập nhật kết quả giao hàng - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR TÀI XẾ -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(234, 179, 8, 0.2); color: #FACC15;">Tài xế</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nhiệm vụ vận chuyển</div>
+                <a href="15-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard Tài xế</span>
+                </a>
+                <a href="16-trip-detail.html?id=CG00012" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Chuyến giao của tôi</span>
+                    <span class="nav-badge" style="background-color: var(--primary-blue);">1</span>
+                </a>
+                <a href="17-delivery-update.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                    <span>Quét kiện & Cập nhật</span>
+                </a>
+                <a href="../guest/04-tracking.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Tra cứu đơn hàng</span>
+                </a>
+                <div class="nav-section-title">Hệ thống</div>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #D97706;">TX</div>
+                <div class="user-info">
+                    <div class="user-name">Trần Văn Dũng</div>
+                    <div class="user-sub">Xe 51C-987.65 (TX0001)</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="15-dashboard.html">Tài xế</a> <span>/</span> <span>Cập nhật kết quả phát hàng</span>
+                </div>
+            </header>
+
+            <div class="page-container" style="max-width: 860px;">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quét kiện & Cập nhật kết quả phát hàng</h1>
+                        <p class="page-subtitle">Ghi nhận trạng thái hoàn tất đơn hàng hoặc lý do giao không thành công</p>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header" style="background-color: var(--bg-alt);">
+                        <h3 class="card-title">1. Quét mã vạch / Nhập mã kiện</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" id="scanPkgInput" placeholder="Quét barcode hoặc nhập mã KIEN000101..." value="KIEN000101" style="font-size: 16px; padding: 12px;">
+                            <button class="btn btn-secondary" onclick="simulateScan()">📷 Mô phỏng quét</button>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+                            Thời gian quét ghi nhận tự động: <strong id="scanTimestamp">22/09/2026 10:55:12</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form kết quả giao hàng -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">2. Ghi nhận kết quả giao hàng</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Thông tin kiện quét -->
+                        <div style="padding: 14px; background: var(--bg-alt); border-radius: var(--radius-md); margin-bottom: 20px;">
+                            <div class="grid-3">
+                                <div>
+                                    <span style="font-size: 12px; color: var(--text-muted);">Mã đơn hàng liên kết</span>
+                                    <div style="font-weight: 700; color: var(--primary-blue); margin-top: 2px;">DH000101</div>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: var(--text-muted);">Người nhận</span>
+                                    <div style="font-weight: 600; margin-top: 2px;">Trần Thị Bích (0987 654 321)</div>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: var(--text-muted);">Tiền thu COD</span>
+                                    <div style="font-weight: 700; color: var(--danger); margin-top: 2px;">550,000 đ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chọn kết quả -->
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 600;">Kết quả phát hàng <span class="required">*</span></label>
+                            <div style="display: flex; gap: 20px; margin-top: 6px;">
+                                <label class="radio-label">
+                                    <input type="radio" name="deliveryResult" value="SUCCESS" checked onchange="toggleResultFields('SUCCESS')">
+                                    <span style="font-weight: 600; color: var(--success);">✓ Giao thành công</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="deliveryResult" value="FAILED" onchange="toggleResultFields('FAILED')">
+                                    <span style="font-weight: 600; color: var(--danger);">✕ Giao không thành công</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Trường Lý do (Nếu giao không thành công) -->
+                        <div id="failReasonSection" style="display: none; background: #FFF5F5; border: 1px solid #FECACA; padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">Lý do giao không thành công <span class="required">*</span></label>
+                                <select class="form-select" id="failReasonSelect">
+                                    <option>Khách hàng không nghe máy (Gọi 3 lần)</option>
+                                    <option>Khách hàng hẹn giao lại vào ngày mai</option>
+                                    <option>Sai địa chỉ / Không tìm thấy số nhà</option>
+                                    <option>Khách hàng từ chối nhận hàng (Hủy đơn)</option>
+                                    <option>Không liên lạc được thuê bao</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Hướng xử lý tiếp theo</label>
+                                <select class="form-select">
+                                    <option>Lưu kho phát - Hẹn phát lại lần 2</option>
+                                    <option>Chuyển hoàn bưu cục người gửi (Trả hàng)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Ghi chú xác nhận của Tài xế</label>
+                            <textarea class="form-control" id="driverNote" rows="3" placeholder="Ví dụ: Đã giao tận tay người nhận, đã thu đủ tiền COD 550.000đ..."></textarea>
+                        </div>
+
+                        <button class="btn btn-primary btn-block btn-lg" onclick="saveDeliveryResult()">
+                            ✓ Xác nhận lưu kết quả giao hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function simulateScan() {
+            document.getElementById('scanPkgInput').value = 'KIEN000101';
+            const now = new Date();
+            document.getElementById('scanTimestamp').innerText = now.toLocaleString('vi-VN');
+            showToast('Quét mã thành công', 'Đã nhận diện kiện KIEN000101 thuộc đơn DH000101.', 'info');
+        }
+
+        function toggleResultFields(val) {
+            const failSec = document.getElementById('failReasonSection');
+            if (val === 'FAILED') {
+                failSec.style.display = 'block';
+            } else {
+                failSec.style.display = 'none';
+            }
+        }
+
+        function saveDeliveryResult() {
+            const isSuccess = document.querySelector('input[name="deliveryResult"]:checked').value === 'SUCCESS';
+            if (isSuccess) {
+                showToast('Giao thành công', 'Đơn hàng DH000101 đã chuyển sang trạng thái "Giao thành công". Đã tạo lịch sử trạng thái.', 'success');
+            } else {
+                const reason = document.getElementById('failReasonSelect').value;
+                showToast('Giao thất bại', `Đã ghi nhận lý do: "${reason}". Hệ thống đã lên lịch hẹn giao lại.`, 'warning');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý người dùng - UTE Express</title>
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ADMIN -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/}" href="/" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Admin</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Quản lý thực thể</div>
+                <a th:href="@{/admin/users}" href="/admin/users" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <span>Người dùng & Phân quyền (UC15)</span>
+                </a>
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: 30px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #DC2626;">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Quản trị viên</div>
+                    <div class="user-sub">ADMINISTRATOR</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <span>Admin</span> <span>/</span> <span>Quản lý người dùng (UC15)</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openCreateModal()">+ Cấp tài khoản nội bộ mới</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý người dùng & Tài khoản hệ thống</h1>
+                        <p class="page-subtitle">Cấp tài khoản nhân viên nội bộ, quản lý trạng thái khóa/mở và khôi phục mật khẩu (UC15)</p>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 20px; padding: 16px;">
+                    <div class="grid-2">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Tìm kiếm từ khóa (Tên/SĐT)</label>
+                            <input type="text" id="filterKeyword" class="form-control" placeholder="Nhập từ khóa tìm kiếm..." oninput="loadUsers()">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Lọc theo Vai trò</label>
+                            <select id="filterRole" class="form-select" onchange="loadUsers()">
+                                <option value="">Tất cả vai trò</option>
+                                <option value="NVBC">Nhân viên bưu cục (NVBC)</option>
+                                <option value="NVDP">Nhân viên điều phối (NVDP)</option>
+                                <option value="TAI_XE">Tài xế (TAI_XE)</option>
+                                <option value="KHACH_HANG">Khách hàng (KHACH_HANG)</option>
+                                <option value="ADMIN">Quản trị viên (ADMIN)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Users -->
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã ND</th>
+                                    <th>Tên đăng nhập (SĐT)</th>
+                                    <th>Họ và tên</th>
+                                    <th>Vai trò</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTbody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 30px;">⏳ Đang tải danh sách người dùng...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL CẤP TÀI KHOẢN NỘI BỘ MỚI -->
+    <div class="modal-backdrop" id="userModal" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Cấp tài khoản nội bộ mới (UC15)</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="modalAlert" style="display: none; padding: 10px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 14px;"></div>
+                <div class="form-group">
+                    <label class="form-label">Họ và tên nhân viên <span style="color: red;">*</span></label>
+                    <input type="text" class="form-control" id="modalHoTen" placeholder="Ví dụ: Lê Văn D" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại (Tên đăng nhập) <span style="color: red;">*</span></label>
+                    <input type="tel" class="form-control" id="modalSdt" placeholder="0988777999" pattern="[0-9]{10}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email liên hệ</label>
+                    <input type="email" class="form-control" id="modalEmail" placeholder="nhanvien@uteexpress.vn">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Vai trò <span style="color: red;">*</span></label>
+                    <select class="form-select" id="modalMaVaiTro" onchange="toggleKhoInput()">
+                        <option value="NVBC">Nhân viên bưu cục (NVBC)</option>
+                        <option value="NVDP">Nhân viên điều phối (NVDP)</option>
+                        <option value="TAI_XE">Tài xế (TAI_XE)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="groupMaKho">
+                    <label class="form-label">Mã kho phụ trách <span style="color: red;">*</span></label>
+                    <select class="form-select" id="modalMaKho">
+                        <option value="KHO01">KHO01 - Bưu cục Thủ Đức</option>
+                        <option value="KHO02">KHO02 - Bưu cục Cầu Giấy</option>
+                        <option value="KHO03">KHO03 - Bưu cục Đà Nẵng</option>
+                        <option value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                    </select>
+                </div>
+                <div style="background: var(--bg-alt); padding: 10px 14px; border-radius: var(--radius-md); font-size: 12.5px; color: var(--text-secondary);">
+                    ℹ️ Mật khẩu khởi tạo mặc định là <strong>123456@Ute</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+                <button class="btn btn-primary" id="btnSaveUser" onclick="createAccount()">✓ Cấp tài khoản</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('accessToken');
+        const role = localStorage.getItem('vaiTro');
+
+        if (!token || role !== 'ADMIN') {
+            alert('Yêu cầu đăng nhập tài khoản ADMIN!');
+            window.location.href = '/login';
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+
+        function openCreateModal() {
+            document.getElementById('modalAlert').style.display = 'none';
+            document.getElementById('userModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('userModal').style.display = 'none';
+        }
+
+        function toggleKhoInput() {
+            const v = document.getElementById('modalMaVaiTro').value;
+            document.getElementById('groupMaKho').style.display = (v === 'TAI_XE') ? 'none' : 'block';
+        }
+
+        async function loadUsers() {
+            const keyword = document.getElementById('filterKeyword').value.trim();
+            const maVaiTro = document.getElementById('filterRole').value;
+            const tbody = document.getElementById('usersTbody');
+
+            let url = `/api/admin/users?page=0&size=50`;
+            if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+            if (maVaiTro) url += `&maVaiTro=${encodeURIComponent(maVaiTro)}`;
+
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    alert('Quyền truy cập bị từ chối!');
+                    logout();
+                    return;
+                }
+
+                const data = await res.json();
+                if (res.ok && data.success && data.data && data.data.content) {
+                    const list = data.data.content;
+                    if (list.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy tài khoản phù hợp.</td></tr>`;
+                        return;
+                    }
+
+                    tbody.innerHTML = list.map(u => `
+                        <tr>
+                            <td><strong>${u.maNd}</strong></td>
+                            <td>${u.tenDangNhap}</td>
+                            <td>${u.hoTen || '---'}</td>
+                            <td><span class="badge badge-info">${u.tenVaiTro || u.maVaiTro}</span></td>
+                            <td>
+                                <span class="badge ${u.trangThai === 'Hoạt động' ? 'badge-success' : 'badge-danger'}">
+                                    <span class="badge-dot"></span>${u.trangThai}
+                                </span>
+                            </td>
+                            <td class="cell-actions">
+                                ${u.maVaiTro === 'ADMIN' ? '<span style="color: var(--text-muted); font-size: 12px;">Cố định</span>' : `
+                                    <button class="btn btn-secondary btn-sm" onclick="toggleStatus('${u.maNd}', '${u.trangThai}')">
+                                        ${u.trangThai === 'Hoạt động' ? 'Khóa' : 'Mở khóa'}
+                                    </button>
+                                    <button class="btn btn-ghost btn-sm" style="color: var(--primary-blue);" onclick="resetPw('${u.maNd}')">Reset MK</button>
+                                `}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger); padding: 30px;">Lỗi tải dữ liệu!</td></tr>`;
+            }
+        }
+
+        async function createAccount() {
+            const alertBox = document.getElementById('modalAlert');
+            alertBox.style.display = 'none';
+
+            const requestData = {
+                hoTen: document.getElementById('modalHoTen').value.trim(),
+                sdt: document.getElementById('modalSdt').value.trim(),
+                email: document.getElementById('modalEmail').value.trim(),
+                maVaiTro: document.getElementById('modalMaVaiTro').value,
+                maKho: document.getElementById('modalMaKho').value
+            };
+
+            try {
+                const res = await fetch('/api/admin/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert('🎉 Tạo tài khoản nội bộ thành công!');
+                    closeModal();
+                    loadUsers();
+                } else {
+                    alertBox.style.display = 'block';
+                    alertBox.style.backgroundColor = 'var(--danger-bg)';
+                    alertBox.style.color = 'var(--danger)';
+                    alertBox.innerText = data.message || 'Lỗi cấp tài khoản!';
+                }
+            } catch (err) {
+                alertBox.style.display = 'block';
+                alertBox.innerText = 'Lỗi kết nối máy chủ!';
+            }
+        }
+
+        async function toggleStatus(maNd, currentStatus) {
+            const nextStatus = (currentStatus === 'Hoạt động') ? 'Bị khóa' : 'Hoạt động';
+            if (!confirm(`Bạn có chắc chắn muốn chuyển trạng thái tài khoản ${maNd} thành '${nextStatus}'?`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/users/${maNd}/status?trangThai=${encodeURIComponent(nextStatus)}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert(`Đã cập nhật trạng thái tài khoản ${maNd} thành '${nextStatus}'`);
+                    loadUsers();
+                } else {
+                    alert(data.message || 'Không thể thay đổi trạng thái!');
+                }
+            } catch (err) {
+                alert('Lỗi kết nối máy chủ!');
+            }
+        }
+
+        async function resetPw(maNd) {
+            if (!confirm(`Reset mật khẩu tài khoản ${maNd} về mật khẩu mặc định '123456@Ute'?`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/users/${maNd}/reset-password`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert(data.message || 'Đã đặt lại mật khẩu thành công!');
+                } else {
+                    alert(data.message || 'Lỗi đặt lại mật khẩu!');
+                }
+            } catch (err) {
+                alert('Lỗi kết nối máy chủ!');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadUsers);
+    </script>
+</body>
+</html>

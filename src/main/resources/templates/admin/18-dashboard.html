@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>18 – Admin Dashboard - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+    <style>
+        .chart-mock {
+            background: var(--bg-alt);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: 220px;
+        }
+        .bar-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 160px;
+            gap: 12px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 4px;
+        }
+        .bar-col {
+            flex: 1;
+            background: var(--primary-blue);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: var(--transition);
+        }
+        .bar-col:hover {
+            background: var(--light-blue);
+        }
+        .bar-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ADMIN -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Admin</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Trung tâm điều hành</div>
+                <a href="18-dashboard.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Admin Dashboard</span>
+                </a>
+                <a href="27-orders.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Giám sát đơn hàng</span>
+                </a>
+
+                <div class="nav-section-title">Quản lý thực thể</div>
+                <a href="19-users.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <span>Người dùng & Phân quyền</span>
+                </a>
+                <a href="24-warehouses.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>Quản lý Kho & Bưu cục</span>
+                </a>
+                <a href="25-vehicles.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>Quản lý Phương tiện</span>
+                </a>
+
+                <div class="nav-section-title">Tài chính & Thống kê</div>
+                <a href="28-payments.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Doanh thu & COD</span>
+                </a>
+                <a href="29-reports.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Báo cáo thống kê</span>
+                </a>
+                <a href="30-settings.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                    <span>Cấu hình & Sao lưu</span>
+                </a>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #DC2626;">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Quản trị viên Hệ thống</div>
+                    <div class="user-sub">ADMINISTRATOR</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="header-search">
+                    <div class="search-input-wrapper">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" class="form-control" placeholder="Tìm kiếm toàn hệ thống...">
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="27-orders.html" class="btn btn-secondary btn-sm">Giám sát đơn</a>
+                    <a href="30-settings.html" class="btn btn-primary btn-sm">⚙ Cấu hình hệ thống</a>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <div class="breadcrumbs">
+                            <a href="#">Hệ thống</a> <span>/</span> <span>Admin</span> <span>/</span> <span>Tổng quan</span>
+                        </div>
+                        <h1 class="page-title">Admin Dashboard - Tổng quan Hệ thống Logistics</h1>
+                        <p class="page-subtitle">Giám sát tổng thể hoạt động chuỗi cung ứng, tài nguyên nhân sự, đơn hàng và dòng tiền</p>
+                    </div>
+                </div>
+
+                <!-- 10 Dashboard Statistics chuẩn Admin -->
+                <div class="grid-12" style="margin-bottom: 24px;">
+                    <div class="col-12" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Tổng người dùng</span>
+                                <span class="stat-value">1,250</span>
+                                <span class="stat-change up">↑ +45 tháng này</span>
+                            </div>
+                            <div class="stat-icon">👥</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Tổng khách hàng</span>
+                                <span class="stat-value">1,180</span>
+                                <span class="stat-change up">94.4% tài khoản</span>
+                            </div>
+                            <div class="stat-icon" style="background: var(--primary-light); color: var(--primary-blue);">👤</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Tổng nhân viên</span>
+                                <span class="stat-value">42</span>
+                                <span class="stat-change">Bưu cục & Điều phối</span>
+                            </div>
+                            <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">👔</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Tổng tài xế</span>
+                                <span class="stat-value">28</span>
+                                <span class="stat-change up">Đủ tiêu chuẩn</span>
+                            </div>
+                            <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">🚛</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Tổng đơn hàng</span>
+                                <span class="stat-value" style="color: var(--primary-blue);">5,420</span>
+                                <span class="stat-change up">Toàn hệ thống</span>
+                            </div>
+                            <div class="stat-icon" style="background: var(--primary-light); color: var(--primary-blue);">📦</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Đang vận chuyển</span>
+                                <span class="stat-value" style="color: var(--info);">128</span>
+                                <span class="stat-change">Liên kho & giao cuối</span>
+                            </div>
+                            <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">⏳</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Đơn giao thành công</span>
+                                <span class="stat-value" style="color: var(--success);">5,140</span>
+                                <span class="stat-change up">Tỷ lệ 98.2%</span>
+                            </div>
+                            <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">✓</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Đơn hủy / trả</span>
+                                <span class="stat-value" style="color: var(--danger);">42</span>
+                                <span class="stat-change down">Chiếm 0.8%</span>
+                            </div>
+                            <div class="stat-icon" style="background: var(--danger-bg); color: var(--danger);">✕</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Tổng doanh thu cước</span>
+                                <span class="stat-value" style="font-size: 22px;">185.4M</span>
+                                <span class="stat-change up">↑ +14.8%</span>
+                            </div>
+                            <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">💰</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <span class="stat-label">Tổng tiền COD</span>
+                                <span class="stat-value" style="font-size: 22px;">2.85 Tỷ</span>
+                                <span class="stat-change">Đã đối soát 92%</span>
+                            </div>
+                            <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">💳</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid-2" style="margin-bottom: 24px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Đơn hàng luân chuyển theo tháng (2026)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-mock">
+                                <div class="bar-container">
+                                    <div class="bar-col" style="height: 45%;"></div>
+                                    <div class="bar-col" style="height: 60%;"></div>
+                                    <div class="bar-col" style="height: 75%;"></div>
+                                    <div class="bar-col" style="height: 65%;"></div>
+                                    <div class="bar-col" style="height: 90%;"></div>
+                                    <div class="bar-col" style="height: 95%;"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-around;">
+                                    <span class="bar-label">Tháng 4</span>
+                                    <span class="bar-label">Tháng 5</span>
+                                    <span class="bar-label">Tháng 6</span>
+                                    <span class="bar-label">Tháng 7</span>
+                                    <span class="bar-label">Tháng 8</span>
+                                    <span class="bar-label">Tháng 9</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Tỷ lệ trạng thái đơn hàng toàn hệ thống</h3>
+                        </div>
+                        <div class="card-body" style="display: flex; flex-direction: column; justify-content: center; gap: 14px;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                                    <span>Giao thành công (5,140 đơn)</span>
+                                    <strong>94.8%</strong>
+                                </div>
+                                <div style="height: 8px; background: var(--bg-alt); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 94.8%; height: 100%; background: var(--success);"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                                    <span>Đang vận chuyển / Giao (128 đơn)</span>
+                                    <strong>2.4%</strong>
+                                </div>
+                                <div style="height: 8px; background: var(--bg-alt); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 2.4%; height: 100%; background: var(--info);"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                                    <span>Tiếp nhận tại kho (110 đơn)</span>
+                                    <strong>2.0%</strong>
+                                </div>
+                                <div style="height: 8px; background: var(--bg-alt); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 2%; height: 100%; background: var(--warning);"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                                    <span>Hủy / Hoàn trả (42 đơn)</span>
+                                    <strong>0.8%</strong>
+                                </div>
+                                <div style="height: 8px; background: var(--bg-alt); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 0.8%; height: 100%; background: var(--danger);"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phím tắt quản lý danh mục nhanh -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Truy cập nhanh các phân hệ Quản trị</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-4">
+                            <a href="19-users.html" class="btn btn-secondary btn-block">👥 Quản lý người dùng</a>
+                            <a href="24-warehouses.html" class="btn btn-secondary btn-block">🏢 Quản lý kho / bưu cục</a>
+                            <a href="25-vehicles.html" class="btn btn-secondary btn-block">🚚 Quản lý phương tiện</a>
+                            <a href="27-orders.html" class="btn btn-secondary btn-block">📦 Giám sát đơn hàng</a>
+                            <a href="28-payments.html" class="btn btn-secondary btn-block">💳 Doanh thu & COD</a>
+                            <a href="29-reports.html" class="btn btn-secondary btn-block">📊 Báo cáo thống kê</a>
+                            <a href="30-settings.html" class="btn btn-secondary btn-block">⚙ Cấu hình & Sao lưu</a>
+                            <a href="../dispatcher/13-routes.html" class="btn btn-secondary btn-block">🗺 Tuyến vận chuyển</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+</body>
+</html>

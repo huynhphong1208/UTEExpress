@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - UTE Express Logistics</title>
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
+            padding: 30px 20px;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 460px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            padding: 36px 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .auth-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a th:href="@{/}" href="/" class="auth-logo" style="display: block; text-align: center;">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express" style="height: 64px; object-fit: contain; margin-bottom: 8px;">
+                </a>
+                <h1 style="font-size: 24px; font-weight: 700; color: var(--brand-blue);">Đăng nhập hệ thống</h1>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Chào mừng bạn trở lại với UTE Express Logistics</p>
+            </div>
+
+            <!-- Notification alert -->
+            <div id="loginAlert" style="display: none; padding: 10px 14px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 16px;"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Tên đăng nhập (Số điện thoại)</label>
+                    <input type="text" class="form-control" id="loginUsername" placeholder="Nhập số điện thoại..." required>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" style="margin-bottom: 0;">Mật khẩu</label>
+                    </div>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" id="btnSubmit" class="btn btn-primary btn-block btn-lg" style="margin-top: 16px;">
+                    Đăng nhập
+                </button>
+
+                <div style="text-align: center; margin-top: 18px; font-size: 13.5px; color: var(--text-secondary);">
+                    Chưa có tài khoản? <a th:href="@{/register}" href="/register" style="color: var(--primary-blue); font-weight: 600;">Đăng ký ngay</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        async function handleLogin(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('loginAlert');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const tenDangNhap = document.getElementById('loginUsername').value.trim();
+            const matKhau = document.getElementById('loginPassword').value.trim();
+
+            alertBox.style.display = 'none';
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = 'Đang đăng nhập...';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tenDangNhap, matKhau })
+                });
+
+                const resData = await response.json();
+
+                if (response.ok && resData.success) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.backgroundColor = 'var(--success-bg)';
+                    alertBox.style.color = 'var(--success)';
+                    alertBox.innerText = 'Đăng nhập thành công! Đang chuyển hướng...';
+
+                    // Save token and user info
+                    localStorage.setItem('accessToken', resData.data.accessToken);
+                    localStorage.setItem('maNd', resData.data.maNd);
+                    localStorage.setItem('tenDangNhap', resData.data.tenDangNhap);
+                    localStorage.setItem('vaiTro', resData.data.vaiTro);
+
+                    setTimeout(() => {
+                        if (resData.data.vaiTro === 'ADMIN') {
+                            window.location.href = '/admin/users';
+                        } else {
+                            window.location.href = '/customer/dashboard';
+                        }
+                    }, 800);
+                } else {
+                    alertBox.style.display = 'block';
+                    alertBox.style.backgroundColor = 'var(--danger-bg)';
+                    alertBox.style.color = 'var(--danger)';
+                    alertBox.innerText = resData.message || 'Tên đăng nhập hoặc mật khẩu không đúng!';
+                }
+            } catch (err) {
+                alertBox.style.display = 'block';
+                alertBox.style.backgroundColor = 'var(--danger-bg)';
+                alertBox.style.color = 'var(--danger)';
+                alertBox.innerText = 'Lỗi kết nối máy chủ! Vui lòng thử lại sau.';
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = 'Đăng nhập';
+            }
+        }
+    </script>
+</body>
+</html>

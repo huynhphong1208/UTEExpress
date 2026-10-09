@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>25 – Quản lý Phương tiện - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ADMIN -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Admin</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Trung tâm điều hành</div>
+                <a href="18-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Admin Dashboard</span>
+                </a>
+                <a href="27-orders.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Giám sát đơn hàng</span>
+                </a>
+
+                <div class="nav-section-title">Quản lý thực thể</div>
+                <a href="19-users.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <span>Người dùng & Phân quyền</span>
+                </a>
+                <a href="24-warehouses.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>Quản lý Kho & Bưu cục</span>
+                </a>
+                <a href="25-vehicles.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>Quản lý Phương tiện</span>
+                </a>
+
+                <div class="nav-section-title">Tài chính & Thống kê</div>
+                <a href="28-payments.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Doanh thu & COD</span>
+                </a>
+                <a href="29-reports.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Báo cáo thống kê</span>
+                </a>
+                <a href="30-settings.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                    <span>Cấu hình & Sao lưu</span>
+                </a>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #DC2626;">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Quản trị viên Hệ thống</div>
+                    <div class="user-sub">ADMINISTRATOR</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="18-dashboard.html">Admin</a> <span>/</span> <span>Đội ngũ phương tiện vận tải</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openModal('vehicleModal')">+ Thêm phương tiện mới</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý đội xe & Phương tiện vận chuyển</h1>
+                        <p class="page-subtitle">Theo dõi biển số xe, định mức tải trọng tối đa và tình trạng sẵn sàng vận hành</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã PT</th>
+                                    <th>Biển số xe</th>
+                                    <th>Loại phương tiện</th>
+                                    <th>Tải trọng tối đa</th>
+                                    <th>Trạng thái hoạt động</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">PT00001</strong></td>
+                                    <td><strong>51C-987.65</strong></td>
+                                    <td>Xe tải thùng kín</td>
+                                    <td><strong style="color: var(--info);">1,500 kg</strong> (1.5 tấn)</td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Sẵn sàng</span></td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editVehicle('PT00001', '51C-987.65', 'Xe tải thùng kín', 1500, 'Sẵn sàng')">Sửa</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">PT00002</strong></td>
+                                    <td><strong>51D-123.45</strong></td>
+                                    <td>Xe tải thùng bạt</td>
+                                    <td><strong style="color: var(--info);">2,500 kg</strong> (2.5 tấn)</td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Sẵn sàng</span></td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editVehicle('PT00002', '51D-123.45', 'Xe tải thùng bạt', 2500, 'Sẵn sàng')">Sửa</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">PT00003</strong></td>
+                                    <td><strong>50A-555.88</strong></td>
+                                    <td>Xe tải hạng nặng</td>
+                                    <td><strong style="color: var(--info);">5,000 kg</strong> (5.0 tấn)</td>
+                                    <td><span class="badge badge-info"><span class="badge-dot"></span>Đang chạy</span></td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editVehicle('PT00003', '50A-555.88', 'Xe tải hạng nặng', 5000, 'Đang chạy')">Sửa</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">PT00004</strong></td>
+                                    <td><strong>59B-444.22</strong></td>
+                                    <td>Xe van giao nhanh</td>
+                                    <td><strong style="color: var(--info);">850 kg</strong></td>
+                                    <td><span class="badge badge-danger"><span class="badge-dot"></span>Bảo trì</span></td>
+                                    <td class="cell-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="editVehicle('PT00004', '59B-444.22', 'Xe van giao nhanh', 850, 'Bảo trì')">Sửa</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL THÊM / SỬA PHƯƠNG TIỆN -->
+    <div class="modal-backdrop" id="vehicleModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="vehTitle">Thêm xe vận tải mới</h3>
+                <button class="modal-close" onclick="closeModal('vehicleModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Biển số đăng ký <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="vehPlate" placeholder="Ví dụ: 51C-123.45">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Loại xe</label>
+                    <input type="text" class="form-control" id="vehType" placeholder="Xe tải 1.5T, Xe van...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tải trọng thiết kế (kg) <span class="required">*</span></label>
+                    <input type="number" class="form-control" id="vehCap" value="1500" required>
+                    <span class="form-hint">Hệ thống sẽ dùng tải trọng này để chặn việc gán kiện quá tải.</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Trạng thái hiện tại <span class="required">*</span></label>
+                    <select class="form-select" id="vehStatus">
+                        <option>Sẵn sàng</option>
+                        <option>Đang chạy</option>
+                        <option>Bảo trì</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('vehicleModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="saveVeh()">✓ Lưu phương tiện</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function editVehicle(code, plate, type, cap, status) {
+            document.getElementById('vehTitle').innerText = `Sửa thông tin phương tiện ${code}`;
+            document.getElementById('vehPlate').value = plate;
+            document.getElementById('vehType').value = type;
+            document.getElementById('vehCap').value = cap;
+            document.getElementById('vehStatus').value = status;
+            openModal('vehicleModal');
+        }
+
+        function saveVeh() {
+            closeModal('vehicleModal');
+            showToast('Thành công', 'Đã lưu cấu hình xe tải vào hệ thống.', 'success');
+        }
+    </script>
+</body>
+</html>

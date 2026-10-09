@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>27 – Giám sát đơn hàng toàn hệ thống - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ADMIN -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../guest/03-index.html" class="sidebar-logo">
+                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Admin</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Trung tâm điều hành</div>
+                <a href="18-dashboard.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Admin Dashboard</span>
+                </a>
+                <a href="27-orders.html" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Giám sát đơn hàng</span>
+                </a>
+
+                <div class="nav-section-title">Quản lý thực thể</div>
+                <a href="19-users.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <span>Người dùng & Phân quyền</span>
+                </a>
+                <a href="24-warehouses.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>Quản lý Kho & Bưu cục</span>
+                </a>
+                <a href="25-vehicles.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>Quản lý Phương tiện</span>
+                </a>
+
+                <div class="nav-section-title">Tài chính & Thống kê</div>
+                <a href="28-payments.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Doanh thu & COD</span>
+                </a>
+                <a href="29-reports.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Báo cáo thống kê</span>
+                </a>
+                <a href="30-settings.html" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                    <span>Cấu hình & Sao lưu</span>
+                </a>
+                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #DC2626;">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Quản trị viên Hệ thống</div>
+                    <div class="user-sub">ADMINISTRATOR</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a href="18-dashboard.html">Admin</a> <span>/</span> <span>Giám sát toàn diện đơn hàng</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="alert('Đang xuất danh sách đơn hàng ra file Excel / CSV');">📥 Xuất báo cáo Excel</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Giám sát đơn hàng toàn chuỗi UTE Express</h1>
+                        <p class="page-subtitle">Theo dõi luồng vận đơn từ khâu tạo đơn, luân chuyển qua các Hub và phát tới người nhận</p>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 20px; padding: 16px;">
+                    <div class="grid-4">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Tìm kiếm</label>
+                            <input type="text" class="form-control" placeholder="Mã đơn, người gửi, người nhận, SĐT...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Trạng thái vận chuyển</label>
+                            <select class="form-select">
+                                <option value="">Tất cả trạng thái</option>
+                                <option>Mới tạo</option>
+                                <option>Đã tiếp nhận</option>
+                                <option>Đang vận chuyển</option>
+                                <option>Đến kho</option>
+                                <option>Đang giao</option>
+                                <option>Giao thành công</option>
+                                <option>Hủy / Trả hàng</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Trạng thái thanh toán</label>
+                            <select class="form-select">
+                                <option value="">Tất cả</option>
+                                <option>Chưa thanh toán</option>
+                                <option>Đã thanh toán</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Kho tiếp nhận</label>
+                            <select class="form-select">
+                                <option value="">Tất cả các kho</option>
+                                <option>Kho Trung tâm Thủ Đức</option>
+                                <option>Bưu cục Quận 1</option>
+                                <option>Bưu cục Tân Bình</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Orders -->
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Người gửi</th>
+                                    <th>Người nhận</th>
+                                    <th>Trọng lượng</th>
+                                    <th>Cước phí</th>
+                                    <th>COD</th>
+                                    <th>Trạng thái đơn</th>
+                                    <th>Thanh toán</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">DH000101</strong></td>
+                                    <td>Nguyễn Văn An<br><small style="color: var(--text-muted);">0912345678</small></td>
+                                    <td>Trần Thị Bích<br><small style="color: var(--text-muted);">Quận 1, TP.HCM</small></td>
+                                    <td>2.5 kg</td>
+                                    <td>35,000 đ</td>
+                                    <td>550,000 đ</td>
+                                    <td><span class="badge badge-info"><span class="badge-dot"></span>Đang vận chuyển</span></td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Đã TT</span></td>
+                                    <td class="cell-actions">
+                                        <a href="../customer/07-order-detail.html?id=DH000101" class="btn btn-secondary btn-sm">Chi tiết</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">DH000102</strong></td>
+                                    <td>Cty TNHH Sao Mai<br><small style="color: var(--text-muted);">0903998877</small></td>
+                                    <td>Hoàng Minh Quân<br><small style="color: var(--text-muted);">Tân Bình, TP.HCM</small></td>
+                                    <td>5.0 kg</td>
+                                    <td>45,000 đ</td>
+                                    <td>1,200,000 đ</td>
+                                    <td><span class="badge badge-gray"><span class="badge-dot"></span>Mới tạo</span></td>
+                                    <td><span class="badge badge-warning"><span class="badge-dot"></span>Chưa TT</span></td>
+                                    <td class="cell-actions">
+                                        <a href="../customer/07-order-detail.html?id=DH000102" class="btn btn-secondary btn-sm">Chi tiết</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">DH000103</strong></td>
+                                    <td>Shop H&M Express<br><small style="color: var(--text-muted);">0988112233</small></td>
+                                    <td>Lê Thu Thảo<br><small style="color: var(--text-muted);">Biên Hòa, Đồng Nai</small></td>
+                                    <td>1.2 kg</td>
+                                    <td>28,000 đ</td>
+                                    <td>350,000 đ</td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Giao thành công</span></td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Đã TT</span></td>
+                                    <td class="cell-actions">
+                                        <a href="../customer/07-order-detail.html?id=DH000103" class="btn btn-secondary btn-sm">Chi tiết</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color: var(--primary-blue);">DH000104</strong></td>
+                                    <td>Phạm Đức Long<br><small style="color: var(--text-muted);">0944778899</small></td>
+                                    <td>Vũ Quốc Cường<br><small style="color: var(--text-muted);">Dĩ An, Bình Dương</small></td>
+                                    <td>0.8 kg</td>
+                                    <td>22,000 đ</td>
+                                    <td>0 đ</td>
+                                    <td><span class="badge badge-warning"><span class="badge-dot"></span>Đang giao</span></td>
+                                    <td><span class="badge badge-success"><span class="badge-dot"></span>Đã TT</span></td>
+                                    <td class="cell-actions">
+                                        <a href="../customer/07-order-detail.html?id=DH000104" class="btn btn-secondary btn-sm">Chi tiết</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination-wrapper">
+                        <span>Hiển thị 1 - 4 trong tổng số 5,420 đơn hàng</span>
+                        <div class="pagination">
+                            <button class="page-btn" disabled>«</button>
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">3</button>
+                            <button class="page-btn">»</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+</body>
+</html>

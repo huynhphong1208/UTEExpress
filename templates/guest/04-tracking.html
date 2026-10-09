@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>04 – Tra cứu đơn hàng - UTE Express</title>
+    <link rel="stylesheet" href="../../static/css/design-system.css">
+    <link rel="stylesheet" href="../../static/css/components.css">
+    <link rel="stylesheet" href="../../static/css/layout.css">
+</head>
+<body style="background-color: var(--bg-main);">
+
+    <!-- Public Header -->
+    <header class="public-header">
+        <a href="03-index.html" class="public-logo-wrapper">
+            <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo" class="public-logo-img">
+        </a>
+        <nav class="public-nav">
+            <a href="03-index.html">Trang chủ</a>
+            <a href="04-tracking.html" class="active">Tra cứu đơn hàng</a>
+            <a href="03-index.html#services">Dịch vụ</a>
+            <a href="03-index.html#support">Hỗ trợ</a>
+        </nav>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <a href="02-login.html" class="btn btn-secondary btn-sm">Đăng nhập</a>
+            <a href="01-register.html" class="btn btn-primary btn-sm">Đăng ký</a>
+        </div>
+    </header>
+
+    <div class="page-container" style="max-width: 860px; margin: 40px auto;">
+        
+        <!-- Search Box -->
+        <div class="card" style="padding: 28px; margin-bottom: 24px;">
+            <h2 style="font-size: 22px; text-align: center; margin-bottom: 8px;">Tra cứu hành trình vận đơn</h2>
+            <p style="text-align: center; color: var(--text-secondary); font-size: 13.5px; margin-bottom: 20px;">
+                Nhập mã đơn hàng của bạn để kiểm tra trạng thái cập nhật mới nhất từ hệ thống bưu cục và kho trung chuyển
+            </p>
+
+            <div style="display: flex; gap: 12px; max-width: 600px; margin: 0 auto;">
+                <input type="text" id="trackInput" class="form-control" style="font-size: 15px; padding: 12px 16px;" placeholder="Ví dụ: DH000101, DH000102..." value="DH000101">
+                <button class="btn btn-primary btn-lg" onclick="searchTracking()">Tra cứu</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                💡 Thử các mã mẫu: <strong style="cursor: pointer; color: var(--primary-blue);" onclick="fillTrack('DH000101')">DH000101</strong> (Đang VC), <strong style="cursor: pointer; color: var(--primary-blue);" onclick="fillTrack('DH000102')">DH000102</strong> (Mới tạo), <strong style="cursor: pointer; color: var(--primary-blue);" onclick="fillTrack('DH000103')">DH000103</strong> (Đã giao)
+            </div>
+        </div>
+
+        <!-- Not Found Message -->
+        <div id="notFoundBox" style="display: none;" class="card">
+            <div class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <div class="empty-state-title" style="color: var(--danger);">Không tìm thấy đơn hàng!</div>
+                <div class="empty-state-desc">Vui lòng kiểm tra lại chính xác mã đơn hàng (định dạng DHxxxxxx) hoặc liên hệ tổng đài hỗ trợ 1900 1234.</div>
+            </div>
+        </div>
+
+        <!-- Result Card (Bảo mật: Không hiển thị số điện thoại hoặc địa chỉ chi tiết theo yêu cầu nghiệp vụ Guest) -->
+        <div id="resultBox" class="card" style="display: block;">
+            <div class="card-header" style="background-color: var(--bg-alt); padding: 18px 24px;">
+                <div>
+                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Mã đơn hàng</span>
+                    <h3 id="resCode" style="font-size: 20px; color: var(--primary-blue); margin-top: 2px;">DH000101</h3>
+                </div>
+                <div id="resBadge">
+                    <span class="badge badge-info"><span class="badge-dot"></span>Đang vận chuyển</span>
+                </div>
+            </div>
+
+            <div class="card-body" style="padding: 24px;">
+                <!-- General Info (Ẩn thông tin nhạy cảm) -->
+                <div class="grid-3" style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px;">
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Ngày gửi đơn</div>
+                        <div id="resDate" style="font-weight: 600; font-size: 13.5px; margin-top: 4px;">22/09/2026 08:30</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Tuyến vận chuyển</div>
+                        <div style="font-weight: 600; font-size: 13.5px; margin-top: 4px;">TP. Thủ Đức ➔ Quận 1, TP.HCM</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Thông tin kiện hàng</div>
+                        <div id="resPackage" style="font-weight: 600; font-size: 13.5px; margin-top: 4px;">2.5 kg - Hàng tiêu chuẩn</div>
+                    </div>
+                </div>
+
+                <!-- 6 Steps Timeline -->
+                <h4 style="font-size: 15px; margin-bottom: 16px;">Tiến trình vận chuyển:</h4>
+                <div class="stepper-horizontal" id="stepperContainer">
+                    <div class="stepper-step completed">
+                        <div class="stepper-circle">✓</div>
+                        <div class="stepper-label">1. Mới tạo</div>
+                    </div>
+                    <div class="stepper-step completed">
+                        <div class="stepper-circle">✓</div>
+                        <div class="stepper-label">2. Đã tiếp nhận</div>
+                    </div>
+                    <div class="stepper-step active">
+                        <div class="stepper-circle">3</div>
+                        <div class="stepper-label">3. Đang vận chuyển</div>
+                    </div>
+                    <div class="stepper-step">
+                        <div class="stepper-circle">4</div>
+                        <div class="stepper-label">4. Đến kho</div>
+                    </div>
+                    <div class="stepper-step">
+                        <div class="stepper-circle">5</div>
+                        <div class="stepper-label">5. Đang giao</div>
+                    </div>
+                    <div class="stepper-step">
+                        <div class="stepper-circle">6</div>
+                        <div class="stepper-label">6. Giao thành công</div>
+                    </div>
+                </div>
+
+                <div class="timeline" id="timelineHistory">
+                    <div class="timeline-item completed">
+                        <div class="timeline-point"></div>
+                        <div class="timeline-time">22/09/2026 08:30</div>
+                        <div class="timeline-title">Đơn hàng được khởi tạo</div>
+                        <div class="timeline-desc">Thông tin đơn hàng đã được hệ thống ghi nhận.</div>
+                    </div>
+                    <div class="timeline-item completed">
+                        <div class="timeline-point"></div>
+                        <div class="timeline-time">22/09/2026 09:15</div>
+                        <div class="timeline-title">Bưu cục tiếp nhận & phân loại kiện hàng</div>
+                        <div class="timeline-desc">Kiện hàng đã được tiếp nhận tại Kho Trung tâm Thủ Đức.</div>
+                    </div>
+                    <div class="timeline-item active">
+                        <div class="timeline-point"></div>
+                        <div class="timeline-time">22/09/2026 10:45 (Mới nhất)</div>
+                        <div class="timeline-title">Đang vận chuyển liên kho</div>
+                        <div class="timeline-desc">Kiện hàng đang được trung chuyển trên tuyến về bưu cục phát.</div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-alt); padding: 12px 16px; border-radius: var(--radius-md); font-size: 12.5px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+                    <span>🔒</span>
+                    <span>Vì lý do bảo mật quyền riêng tư của Khách hàng, địa chỉ nhà chi tiết và số điện thoại không hiển thị trên cổng tra cứu công cộng.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../../static/js/mock-data.js"></script>
+    <script src="../../static/js/components.js"></script>
+    <script>
+        function fillTrack(code) {
+            document.getElementById('trackInput').value = code;
+            searchTracking();
+        }
+
+        function searchTracking() {
+            const code = document.getElementById('trackInput').value.trim();
+            const order = UTE_DATA.orders.find(o => o.ma_dh.toLowerCase() === code.toLowerCase());
+
+            if (!order) {
+                document.getElementById('notFoundBox').style.display = 'block';
+                document.getElementById('resultBox').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('notFoundBox').style.display = 'none';
+            document.getElementById('resultBox').style.display = 'block';
+
+            document.getElementById('resCode').innerText = order.ma_dh;
+            document.getElementById('resBadge').innerHTML = getStatusBadge(order.trang_thai);
+            document.getElementById('resDate').innerText = order.ngay_tao;
+            document.getElementById('resPackage').innerText = `${order.khoi_luong} kg - ${order.loai_hang}`;
+        }
+
+        // Auto load from URL query
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                document.getElementById('trackInput').value = code;
+                searchTracking();
+            }
+        });
+    </script>
+</body>
+</html>
