@@ -22,6 +22,8 @@ public class PostOfficeService {
     private final TrangThaiDHRepository trangThaiDHRepository;
     private final KienHangRepository kienHangRepository;
     private final LichSuTrangThaiRepository lichSuTrangThaiRepository;
+    private final NguoiDungRepository nguoiDungRepository;
+    private final NhanVienRepository nhanVienRepository;
 
     // Bộ quy tắc chuyển đổi trạng thái hợp lệ
     private static final Map<String, Set<String>> VALID_TRANSITIONS = new HashMap<>();
@@ -160,7 +162,7 @@ public class PostOfficeService {
                 .donHang(donHang)
                 .trangThai(tt02)
                 .thoiGian(LocalDateTime.now())
-                .maNd(request.getMaNV() != null ? request.getMaNV() : "NV_POST_OFFICE")
+                .maNd(resolveValidMaNd(request.getMaNV()))
                 .ghiChu(request.getGhiChu() != null && !request.getGhiChu().isBlank()
                         ? request.getGhiChu()
                         : "Bưu cục " + kho.getTenKho() + " tiếp nhận và xác thực kiện hàng")
@@ -193,8 +195,8 @@ public class PostOfficeService {
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy bưu cục đích: " + request.getMaKhoMoi()));
 
         String maKhoCu = kien.getKhoHienTai() != null ? kien.getKhoHienTai().getMaKho() : "Chưa nhập kho";
+        kienHangRepository.updateKhoHienTai(maKien, khoMoi);
         kien.setKhoHienTai(khoMoi);
-        kienHangRepository.save(kien);
 
         // Ghi log chuyển kho vào lịch sử đơn hàng
         if (kien.getDonHang() != null) {
@@ -204,7 +206,7 @@ public class PostOfficeService {
                     .donHang(kien.getDonHang())
                     .trangThai(kien.getDonHang().getTrangThai())
                     .thoiGian(LocalDateTime.now())
-                    .maNd(request.getMaND() != null ? request.getMaND() : "SYSTEM")
+                    .maNd(resolveValidMaNd(request.getMaND()))
                     .ghiChu("Chuyển kho kiện hàng " + maKien + " từ " + maKhoCu + " sang " + khoMoi.getTenKho()
                             + (request.getGhiChu() != null ? ". " + request.getGhiChu() : ""))
                     .build();
@@ -265,7 +267,7 @@ public class PostOfficeService {
                 .donHang(donHang)
                 .trangThai(trangThaiMoi)
                 .thoiGian(LocalDateTime.now())
-                .maNd(request.getMaND() != null ? request.getMaND() : "OPERATOR")
+                .maNd(resolveValidMaNd(request.getMaND()))
                 .ghiChu(request.getGhiChu() != null && !request.getGhiChu().isBlank()
                         ? request.getGhiChu()
                         : "Cập nhật trạng thái: " + tenTrangThaiCu + " -> " + trangThaiMoi.getTenTrangThai())
@@ -281,5 +283,23 @@ public class PostOfficeService {
                 .thoiGian(LocalDateTime.now())
                 .thongBao("Cập nhật trạng thái đơn hàng thành công")
                 .build();
+    }
+
+    /**
+     * Phân giải ID truyền vào (mã người dùng hoặc mã nhân viên) thành ma_nd hợp lệ có trong bảng nguoi_dung.
+     * Trả về null nếu không tìm thấy để không vi phạm khóa ngoại FK.
+     */
+    private String resolveValidMaNd(String rawUserIdOrEmployeeId) {
+        if (rawUserIdOrEmployeeId == null || rawUserIdOrEmployeeId.isBlank()) {
+            return null;
+        }
+        // 1. Kiểm tra trực tiếp xem có trong bảng nguoi_dung không
+        if (nguoiDungRepository.existsById(rawUserIdOrEmployeeId)) {
+            return rawUserIdOrEmployeeId;
+        }
+        // 2. Kiểm tra xem có phải mã nhân viên (nhân viên gắn với mã người dùng)
+        return nhanVienRepository.findById(rawUserIdOrEmployeeId)
+                .map(nv -> nv.getNguoiDung() != null ? nv.getNguoiDung().getMaNd() : null)
+                .orElse(null);
     }
 }

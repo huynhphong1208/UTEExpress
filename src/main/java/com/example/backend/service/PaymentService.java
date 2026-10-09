@@ -174,7 +174,7 @@ public class PaymentService {
                 .donHang(donHang)
                 .trangThai(donHang.getTrangThai())
                 .thoiGian(LocalDateTime.now())
-                .maNd("FINANCE_SYSTEM")
+                .maNd(null)
                 .ghiChu("Thanh toán thành công khoản " + loaiKhoan + ": " + request.getSoTien() + " VNĐ qua " + thanhToan.getPhuongThuc())
                 .build();
         lichSuTrangThaiRepository.save(lichSu);
