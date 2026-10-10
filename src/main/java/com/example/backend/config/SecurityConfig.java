@@ -61,22 +61,18 @@ public class SecurityConfig {
 
             // Phân quyền Endpoints
             .authorizeHttpRequests(auth -> auth
-                // Static Assets (CSS, JS, Images, Favicon)
+                // Static Assets (CSS, JS, Images, Favicon, Error)
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
                 
-                // HTML Web View Pages (Rendered by Thymeleaf)
-                .requestMatchers("/", "/login", "/register", "/tracking", "/customer/**", "/admin/**").permitAll()
+                // HTML Web View Pages (Rendered by Thymeleaf Views)
+                .requestMatchers("/", "/login", "/register", "/tracking", "/customer/**", "/post-office/**", "/admin/**").permitAll()
 
                 // Public REST APIs
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tra-cuu/**").permitAll()
 
-                // Dispatcher Types cho Thymeleaf Views
+                // Dispatcher Types cho Thymeleaf Views internal forwarding
                 .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.FORWARD, jakarta.servlet.DispatcherType.ERROR).permitAll()
-
-                // Static resources & UI Views
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
-                .requestMatchers("/customer/**", "/post-office/**", "/admin/**", "/", "/index").permitAll()
 
                 // Swagger UI
                 .requestMatchers(

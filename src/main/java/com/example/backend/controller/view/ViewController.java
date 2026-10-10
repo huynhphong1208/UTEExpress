@@ -48,7 +48,59 @@ public class ViewController {
 
     @GetMapping("/")
     public String index() {
-        return "redirect:/customer/create-order";
+        return "guest/03-index";
+    }
+
+    @GetMapping("/login")
+    public String login() {
+        return "guest/02-login";
+    }
+
+    @GetMapping("/register")
+    public String register() {
+        return "guest/01-register";
+    }
+
+    @GetMapping("/tracking")
+    public String tracking(@RequestParam(required = false) String maDh, Model model) {
+        if (maDh != null && !maDh.isBlank()) {
+            model.addAttribute("maDh", maDh);
+        }
+        return "guest/04-tracking";
+    }
+
+    @GetMapping("/customer/dashboard")
+    public String customerDashboard() {
+        return "customer/05-dashboard";
+    }
+
+    @GetMapping("/admin/users")
+    public String adminUsers() {
+        return "admin/19-users";
+    }
+
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard() {
+        return "admin/18-dashboard";
+    }
+
+    // =========================================================================
+    // PHÂN HỆ KHÁCH HÀNG: CHI TIẾT ĐƠN HÀNG (UC07) & THANH TOÁN (UC08)
+    // =========================================================================
+    @GetMapping("/customer/order-detail")
+    public String customerOrderDetail(@RequestParam(required = false) String maDh, Model model) {
+        if (maDh != null && !maDh.isBlank()) {
+            model.addAttribute("maDh", maDh);
+        }
+        return "customer/07-order-detail";
+    }
+
+    @GetMapping("/customer/payment")
+    public String customerPayment(@RequestParam(required = false) String maDh, Model model) {
+        if (maDh != null && !maDh.isBlank()) {
+            model.addAttribute("maDh", maDh);
+        }
+        return "customer/08-payment";
     }
 
     // =========================================================================
@@ -70,7 +122,7 @@ public class ViewController {
         model.addAttribute("success", success);
         model.addAttribute("createdMaDh", createdMaDh);
 
-        return "customer/create-order";
+        return "customer/06-create-order";
     }
 
     @PostMapping("/customer/create-order")

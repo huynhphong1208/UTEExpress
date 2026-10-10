@@ -25,24 +25,20 @@
             <nav class="sidebar-nav">
                 <div class="nav-section-title">Nghiệp vụ bưu cục</div>
                 <a th:href="@{/post-office/dashboard}" class="nav-item">
-                    <span>Bưu cục tiếp nhận</span>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Bảng điều khiển</span>
                 </a>
                 <a th:href="@{/post-office/packages}" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     <span>Quản lý kiện hàng</span>
                 </a>
                 <a th:href="@{/post-office/update-status}" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     <span>Cập nhật trạng thái</span>
                 </a>
-
-                <div class="nav-section-title">Phân hệ liên kết</div>
-                <a th:href="@{/customer/create-order}" class="nav-item">
-                    <span>Khách tạo đơn</span>
-                </a>
-                <a th:href="@{/admin/payments}" class="nav-item">
-                    <span>Thanh toán & COD</span>
-                </a>
-                <a th:href="@{/admin/reports}" class="nav-item">
-                    <span>Báo cáo thống kê</span>
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: 30px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
                 </a>
             </nav>
 

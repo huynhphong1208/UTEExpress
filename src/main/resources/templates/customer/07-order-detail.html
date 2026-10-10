@@ -1,53 +1,52 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>07 – Chi tiết đơn hàng - UTE Express</title>
-    <link rel="stylesheet" href="../../static/css/design-system.css">
-    <link rel="stylesheet" href="../../static/css/components.css">
-    <link rel="stylesheet" href="../../static/css/layout.css">
+    <title>Chi tiết đơn hàng - UTE Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
 </head>
 <body>
     <div class="app-layout">
         <!-- SIDEBAR KHÁCH HÀNG -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <a href="../guest/03-index.html" class="sidebar-logo">
-                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                <a th:href="@{/}" href="/" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
                 </a>
                 <span class="sidebar-role-tag">Khách hàng</span>
             </div>
 
             <nav class="sidebar-nav">
                 <div class="nav-section-title">Nghiệp vụ giao nhận</div>
-                <a href="05-dashboard.html" class="nav-item">
+                <a th:href="@{/customer/dashboard}" href="/customer/dashboard" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span>Tổng quan</span>
+                    <span>Tổng quan &amp; Đơn hàng</span>
                 </a>
-                <a href="06-create-order.html" class="nav-item">
+                <a th:href="@{/customer/create-order}" href="/customer/create-order" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    <span>Tạo đơn hàng</span>
+                    <span>Tạo đơn hàng mới</span>
                 </a>
-                <a href="05-dashboard.html#orders-table" class="nav-item active">
+                <a th:href="@{/customer/order-detail}" href="/customer/order-detail" class="nav-item active">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     <span>Đơn hàng của tôi</span>
                 </a>
-                <a href="../guest/04-tracking.html" class="nav-item">
+                <a th:href="@{/tracking}" href="/tracking" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <span>Theo dõi / Tra cứu</span>
                 </a>
 
-                <div class="nav-section-title">Tài chính & Cá nhân</div>
-                <a href="08-payment.html" class="nav-item">
+                <div class="nav-section-title">Tài chính &amp; Cá nhân</div>
+                <a th:href="@{/customer/payment}" href="/customer/payment" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    <span>Thanh toán & COD</span>
+                    <span>Thanh toán &amp; COD</span>
                 </a>
-                <a href="#" class="nav-item" onclick="alert('Trang Thông tin cá nhân đang cập nhật.')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    <span>Thông tin cá nhân</span>
-                </a>
-                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: 30px;">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Đăng xuất</span>
                 </a>
@@ -57,7 +56,7 @@
                 <div class="user-avatar">KH</div>
                 <div class="user-info">
                     <div class="user-name">Nguyễn Văn An</div>
-                    <div class="user-sub">KH000123 (Cá nhân)</div>
+                    <div class="user-sub">Tài khoản Khách hàng</div>
                 </div>
             </div>
         </aside>
@@ -65,10 +64,14 @@
         <main class="main-wrapper">
             <header class="top-header">
                 <div class="breadcrumbs">
-                    <a href="05-dashboard.html">Dashboard</a> <span>/</span> <span>Chi tiết đơn hàng</span> <span>/</span> <strong id="bcCode">DH000101</strong>
+                    <a th:href="@{/customer/dashboard}" href="/customer/dashboard">Dashboard</a>
+                    <span>/</span>
+                    <span>Chi tiết đơn hàng</span>
+                    <span>/</span>
+                    <strong th:text="${maDh != null ? maDh : 'DH000101'}">DH000101</strong>
                 </div>
                 <div class="header-actions">
-                    <a href="08-payment.html?id=DH000101" class="btn btn-outline-primary btn-sm">💳 Thanh toán cước</a>
+                    <a th:href="@{/customer/payment}" href="/customer/payment" class="btn btn-outline-primary btn-sm">💳 Thanh toán cước</a>
                     <button class="btn btn-primary btn-sm" onclick="confirmReceived()">✓ Xác nhận đã nhận hàng</button>
                 </div>
             </header>
@@ -77,7 +80,7 @@
                 <div class="page-header">
                     <div>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <h1 class="page-title" id="orderTitle">Chi tiết đơn hàng DH000101</h1>
+                            <h1 class="page-title" th:text="${'Chi tiết đơn hàng ' + (maDh != null ? maDh : 'DH000101')}">Chi tiết đơn hàng DH000101</h1>
                             <span id="orderStatusBadge"><span class="badge badge-info"><span class="badge-dot"></span>Đang vận chuyển</span></span>
                         </div>
                         <p class="page-subtitle">Ngày khởi tạo: 22/09/2026 08:30 • Hình thức: Giao hàng chuẩn</p>
@@ -177,7 +180,7 @@
                     <div class="col-4">
                         <div class="card" style="margin-bottom: 20px;">
                             <div class="card-header" style="background-color: var(--bg-alt);">
-                                <h3 class="card-title">Cước phí & Tiền thu</h3>
+                                <h3 class="card-title">Cước phí &amp; Tiền thu</h3>
                             </div>
                             <div class="card-body">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13.5px;">
@@ -199,7 +202,7 @@
                                     <div style="margin-top: 4px;">Trạng thái TT: <span class="badge badge-success" style="font-size: 11px;">Đã thanh toán</span></div>
                                 </div>
 
-                                <a href="08-payment.html?id=DH000101" class="btn btn-outline-primary btn-block">Xem trang thanh toán</a>
+                                <a th:href="@{/customer/payment}" href="/customer/payment" class="btn btn-outline-primary btn-block">Xem trang thanh toán</a>
                                 <button class="btn btn-primary btn-block" style="margin-top: 8px;" onclick="confirmReceived()">Xác nhận đã nhận hàng</button>
                             </div>
                         </div>
@@ -217,13 +220,11 @@
         </main>
     </div>
 
-    <script src="../../static/js/mock-data.js"></script>
-    <script src="../../static/js/components.js"></script>
     <script>
         function confirmReceived() {
             if (confirm('Bạn xác nhận kiện hàng đã được giao tận tay đầy đủ và nguyên vẹn?')) {
-                showToast('Đã xác nhận', 'Cảm ơn bạn! Đơn hàng đã chuyển sang trạng thái Giao thành công.', 'success');
                 document.getElementById('orderStatusBadge').innerHTML = '<span class="badge badge-success"><span class="badge-dot"></span>Giao thành công</span>';
+                alert('Cảm ơn bạn! Đơn hàng đã chuyển sang trạng thái Giao thành công.');
             }
         }
     </script>

@@ -25,24 +25,20 @@
             <nav class="sidebar-nav">
                 <div class="nav-section-title">Trung tâm điều hành</div>
                 <a th:href="@{/admin/payments}" class="nav-item active">
-                    <span>Thanh toán & COD</span>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    <span>Thanh toán &amp; COD</span>
                 </a>
                 <a th:href="@{/admin/reports}" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     <span>Báo cáo thống kê</span>
                 </a>
-
-                <div class="nav-section-title">Nghiệp vụ các phân hệ</div>
-                <a th:href="@{/customer/create-order}" class="nav-item">
-                    <span>Khách tạo đơn</span>
+                <a th:href="@{/admin/users}" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <span>Quản lý người dùng</span>
                 </a>
-                <a th:href="@{/post-office/dashboard}" class="nav-item">
-                    <span>Bưu cục tiếp nhận</span>
-                </a>
-                <a th:href="@{/post-office/packages}" class="nav-item">
-                    <span>Quản lý kiện hàng</span>
-                </a>
-                <a th:href="@{/post-office/update-status}" class="nav-item">
-                    <span>Cập nhật trạng thái</span>
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: 30px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
                 </a>
             </nav>
 

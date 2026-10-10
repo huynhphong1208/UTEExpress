@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>08 – Thanh toán cước vận chuyển - UTE Express</title>
-    <link rel="stylesheet" href="../../static/css/design-system.css">
-    <link rel="stylesheet" href="../../static/css/components.css">
-    <link rel="stylesheet" href="../../static/css/layout.css">
+    <title>Thanh toán cước vận chuyển - UTE Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
     <style>
         .payment-method-card {
             border: 2px solid var(--border-color);
@@ -33,41 +36,37 @@
         <!-- SIDEBAR KHÁCH HÀNG -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <a href="../guest/03-index.html" class="sidebar-logo">
-                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                <a th:href="@{/}" href="/" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
                 </a>
                 <span class="sidebar-role-tag">Khách hàng</span>
             </div>
 
             <nav class="sidebar-nav">
                 <div class="nav-section-title">Nghiệp vụ giao nhận</div>
-                <a href="05-dashboard.html" class="nav-item">
+                <a th:href="@{/customer/dashboard}" href="/customer/dashboard" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span>Tổng quan</span>
+                    <span>Tổng quan &amp; Đơn hàng</span>
                 </a>
-                <a href="06-create-order.html" class="nav-item">
+                <a th:href="@{/customer/create-order}" href="/customer/create-order" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    <span>Tạo đơn hàng</span>
+                    <span>Tạo đơn hàng mới</span>
                 </a>
-                <a href="05-dashboard.html#orders-table" class="nav-item">
+                <a th:href="@{/customer/order-detail}" href="/customer/order-detail" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     <span>Đơn hàng của tôi</span>
                 </a>
-                <a href="../guest/04-tracking.html" class="nav-item">
+                <a th:href="@{/tracking}" href="/tracking" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <span>Theo dõi / Tra cứu</span>
                 </a>
 
-                <div class="nav-section-title">Tài chính & Cá nhân</div>
-                <a href="08-payment.html" class="nav-item active">
+                <div class="nav-section-title">Tài chính &amp; Cá nhân</div>
+                <a th:href="@{/customer/payment}" href="/customer/payment" class="nav-item active">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    <span>Thanh toán & COD</span>
+                    <span>Thanh toán &amp; COD</span>
                 </a>
-                <a href="#" class="nav-item" onclick="alert('Trang Thông tin cá nhân đang cập nhật.')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    <span>Thông tin cá nhân</span>
-                </a>
-                <a href="../guest/02-login.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: 30px;">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Đăng xuất</span>
                 </a>
@@ -77,7 +76,7 @@
                 <div class="user-avatar">KH</div>
                 <div class="user-info">
                     <div class="user-name">Nguyễn Văn An</div>
-                    <div class="user-sub">KH000123 (Cá nhân)</div>
+                    <div class="user-sub">Tài khoản Khách hàng</div>
                 </div>
             </div>
         </aside>
@@ -85,14 +84,16 @@
         <main class="main-wrapper">
             <header class="top-header">
                 <div class="breadcrumbs">
-                    <a href="05-dashboard.html">Dashboard</a> <span>/</span> <span>Thanh toán cước phí</span>
+                    <a th:href="@{/customer/dashboard}" href="/customer/dashboard">Dashboard</a>
+                    <span>/</span>
+                    <span>Thanh toán cước phí</span>
                 </div>
             </header>
 
             <div class="page-container" style="max-width: 900px;">
                 <div class="page-header">
                     <div>
-                        <h1 class="page-title">Thanh toán đơn hàng DH000102</h1>
+                        <h1 class="page-title" th:text="${'Thanh toán đơn hàng ' + (maDh != null ? maDh : 'DH000102')}">Thanh toán đơn hàng DH000102</h1>
                         <p class="page-subtitle">Chọn phương thức thanh toán phù hợp và kiểm tra thông tin cước phí</p>
                     </div>
                     <div>
@@ -138,9 +139,8 @@
                         <div class="card" id="qrBox" style="text-align: center; padding: 24px;">
                             <h4 style="font-size: 15px; margin-bottom: 4px;">Mã QR Chuyển khoản tự động</h4>
                             <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 16px;">Mở app ngân hàng bất kỳ để quét mã bên dưới</p>
-                            
+
                             <div style="display: inline-block; padding: 12px; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
-                                <!-- Mock QR Visual -->
                                 <div style="width: 180px; height: 180px; background: #0F172A; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; text-align: center; border-radius: 4px; padding: 10px;">
                                     [ VIETQR 24/7 ]<br>STK: 02838968641<br>Ngân hàng VCB<br>ND: DH000102
                                 </div>
@@ -162,11 +162,11 @@
                                 <div style="font-size: 13.5px; display: flex; flex-direction: column; gap: 10px;">
                                     <div style="display: flex; justify-content: space-between;">
                                         <span style="color: var(--text-secondary);">Mã đơn hàng:</span>
-                                        <strong>DH000102</strong>
+                                        <strong th:text="${maDh != null ? maDh : 'DH000102'}">DH000102</strong>
                                     </div>
                                     <div style="display: flex; justify-content: space-between;">
                                         <span style="color: var(--text-secondary);">Người thanh toán:</span>
-                                        <span>Nguyễn Văn An (KH000123)</span>
+                                        <span>Nguyễn Văn An</span>
                                     </div>
                                     <div style="display: flex; justify-content: space-between;">
                                         <span style="color: var(--text-secondary);">Thời gian tạo:</span>
@@ -206,8 +206,6 @@
         </main>
     </div>
 
-    <script src="../../static/js/mock-data.js"></script>
-    <script src="../../static/js/components.js"></script>
     <script>
         function selectMethod(el, method) {
             document.querySelectorAll('.payment-method-card').forEach(c => c.classList.remove('active'));
@@ -224,14 +222,13 @@
 
         function processPayment() {
             document.getElementById('failAlert').style.display = 'none';
-            showToast('Thành công', 'Đã ghi nhận thanh toán thành công 1,245,000 đ cho đơn DH000102!', 'success');
             document.getElementById('payStatusBadge').className = 'badge badge-success';
             document.getElementById('payStatusBadge').innerHTML = '<span class="badge-dot"></span>Đã thanh toán';
+            alert('Đã ghi nhận thanh toán thành công!');
         }
 
         function simulateFail() {
             document.getElementById('failAlert').style.display = 'block';
-            showToast('Thất bại', 'Thanh toán không thành công, vui lòng thử lại.', 'danger');
         }
     </script>
 </body>
