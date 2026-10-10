@@ -109,14 +109,7 @@
                 <div class="breadcrumbs">
                     <a href="#">Tài xế</a> <span>/</span> <span>Dashboard</span>
                 </div>
-                <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 12px; color: var(--text-muted);">Tài khoản:</span>
-                        <select id="driverSwitcher" class="form-select form-select-sm" style="width: auto; font-size: 12px; font-weight: 600;" onchange="onDriverSwitched(this.value)">
-                            <option value="TX001">TX001 - Huỳnh Văn Tài (Chuyến liên kho)</option>
-                            <option value="TX002">TX002 - Ngô Minh Đức (Chuyến giao cuối)</option>
-                        </select>
-                    </div>
+                <div class="header-actions">
                     <a href="17-delivery-update.html" class="btn btn-primary btn-sm" id="btnQuickScan">📷 Quét kiện giao hàng</a>
                 </div>
             </header>
@@ -341,15 +334,8 @@
             return localStorage.getItem('ute_current_driver') || 'TX001';
         }
 
-        function onDriverSwitched(driverId) {
-            localStorage.setItem('ute_current_driver', driverId);
-            loadDriverDashboard();
-        }
-
         async function loadDriverDashboard() {
             const driverId = getCurrentDriverId();
-            const switcher = document.getElementById('driverSwitcher');
-            if (switcher) switcher.value = driverId;
 
             try {
                 // 1. Tải thông tin chung dashboard

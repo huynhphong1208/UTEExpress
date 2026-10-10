@@ -90,30 +90,3 @@ function getStatusBadge(status) {
     }
 }
 
-// 4. THANH ĐIỀU HƯỚNG NHANH (Chỉ dành cho Điều phối & Tài xế)
-document.addEventListener('DOMContentLoaded', () => {
-    if (!document.getElementById('prototype-toolbar')) {
-        const isHttp = window.location.protocol.startsWith('http');
-
-        const tb = document.createElement('div');
-        tb.id = 'prototype-toolbar';
-        tb.className = 'prototype-toolbar';
-        tb.innerHTML = `
-            <div class="proto-label">UTE Express: Điều phối & Tài xế</div>
-            <select class="proto-select" id="roleNavigator" onchange="if(this.value) window.location.href=this.value">
-                <option value="">-- Chuyển nhanh giữa các màn hình --</option>
-                <optgroup label="1. Nhân viên Điều phối (NVDP)">
-                    <option value="${isHttp ? '/dispatcher/12-dashboard.html' : '12-dashboard.html'}">12. Dashboard Điều phối</option>
-                    <option value="${isHttp ? '/dispatcher/13-routes.html' : '13-routes.html'}">13. Quản lý tuyến vận chuyển</option>
-                    <option value="${isHttp ? '/dispatcher/14-trips.html' : '14-trips.html'}">14. Quản lý chuyến giao & tải trọng</option>
-                </optgroup>
-                <optgroup label="2. Tài xế (Driver)">
-                    <option value="${isHttp ? '/driver/15-dashboard.html' : '../driver/15-dashboard.html'}">15. Dashboard Tài xế</option>
-                    <option value="${isHttp ? '/driver/16-trip-detail.html' : '../driver/16-trip-detail.html'}">16. Chi tiết chuyến giao</option>
-                    <option value="${isHttp ? '/driver/17-delivery-update.html' : '../driver/17-delivery-update.html'}">17. Quét kiện & Cập nhật giao hàng</option>
-                </optgroup>
-            </select>
-        `;
-        document.body.appendChild(tb);
-    }
-});

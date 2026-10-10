@@ -52,14 +52,7 @@
                 <div class="breadcrumbs">
                     <a href="15-dashboard.html">Tài xế</a> <span>/</span> <span>Cập nhật kết quả phát hàng</span>
                 </div>
-                <div class="header-actions" style="display: flex; align-items: center; gap: 10px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 12px; color: var(--text-muted);">Tài xế:</span>
-                        <select id="driverSwitcher" class="form-select form-select-sm" style="width: auto; font-size: 12px; font-weight: 600;" onchange="onDriverSwitched(this.value)">
-                            <option value="TX001">TX001 - Huỳnh Văn Tài (Chuyến liên kho)</option>
-                            <option value="TX002">TX002 - Ngô Minh Đức (Chuyến giao cuối)</option>
-                        </select>
-                    </div>
+                <div class="header-actions">
                 </div>
             </header>
 
@@ -205,21 +198,12 @@
             return driverId === 'TX002' ? 'ND006' : 'ND005';
         }
 
-        function onDriverSwitched(driverId) {
-            localStorage.setItem('ute_current_driver', driverId);
-            window.location.href = `17-delivery-update.html`;
-        }
-
         let currentTripId = '';
         let currentTripData = null;
         let tripPackages = [];
         let currentSelectedPkg = null;
 
         async function initPage() {
-            const driverId = getCurrentDriverId();
-            const switcher = document.getElementById('driverSwitcher');
-            if (switcher) switcher.value = driverId;
-
             const urlParams = new URLSearchParams(window.location.search);
             const paramTripId = urlParams.get('id');
             const paramPkgId = urlParams.get('pkg');
