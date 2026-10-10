@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Thanh toán & COD - UTE Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ADMIN -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/admin/payments}" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Admin</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Trung tâm điều hành</div>
+                <a th:href="@{/admin/payments}" class="nav-item active">
+                    <span>Thanh toán & COD</span>
+                </a>
+                <a th:href="@{/admin/reports}" class="nav-item">
+                    <span>Báo cáo thống kê</span>
+                </a>
+
+                <div class="nav-section-title">Nghiệp vụ các phân hệ</div>
+                <a th:href="@{/customer/create-order}" class="nav-item">
+                    <span>Khách tạo đơn</span>
+                </a>
+                <a th:href="@{/post-office/dashboard}" class="nav-item">
+                    <span>Bưu cục tiếp nhận</span>
+                </a>
+                <a th:href="@{/post-office/packages}" class="nav-item">
+                    <span>Quản lý kiện hàng</span>
+                </a>
+                <a th:href="@{/post-office/update-status}" class="nav-item">
+                    <span>Cập nhật trạng thái</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #DC2626;">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Quản trị viên Hệ thống</div>
+                    <div class="user-sub">ADMINISTRATOR</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a th:href="@{/admin/payments}">Quản trị</a> <span>/</span> 
+                    <span>Tài chính, Thanh toán & Đối soát COD</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="moHopThoaiThanhToan()">Tạo giao dịch thanh toán</button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Quản lý Thanh toán, Doanh thu & Tiền thu hộ COD</h1>
+                        <p class="page-subtitle">Kiểm soát dòng tiền cước vận chuyển, theo dõi thu chi và đối soát COD chuyển trả khách hàng</p>
+                    </div>
+                </div>
+
+                <!-- Thông báo giao dịch thành công -->
+                <div th:if="${processedMaDh}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--success); background-color: var(--success-bg);">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <h4 style="color: var(--success); margin-bottom: 4px;">Xử lý thanh toán thành công</h4>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">
+                            Giao dịch thanh toán cho đơn hàng <strong th:text="${processedMaDh}">DH000001</strong> đã được lưu thành công vào cơ sở dữ liệu.
+                        </p>
+                    </div>
+                </div>
+
+                <div th:if="${errorMessage}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--brand-red); background-color: var(--brand-red-light);">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <h4 style="color: var(--brand-red); margin-bottom: 4px;">Có lỗi xảy ra</h4>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px;" th:text="${errorMessage}">Chi tiết lỗi</p>
+                    </div>
+                </div>
+
+                <!-- 3 STAT CARDS TÀI CHÍNH (CHỈ DÙNG CHỮ) -->
+                <div class="grid-3" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng cước phí thu được</span>
+                            <span class="stat-value" style="color: var(--brand-blue);" 
+                                  th:text="${codReconciliation != null and codReconciliation.tongCuocPhiDaThu != null ? #numbers.formatDecimal(codReconciliation.tongCuocPhiDaThu, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</span>
+                            <span class="stat-change">Doanh thu cước thực nhận</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng tiền COD chờ đối soát</span>
+                            <span class="stat-value" style="color: var(--warning);" 
+                                  th:text="${codReconciliation != null and codReconciliation.tongCodChoDoiSoat != null ? #numbers.formatDecimal(codReconciliation.tongCodChoDoiSoat, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</span>
+                            <span class="stat-change">Chờ thanh toán cho chủ hàng</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Số giao dịch COD</span>
+                            <span class="stat-value" style="color: var(--brand-red);" 
+                                  th:text="${codReconciliation != null ? codReconciliation.tongSoGiaoDichCod : 0}">0</span>
+                            <span class="stat-change">Giao dịch trong hệ thống</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DANH SÁCH ĐƠN HÀNG COD CẦN ĐỐI SOÁT (Mục 4.2.22) -->
+                <div class="card" style="margin-bottom: 28px;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="card-title">Danh sách giao dịch COD đối soát khách hàng (Cơ sở dữ liệu)</h3>
+                        <span class="badge badge-yellow" th:text="${codReconciliation != null and codReconciliation.danhSachGiaoDich != null ? #lists.size(codReconciliation.danhSachGiaoDich) + ' giao dịch COD' : '0 giao dịch COD'}">0 giao dịch COD</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Mã khách gửi</th>
+                                    <th>Người nhận</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Tiền COD</th>
+                                    <th>Trạng thái đơn</th>
+                                    <th>Tình trạng COD</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${codReconciliation == null or #lists.isEmpty(codReconciliation.danhSachGiaoDich)}">
+                                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Hiện không có đơn hàng COD nào cần đối soát.</td>
+                                </tr>
+                                <tr th:each="cod : ${codReconciliation.danhSachGiaoDich}">
+                                    <td><strong style="color: var(--brand-blue);" th:text="${cod.maDh}">DH000001</strong></td>
+                                    <td th:text="${cod.maKhGui}">KH001</td>
+                                    <td th:text="${cod.tenNguoiNhan}">Trần Thị Bích</td>
+                                    <td th:text="${cod.sdtNhan != null ? cod.sdtNhan : '-'}">0901000002</td>
+                                    <td><strong style="color: var(--brand-blue);" th:text="${cod.tienCod != null ? #numbers.formatDecimal(cod.tienCod, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">150,000 đ</strong></td>
+                                    <td>
+                                        <span class="badge" 
+                                              th:classappend="${cod.maTrangThai == 'TT06' ? 'badge-success' : 'badge-yellow'}"
+                                              th:text="${cod.tenTrangThai}">Giao thành công</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge" 
+                                              th:classappend="${cod.codDaThu != null ? 'badge-success' : 'badge-yellow'}"
+                                              th:text="${cod.tinhTrangCod}">Chưa thu COD</span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-secondary btn-sm" 
+                                                th:attr="data-madh=${cod.maDh},data-sotien=${cod.tienCod != null ? cod.tienCod : 0}"
+                                                onclick="nhapNhanhThanhToan(this.getAttribute('data-madh'), this.getAttribute('data-sotien'), 'COD')">
+                                            Thu tiền COD
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- BẢNG LỊCH SỬ GIAO DỊCH THANH TOÁN TOÀN HỆ THỐNG -->
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="card-title">Nhật ký giao dịch thanh toán trong cơ sở dữ liệu</h3>
+                        <span class="badge badge-primary" th:text="|${danhSachThanhToan != null ? #lists.size(danhSachThanhToan) : 0} giao dịch|">0 giao dịch</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã giao dịch</th>
+                                    <th>Mã đơn</th>
+                                    <th>Khoản thu</th>
+                                    <th>Số tiền</th>
+                                    <th>Phương thức</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thời gian</th>
+                                    <th>Người nộp tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${danhSachThanhToan == null or #lists.isEmpty(danhSachThanhToan)}">
+                                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Chưa phát sinh giao dịch thanh toán nào.</td>
+                                </tr>
+                                <tr th:each="tt : ${danhSachThanhToan}">
+                                    <td><strong style="color: var(--brand-blue);" th:text="${tt.maTtToan}">GD000001</strong></td>
+                                    <td th:text="${tt.donHang != null ? tt.donHang.maDh : '-'}">DH000001</td>
+                                    <td>
+                                        <span class="badge" 
+                                              th:classappend="${tt.loaiKhoan == 'PHI_VC' ? 'badge-primary' : 'badge-yellow'}"
+                                              th:text="${tt.loaiKhoan == 'PHI_VC' ? 'Cước vận chuyển' : 'Tiền thu hộ COD'}">Cước vận chuyển</span>
+                                    </td>
+                                    <td><strong th:text="${tt.soTien != null ? #numbers.formatDecimal(tt.soTien, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</strong></td>
+                                    <td th:text="${tt.phuongThuc}">Chuyển khoản</td>
+                                    <td>
+                                        <span class="badge badge-success" th:text="${tt.trangThai}">Đã thanh toán</span>
+                                    </td>
+                                    <td th:text="${tt.thoiGian != null ? #temporals.format(tt.thoiGian, 'dd/MM/yyyy HH:mm') : '-'}">09/10/2026 10:30</td>
+                                    <td th:text="${tt.nguoiThanhToan != null ? tt.nguoiThanhToan : 'Khách hàng'}">Khách hàng</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- HỘP THOẠI XỬ LÝ THANH TOÁN / THU TIỀN (UC06, UC07) -->
+    <div class="modal-backdrop" id="paymentModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-dialog" style="background: white; border-radius: var(--radius-lg); width: 100%; max-width: 500px; box-shadow: var(--shadow-xl); overflow: hidden;">
+            <div class="modal-header" style="padding: 16px 20px; background: var(--bg-alt); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="modal-title" style="margin: 0; font-size: 16px;">Tạo giao dịch thanh toán mới</h3>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="dongHopThoaiThanhToan()">Đóng</button>
+            </div>
+            <form th:action="@{/admin/process-payment}" method="post">
+                <div class="modal-body" style="padding: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">Chọn mã đơn hàng <span class="required">*</span></label>
+                        <select class="form-select" name="maDh" id="payMaDh" required>
+                            <option th:each="dh : ${danhSachDonHang}" th:value="${dh.maDh}" th:text="|${dh.maDh} - ${dh.tenNguoiNhan}|">DH000001 - Trần Thị Bích</option>
+                        </select>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Số tiền (VNĐ) <span class="required">*</span></label>
+                            <input type="number" step="1000" class="form-control" name="soTien" id="paySoTien" value="35000" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Khoản thu <span class="required">*</span></label>
+                            <select class="form-select" name="loaiKhoan" id="payLoaiKhoan">
+                                <option value="PHI_VC">Cước vận chuyển (PHI_VC)</option>
+                                <option value="COD">Tiền thu hộ (COD)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phương thức thanh toán <span class="required">*</span></label>
+                        <select class="form-select" name="phuongThuc">
+                            <option value="Chuyển khoản">Chuyển khoản</option>
+                            <option value="Tiền mặt">Tiền mặt</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Người nộp tiền / Người chuyển</label>
+                        <input type="text" class="form-control" name="nguoiThanhToan" placeholder="Họ tên người thanh toán">
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding: 14px 20px; background: var(--bg-alt); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="dongHopThoaiThanhToan()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Xác nhận thanh toán</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function moHopThoaiThanhToan() {
+            var modal = document.getElementById('paymentModal');
+            modal.style.display = 'flex';
+            modal.style.opacity = '1';
+            modal.style.visibility = 'visible';
+            modal.classList.add('show');
+        }
+        function nhapNhanhThanhToan(maDh, soTien, loaiKhoan) {
+            document.getElementById('payMaDh').value = maDh;
+            document.getElementById('paySoTien').value = soTien;
+            document.getElementById('payLoaiKhoan').value = loaiKhoan;
+            moHopThoaiThanhToan();
+        }
+        function dongHopThoaiThanhToan() {
+            var modal = document.getElementById('paymentModal');
+            modal.classList.remove('show');
+            modal.style.opacity = '0';
+            modal.style.visibility = 'hidden';
+            modal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

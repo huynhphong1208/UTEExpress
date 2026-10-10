@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo thống kê - UTE Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR ADMIN -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/admin/reports}" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Admin</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Trung tâm điều hành</div>
+                <a th:href="@{/admin/payments}" class="nav-item">
+                    <span>Thanh toán & COD</span>
+                </a>
+                <a th:href="@{/admin/reports}" class="nav-item active">
+                    <span>Báo cáo thống kê</span>
+                </a>
+
+                <div class="nav-section-title">Nghiệp vụ các phân hệ</div>
+                <a th:href="@{/customer/create-order}" class="nav-item">
+                    <span>Khách tạo đơn</span>
+                </a>
+                <a th:href="@{/post-office/dashboard}" class="nav-item">
+                    <span>Bưu cục tiếp nhận</span>
+                </a>
+                <a th:href="@{/post-office/packages}" class="nav-item">
+                    <span>Quản lý kiện hàng</span>
+                </a>
+                <a th:href="@{/post-office/update-status}" class="nav-item">
+                    <span>Cập nhật trạng thái</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #DC2626;">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Quản trị viên Hệ thống</div>
+                    <div class="user-sub">ADMINISTRATOR</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a th:href="@{/admin/reports}">Quản trị</a> <span>/</span> 
+                    <span>Báo cáo thống kê & Hiệu suất SLA</span>
+                </div>
+                <div class="header-actions">
+                    <a th:href="@{/admin/reports}" class="btn btn-ghost btn-sm">Tải lại báo cáo</a>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Báo cáo thống kê nghiệp vụ & Hiệu suất SLA (UC17)</h1>
+                        <p class="page-subtitle">Dữ liệu tổng hợp theo thời gian thực từ cơ sở dữ liệu PostgreSQL cho quản trị viên và trưởng bộ phận</p>
+                    </div>
+                </div>
+
+                <!-- 4 STAT CARDS BÁO CÁO (CHỈ DÙNG CHỮ) -->
+                <div class="grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng đơn hàng toàn hệ thống</span>
+                            <span class="stat-value" style="color: var(--brand-blue);" 
+                                  th:text="${overview != null ? overview.tongSoDonHang : 0}">0</span>
+                            <span class="stat-change">Đơn hàng đã phát sinh</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Doanh thu cước vận chuyển</span>
+                            <span class="stat-value" style="color: var(--success);" 
+                                  th:text="${overview != null and overview.tongDoanhThuCuoc != null ? #numbers.formatDecimal(overview.tongDoanhThuCuoc, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</span>
+                            <span class="stat-change">Đã thu về bưu cục</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tỷ lệ giao thành công SLA</span>
+                            <span class="stat-value" style="color: var(--warning);" 
+                                  th:text="${slaReport != null and slaReport.tyLeGiaoThanhCong != null ? slaReport.tyLeGiaoThanhCong + '%' : '100%'}">100%</span>
+                            <span class="stat-change">Chỉ tiêu cam kết chất lượng</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đơn hàng đang vận chuyển</span>
+                            <span class="stat-value" style="color: var(--brand-blue-active);" 
+                                  th:text="${overview != null ? overview.soDonDangVanChuyen : 0}">0</span>
+                            <span class="stat-change">Đang trên tuyến hoặc kho</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-12" style="margin-bottom: 24px;">
+                    <!-- Bảng 1: Phân bố trạng thái đơn hàng -->
+                    <div class="col-6">
+                        <div class="card" style="height: 100%;">
+                            <div class="card-header">
+                                <h3 class="card-title">Phân bố đơn hàng theo từng trạng thái (Database)</h3>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã</th>
+                                            <th>Tên trạng thái</th>
+                                            <th>Số lượng đơn</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:if="${overview == null or #lists.isEmpty(overview.thongKeTheoTrangThai)}">
+                                            <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">Không có dữ liệu.</td>
+                                        </tr>
+                                        <tr th:each="st : ${overview.thongKeTheoTrangThai}">
+                                            <td><strong style="color: var(--brand-blue);" th:text="${st.maTrangThai}">TT01</strong></td>
+                                            <td th:text="${st.tenTrangThai}">Mới tạo</td>
+                                            <td><strong th:text="${st.soLuong}">0</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng 2: Hiệu suất bưu cục (Mục 4.2.23) -->
+                    <div class="col-6">
+                        <div class="card" style="height: 100%;">
+                            <div class="card-header">
+                                <h3 class="card-title">Hiệu suất vận hành từng bưu cục (Mục 4.2.23)</h3>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã kho</th>
+                                            <th>Tên bưu cục</th>
+                                            <th>Đơn tiếp nhận</th>
+                                            <th>Giao thành công</th>
+                                            <th>Tỷ lệ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:if="${slaReport == null or #lists.isEmpty(slaReport.topPostOffices)}">
+                                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Không có dữ liệu bưu cục.</td>
+                                        </tr>
+                                        <tr th:each="bc : ${slaReport.topPostOffices}">
+                                            <td><strong style="color: var(--brand-blue);" th:text="${bc.maKho}">KHO01</strong></td>
+                                            <td th:text="${bc.tenKho}">Bưu cục Thủ Đức</td>
+                                            <td th:text="${bc.soDonTiepNhan}">0</td>
+                                            <td th:text="${bc.soDonGiaoThanhCong}">0</td>
+                                            <td>
+                                                <span class="badge badge-success" th:text="${bc.tyLeThanhCong != null ? bc.tyLeThanhCong + '%' : '100%'}">100%</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TỔNG KẾT TÀI CHÍNH BÁO CÁO -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Tóm tắt các chỉ số vận hành cốt lõi</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-3">
+                            <div style="padding: 16px; background: var(--bg-alt); border-radius: var(--radius-md);">
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Đơn hoàn thành (TT06):</div>
+                                <div style="font-size: 24px; font-weight: 700; color: var(--success);" th:text="${overview != null ? overview.soDonHoanThanh : 0}">0</div>
+                            </div>
+                            <div style="padding: 16px; background: var(--bg-alt); border-radius: var(--radius-md);">
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Đơn hủy hoặc trả hàng (TT07/TT08):</div>
+                                <div style="font-size: 24px; font-weight: 700; color: var(--brand-red);" th:text="${overview != null ? overview.soDonHuyTra : 0}">0</div>
+                            </div>
+                            <div style="padding: 16px; background: var(--bg-alt); border-radius: var(--radius-md);">
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Kiện hàng đang lưu kho:</div>
+                                <div style="font-size: 24px; font-weight: 700; color: var(--brand-blue);" th:text="${tongKienLuuKho != null ? tongKienLuuKho : 0}">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bưu cục Tiếp nhận - UTE Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR BƯU CỤC -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/post-office/dashboard}" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(34, 197, 94, 0.2); color: #4ADE80;">NV Bưu cục</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ bưu cục</div>
+                <a th:href="@{/post-office/dashboard}" class="nav-item active">
+                    <span>Bưu cục tiếp nhận</span>
+                </a>
+                <a th:href="@{/post-office/packages}" class="nav-item">
+                    <span>Quản lý kiện hàng</span>
+                </a>
+                <a th:href="@{/post-office/update-status}" class="nav-item">
+                    <span>Cập nhật trạng thái</span>
+                </a>
+
+                <div class="nav-section-title">Phân hệ liên kết</div>
+                <a th:href="@{/customer/create-order}" class="nav-item">
+                    <span>Khách tạo đơn</span>
+                </a>
+                <a th:href="@{/admin/payments}" class="nav-item">
+                    <span>Thanh toán & COD</span>
+                </a>
+                <a th:href="@{/admin/reports}" class="nav-item">
+                    <span>Báo cáo thống kê</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #16A34A;">BC</div>
+                <div class="user-info">
+                    <div class="user-name">Phạm Hoàng Nam</div>
+                    <div class="user-sub">Bưu cục Thủ Đức (NV001)</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a th:href="@{/post-office/dashboard}">Bưu cục</a> <span>/</span> 
+                    <span th:text="${currentKho != null ? currentKho.tenKho : 'Kho Thủ Đức'}">Bưu cục Thủ Đức</span> <span>/</span> 
+                    <span>Bảng điều khiển & Tiếp nhận</span>
+                </div>
+                <div class="header-actions">
+                    <form th:action="@{/post-office/dashboard}" method="get" style="display: flex; gap: 8px; align-items: center;">
+                        <label style="font-size: 13px; color: var(--text-secondary); white-space: nowrap;">Chọn bưu cục:</label>
+                        <select class="form-select form-select-sm" name="maKho" onchange="this.form.submit()" style="min-width: 180px;">
+                            <option th:each="kho : ${danhSachKho}" 
+                                    th:value="${kho.maKho}" 
+                                    th:text="${kho.maKho + ' - ' + kho.tenKho}"
+                                    th:selected="${kho.maKho == selectedMaKho}">KHO01 - Bưu cục Thủ Đức</option>
+                        </select>
+                    </form>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Bảng điều khiển Bưu cục và Tiếp nhận đơn</h1>
+                        <p class="page-subtitle">Quản lý luồng hàng hóa tiếp nhận, cân đo lập kiện và cập nhật thanh toán cước trực tiếp vào cơ sở dữ liệu</p>
+                    </div>
+                </div>
+
+                <!-- Thông báo thao tác -->
+                <div th:if="${receivedMaDh}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--success); background-color: var(--success-bg);">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <h4 style="color: var(--success); margin-bottom: 4px;">Tiếp nhận đơn hàng thành công</h4>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">
+                            Đơn hàng <strong th:text="${receivedMaDh}">DH000001</strong> đã chuyển sang trạng thái Đã tiếp nhận (TT02) và lập kiện hàng lưu kho thành công trong cơ sở dữ liệu.
+                        </p>
+                    </div>
+                </div>
+
+                <div th:if="${errorMessage}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--brand-red); background-color: var(--brand-red-light);">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <h4 style="color: var(--brand-red); margin-bottom: 4px;">Có lỗi xảy ra</h4>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px;" th:text="${errorMessage}">Chi tiết lỗi</p>
+                    </div>
+                </div>
+
+                <!-- 4 STAT CARDS DỮ LIỆU THỰC TẾ (CHỈ DÙNG CHỮ) -->
+                <div class="grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đơn chờ tiếp nhận</span>
+                            <span class="stat-value" style="color: var(--warning);" th:text="${countPending}">0</span>
+                            <span class="stat-change" style="color: var(--warning);">Trạng thái TT01</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đã tiếp nhận</span>
+                            <span class="stat-value" style="color: var(--success);" th:text="${countReceived}">0</span>
+                            <span class="stat-change" style="color: var(--success);">Đã lập kiện TT02</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đang luân chuyển</span>
+                            <span class="stat-value" style="color: var(--brand-blue);" th:text="${countInTransit}">0</span>
+                            <span class="stat-change">TT03, TT04, TT05</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Giao thành công</span>
+                            <span class="stat-value" style="color: var(--brand-blue-active);" th:text="${countCompleted}">0</span>
+                            <span class="stat-change">Hoàn tất TT06</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DANH SÁCH ĐƠN HÀNG CHỜ TIẾP NHẬN TẠI BƯU CỤC (UC08) -->
+                <div class="card" style="margin-bottom: 28px;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 class="card-title">Đơn hàng chờ tiếp nhận tại bưu cục (Trạng thái TT01)</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); margin: 2px 0 0 0;">
+                                Bưu cục hiện tại: <strong th:text="${currentKho != null ? currentKho.tenKho : selectedMaKho}">Bưu cục Thủ Đức</strong>
+                            </p>
+                        </div>
+                        <span class="badge badge-yellow" th:text="${#lists.size(pendingOrders) + ' đơn chờ xử lý'}">0 đơn chờ xử lý</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Người gửi</th>
+                                    <th>Người nhận</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Địa chỉ lấy hàng</th>
+                                    <th>Cước phí</th>
+                                    <th>Tiền COD</th>
+                                    <th>Thanh toán cước</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(pendingOrders)}">
+                                    <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">Hiện không có đơn hàng nào chờ tiếp nhận tại bưu cục này.</td>
+                                </tr>
+                                <tr th:each="order : ${pendingOrders}">
+                                    <td><strong style="color: var(--brand-blue);" th:text="${order.maDh}">DH000001</strong></td>
+                                    <td th:text="${order.maKhGui}">KH001</td>
+                                    <td th:text="${order.tenNguoiNhan}">Trần Thị Bích</td>
+                                    <td th:text="${order.sdtNhan}">0901000002</td>
+                                    <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" th:text="${order.diaChiLay}">12 Võ Văn Ngân, Thủ Đức</td>
+                                    <td><strong th:text="${order.phiVanChuyen != null ? #numbers.formatDecimal(order.phiVanChuyen, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</strong></td>
+                                    <td th:text="${order.cod != null ? #numbers.formatDecimal(order.cod, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">150,000 đ</td>
+                                    <td>
+                                        <span class="badge" 
+                                              th:classappend="${order.phiDaThanhToan ? 'badge-success' : 'badge-yellow'}"
+                                              th:text="${order.tinhTrangThanhToan}">Đã thanh toán</span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary btn-sm" 
+                                                th:attr="data-madh=${order.maDh},data-phi=${order.phiVanChuyen != null ? order.phiVanChuyen : 0}"
+                                                onclick="moHopThoaiTiepNhan(this.getAttribute('data-madh'), this.getAttribute('data-phi'))">
+                                            Tiếp nhận đơn
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+            </div>
+        </main>
+    </div>
+
+    <!-- HỘP THOẠI TIẾP NHẬN ĐƠN VÀ LẬP KIỆN HÀNG (UC08) -->
+    <div class="modal-backdrop" id="receiveModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-dialog" style="background: white; border-radius: var(--radius-lg); width: 100%; max-width: 540px; box-shadow: var(--shadow-xl); overflow: hidden;">
+            <div class="modal-header" style="padding: 16px 20px; background: var(--bg-alt); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="modal-title" style="margin: 0; font-size: 16px;">Tiếp nhận đơn hàng và Lập kiện hàng</h3>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="dongHopThoai()">Đóng</button>
+            </div>
+            <form th:action="@{/post-office/receive-order}" method="post">
+                <div class="modal-body" style="padding: 20px;">
+                    <input type="hidden" name="maKho" th:value="${selectedMaKho}">
+                    <div class="form-group">
+                        <label class="form-label">Mã đơn hàng tiếp nhận <span class="required">*</span></label>
+                        <input type="text" class="form-control" name="maDh" id="modalMaDh" readonly required>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Khối lượng cân đo (kg) <span class="required">*</span></label>
+                            <input type="number" step="0.1" min="0.1" class="form-control" name="khoiLuong" value="1.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Loại hàng <span class="required">*</span></label>
+                            <select class="form-select" name="loaiHang">
+                                <option value="Hàng tiêu chuẩn">Hàng tiêu chuẩn</option>
+                                <option value="Hàng điện tử">Hàng điện tử</option>
+                                <option value="Thời trang">Thời trang</option>
+                                <option value="Tài liệu">Tài liệu</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kích thước đo được (Dài x Rộng x Cao cm)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" class="form-control" name="dai" value="20" placeholder="Dài">
+                            <input type="number" class="form-control" name="rong" value="15" placeholder="Rộng">
+                            <input type="number" class="form-control" name="cao" value="10" placeholder="Cao">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Ghi chú xác thực kiện</label>
+                        <input type="text" class="form-control" name="ghiChu" value="Bưu cục đã kiểm đếm và dán mã kiện hàng">
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding: 14px 20px; background: var(--bg-alt); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="dongHopThoai()">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary">Xác nhận tiếp nhận</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function moHopThoaiTiepNhan(maDh, phi) {
+            document.getElementById('modalMaDh').value = maDh;
+            var modal = document.getElementById('receiveModal');
+            modal.style.display = 'flex';
+            modal.style.opacity = '1';
+            modal.style.visibility = 'visible';
+            modal.classList.add('show');
+        }
+        function dongHopThoai() {
+            var modal = document.getElementById('receiveModal');
+            modal.classList.remove('show');
+            modal.style.opacity = '0';
+            modal.style.visibility = 'hidden';
+            modal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

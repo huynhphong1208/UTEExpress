@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cập nhật trạng thái - UTE Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR BƯU CỤC -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/post-office/dashboard}" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag" style="background: rgba(34, 197, 94, 0.2); color: #4ADE80;">NV Bưu cục</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ bưu cục</div>
+                <a th:href="@{/post-office/dashboard}" class="nav-item">
+                    <span>Bưu cục tiếp nhận</span>
+                </a>
+                <a th:href="@{/post-office/packages}" class="nav-item">
+                    <span>Quản lý kiện hàng</span>
+                </a>
+                <a th:href="@{/post-office/update-status}" class="nav-item active">
+                    <span>Cập nhật trạng thái</span>
+                </a>
+
+                <div class="nav-section-title">Phân hệ liên kết</div>
+                <a th:href="@{/customer/create-order}" class="nav-item">
+                    <span>Khách tạo đơn</span>
+                </a>
+                <a th:href="@{/admin/payments}" class="nav-item">
+                    <span>Thanh toán & COD</span>
+                </a>
+                <a th:href="@{/admin/reports}" class="nav-item">
+                    <span>Báo cáo thống kê</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar" style="background-color: #16A34A;">BC</div>
+                <div class="user-info">
+                    <div class="user-name">Phạm Hoàng Nam</div>
+                    <div class="user-sub">Bưu cục Thủ Đức (NV001)</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a th:href="@{/post-office/dashboard}">Bưu cục</a> <span>/</span> 
+                    <span>Cập nhật trạng thái vận đơn (UC10)</span>
+                </div>
+                <div class="header-actions">
+                    <a th:href="@{/post-office/update-status}" class="btn btn-ghost btn-sm">Làm mới dữ liệu</a>
+                </div>
+            </header>
+
+            <div class="page-container" style="max-width: 980px;">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Cập nhật trạng thái vận đơn & kiện hàng (UC10)</h1>
+                        <p class="page-subtitle">Thực hiện cập nhật tuần tự theo đúng quy trình máy trạng thái và lưu lịch sử vào cơ sở dữ liệu</p>
+                    </div>
+                </div>
+
+                <!-- Thông báo cập nhật thành công -->
+                <div th:if="${updatedMaDh}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--success); background-color: var(--success-bg);">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <h4 style="color: var(--success); margin-bottom: 4px;">Cập nhật trạng thái thành công</h4>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">
+                            Đơn hàng <strong th:text="${updatedMaDh}">DH000001</strong> đã được cập nhật trạng thái mới và ghi nhận bản ghi lịch sử vào cơ sở dữ liệu.
+                        </p>
+                    </div>
+                </div>
+
+                <div th:if="${errorMessage}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--brand-red); background-color: var(--brand-red-light);">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <h4 style="color: var(--brand-red); margin-bottom: 4px;">Không thể cập nhật trạng thái</h4>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px;" th:text="${errorMessage}">Chi tiết lỗi vi phạm quy trình chuyển trạng thái.</p>
+                    </div>
+                </div>
+
+                <div class="grid-12">
+                    <!-- Cột trái: Form cập nhật -->
+                    <div class="col-7">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Biểu mẫu chuyển đổi trạng thái</h3>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{/post-office/update-status}" method="post">
+                                    <div class="form-group">
+                                        <label class="form-label">Chọn mã đơn hàng cần cập nhật <span class="required">*</span></label>
+                                        <select class="form-select" name="maDh" id="selectDonHang" onchange="capNhatThongTinDon()" required>
+                                            <option th:each="dh : ${danhSachDonHang}" 
+                                                    th:value="${dh.maDh}" 
+                                                    th:data-trangthai="${dh.trangThai != null ? dh.trangThai.tenTrangThai : 'Mới tạo'}"
+                                                    th:data-matrangthai="${dh.trangThai != null ? dh.trangThai.maTrangThai : 'TT01'}"
+                                                    th:text="${dh.maDh + ' - [' + (dh.trangThai != null ? dh.trangThai.tenTrangThai : 'Mới tạo') + '] - Người nhận: ' + dh.tenNguoiNhan}">
+                                                DH000001 - [Mới tạo] - Trần Thị Bích
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-alt); border-radius: var(--radius-md); margin-bottom: 16px;">
+                                        <div>
+                                            <div style="font-size: 12px; color: var(--text-muted);">Trạng thái hiện tại:</div>
+                                            <div style="margin-top: 4px;">
+                                                <span class="badge badge-primary" id="badgeTrangThaiHienTai">Mới tạo</span>
+                                            </div>
+                                        </div>
+                                        <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary);">sang</div>
+                                        <div>
+                                            <div style="font-size: 12px; color: var(--text-muted);">Trạng thái đích:</div>
+                                            <div style="margin-top: 4px;">
+                                                <span class="badge badge-yellow" id="badgeTrangThaiMoi">Chọn bên dưới</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Trạng thái mới cần chuyển đến <span class="required">*</span></label>
+                                        <select class="form-select" name="maTrangThaiMoi" id="selectTrangThaiMoi" onchange="capNhatBadgeMoi()" required>
+                                            <option th:each="tt : ${danhSachTrangThai}" 
+                                                    th:value="${tt.maTrangThai}" 
+                                                    th:text="${tt.maTrangThai + ' - ' + tt.tenTrangThai}">
+                                                TT02 - Đã tiếp nhận
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Ghi chú sự kiện lịch sử</label>
+                                        <textarea class="form-control" name="ghiChu" rows="3" placeholder="Nhập ghi chú cập nhật hành trình..."></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-block btn-lg">
+                                        Xác nhận chuyển trạng thái
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải: Quy định máy trạng thái -->
+                    <div class="col-5">
+                        <div class="card">
+                            <div class="card-header" style="background-color: var(--brand-blue-light);">
+                                <h3 class="card-title" style="color: var(--brand-blue);">Quy định luân chuyển trạng thái</h3>
+                            </div>
+                            <div class="card-body" style="font-size: 13.5px; line-height: 1.6;">
+                                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                                    Hệ thống áp dụng quy chuẩn nghiệp vụ chặt chẽ, các bước chuyển hợp lệ bao gồm:
+                                </p>
+                                <ul style="padding-left: 18px; margin-bottom: 16px; color: var(--text-primary);">
+                                    <li style="margin-bottom: 8px;"><strong>TT01 (Mới tạo):</strong> sang TT02 hoặc TT07</li>
+                                    <li style="margin-bottom: 8px;"><strong>TT02 (Đã tiếp nhận):</strong> sang TT03, TT05 hoặc TT07</li>
+                                    <li style="margin-bottom: 8px;"><strong>TT03 (Đang vận chuyển):</strong> sang TT04 hoặc TT07</li>
+                                    <li style="margin-bottom: 8px;"><strong>TT04 (Đã đến kho):</strong> sang TT03, TT05 hoặc TT07</li>
+                                    <li style="margin-bottom: 8px;"><strong>TT05 (Đang giao hàng):</strong> sang TT06, TT08 hoặc TT07</li>
+                                    <li style="margin-bottom: 8px;"><strong>TT08 (Giao thất bại):</strong> sang TT05 (giao lại) hoặc TT07 (trả hàng)</li>
+                                </ul>
+                                <div style="padding: 12px; background: var(--bg-alt); border-radius: var(--radius-sm); font-size: 12.5px; color: var(--text-muted);">
+                                    Lưu ý: Mọi thao tác cập nhật đều tự động lưu lịch sử với thời gian chính xác và tài khoản thực hiện.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function capNhatThongTinDon() {
+            var select = document.getElementById('selectDonHang');
+            var selectedOption = select.options[select.selectedIndex];
+            if (selectedOption) {
+                var tenTT = selectedOption.getAttribute('data-trangthai');
+                document.getElementById('badgeTrangThaiHienTai').innerText = tenTT || 'Chưa rõ';
+            }
+        }
+        function capNhatBadgeMoi() {
+            var select = document.getElementById('selectTrangThaiMoi');
+            var selectedOption = select.options[select.selectedIndex];
+            if (selectedOption) {
+                document.getElementById('badgeTrangThaiMoi').innerText = selectedOption.text.split(' - ')[1] || selectedOption.text;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            capNhatThongTinDon();
+            capNhatBadgeMoi();
+        });
+    </script>
+</body>
+</html>

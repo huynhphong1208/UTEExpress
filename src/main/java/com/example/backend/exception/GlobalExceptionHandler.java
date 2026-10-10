@@ -39,11 +39,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
                 .success(false)
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Validation Failed")
                 .message("Dữ liệu đầu vào không hợp lệ")
                 .data(errors)
+                .timestamp(java.time.LocalDateTime.now())
                 .build();
 
         return ResponseEntity.badRequest().body(response);
+    }
+
+    // --- EntityNotFoundException (404) ---
+    @ExceptionHandler(jakarta.persistence.EntityNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEntityNotFoundException(jakarta.persistence.EntityNotFoundException ex) {
+        log.warn("EntityNotFoundException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage()));
     }
 
     // --- BusinessException ---
@@ -51,7 +62,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException ex) {
         log.warn("BusinessException: {}", ex.getMessage());
         return ResponseEntity.status(ex.getStatusCode())
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error(ex.getStatusCode(), "Business Error", ex.getMessage()));
     }
 
     // --- Spring Security Authentication ---
@@ -68,20 +79,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             message = "Xác thực thất bại: " + ex.getMessage();
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error(message));
+                .body(ApiResponse.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", message));
     }
 
     // --- AccessDeniedException (403) ---
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error("Bạn không có quyền thực hiện thao tác này"));
+                .body(ApiResponse.error(HttpStatus.FORBIDDEN.value(), "Forbidden", "Bạn không có quyền thực hiện thao tác này"));
     }
 
     // --- IllegalArgumentException ---
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage()));
     }
 
     // --- Tất cả exception còn lại ---
@@ -89,6 +101,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex) {
         log.error("Lỗi hệ thống không xác định: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Lỗi hệ thống. Vui lòng thử lại sau."));
+                .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", "Lỗi hệ thống: " + ex.getMessage()));
     }
 }

@@ -44,6 +44,9 @@ public class TaoDonHangRequest {
     @Schema(description = "Tiền COD (0 nếu không có)", example = "150000")
     private BigDecimal cod = BigDecimal.ZERO;
 
+    @Schema(description = "Phương thức thanh toán cước phí: TIEN_MAT hoặc CHUYEN_KHOAN", example = "CHUYEN_KHOAN")
+    private String phuongThucThanhToan = "TIEN_MAT";
+
     @NotNull(message = "Danh sách kiện hàng không được để trống")
     @Size(min = 1, message = "Đơn hàng phải có ít nhất một kiện hàng")
     @Valid

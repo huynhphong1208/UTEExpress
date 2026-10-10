@@ -71,6 +71,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tra-cuu/**").permitAll()
 
+                // Dispatcher Types cho Thymeleaf Views
+                .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.FORWARD, jakarta.servlet.DispatcherType.ERROR).permitAll()
+
+                // Static resources & UI Views
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
+                .requestMatchers("/customer/**", "/post-office/**", "/admin/**", "/", "/index").permitAll()
+
                 // Swagger UI
                 .requestMatchers(
                     "/swagger-ui/**",
@@ -86,6 +93,20 @@ public class SecurityConfig {
 
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
+            )
+
+            // Xử lý phản hồi JSON rõ ràng khi chưa xác thực hoặc không có quyền (thay vì trả về trống)
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("{\"success\":false,\"message\":\"Chưa đăng nhập hoặc Token JWT không hợp lệ/hết hạn. Vui lòng đăng nhập (với tài khoản có vai trò phù hợp như KHACH_HANG) và gắn Token vào nút Authorize!\",\"status\":401}");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+                    response.getWriter().write("{\"success\":false,\"message\":\"Tài khoản hiện tại không có quyền truy cập chức năng này (sai vai trò/role).\",\"status\":403}");
+                })
             )
 
             // Đăng ký JWT Filter trước UsernamePasswordAuthenticationFilter

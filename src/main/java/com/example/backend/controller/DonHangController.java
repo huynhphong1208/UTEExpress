@@ -2,15 +2,13 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.request.TaoDonHangRequest;
 import com.example.backend.dto.response.ApiResponse;
-import com.example.backend.dto.response.DonHangChiTietResponse;
+import com.example.backend.dto.response.TaoDonHangResponse;
 import com.example.backend.service.DonHangService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -30,18 +28,18 @@ public class DonHangController {
 
     @Operation(
         summary = "Tạo đơn hàng mới (UC04)",
-        description = "Lấy mã khách hàng từ JWT → Gọi stored procedure sp_tao_don_hang → Trả về mã đơn hàng"
+        description = "Lấy mã khách hàng từ JWT → Gọi stored procedure sp_tao_don_hang → Tự động tạo giao dịch thanh toán cước phí theo phương thức đã chọn (Tiền mặt hoặc Chuyển khoản)"
     )
     @PostMapping
     @PreAuthorize("hasAuthority('KHACH_HANG')")
-    public ResponseEntity<ApiResponse<String>> taoDonHang(
+    public ResponseEntity<ApiResponse<TaoDonHangResponse>> taoDonHang(
             @Valid @RequestBody TaoDonHangRequest request,
             Authentication authentication) {
 
         String maNd = authentication.getName(); // username = ten_dang_nhap = SĐT
-        String maDh = donHangService.taoDonHang(maNd, request);
+        TaoDonHangResponse response = donHangService.taoDonHang(maNd, request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Tạo đơn hàng thành công", maDh));
+                .body(ApiResponse.success("Tạo đơn hàng thành công", response));
     }
 }
