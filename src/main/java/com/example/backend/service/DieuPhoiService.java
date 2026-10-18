@@ -14,7 +14,6 @@ import java.sql.Timestamp;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class DieuPhoiService {
 
     private final TuyenVanChuyenRepository tuyenVanChuyenRepository;
@@ -25,6 +24,24 @@ public class DieuPhoiService {
     private final PhuongTienRepository phuongTienRepository;
     private final KienHangRepository kienHangRepository;
     private final JdbcTemplate jdbcTemplate;
+
+    public DieuPhoiService(TuyenVanChuyenRepository tuyenVanChuyenRepository,
+                           ChuyenGiaoRepository chuyenGiaoRepository,
+                           ChiTietChuyenGiaoRepository chiTietChuyenGiaoRepository,
+                           KhoRepository khoRepository,
+                           TaiXeRepository taiXeRepository,
+                           PhuongTienRepository phuongTienRepository,
+                           KienHangRepository kienHangRepository,
+                           JdbcTemplate jdbcTemplate) {
+        this.tuyenVanChuyenRepository = tuyenVanChuyenRepository;
+        this.chuyenGiaoRepository = chuyenGiaoRepository;
+        this.chiTietChuyenGiaoRepository = chiTietChuyenGiaoRepository;
+        this.khoRepository = khoRepository;
+        this.taiXeRepository = taiXeRepository;
+        this.phuongTienRepository = phuongTienRepository;
+        this.kienHangRepository = kienHangRepository;
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     // ========================== TUYẾN VẬN CHUYỂN (CRUD) ==========================
 

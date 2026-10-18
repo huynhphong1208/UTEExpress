@@ -30,18 +30,63 @@ public class TaiXeService {
 
     // ========================== TRA CỨU ==========================
 
+    public String resolveMaTx(String maTx) {
+        if (maTx == null || maTx.isBlank()) {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                String currentUsername = auth.getName();
+                try {
+                    List<String> list = jdbcTemplate.query(
+                        "SELECT tx.ma_tx FROM tai_xe tx JOIN nguoi_dung nd ON tx.ma_nd = nd.ma_nd WHERE nd.ten_dang_nhap = ?",
+                        (rs, rowNum) -> rs.getString("ma_tx"),
+                        currentUsername
+                    );
+                    if (!list.isEmpty()) {
+                        return list.get(0);
+                    }
+                } catch (Exception ignored) {}
+            }
+            return "";
+        }
+        String clean = maTx.trim();
+        // 1. Kiểm tra trực tiếp theo mã TX trong database (chính xác hoặc chữ hoa)
+        if (taiXeRepository.existsById(clean)) {
+            return clean;
+        }
+        if (taiXeRepository.existsById(clean.toUpperCase())) {
+            return clean.toUpperCase();
+        }
+        // 2. Tìm theo tên đăng nhập (nguoi_dung.ten_dang_nhap)
+        try {
+            List<String> list = jdbcTemplate.query(
+                "SELECT tx.ma_tx FROM tai_xe tx JOIN nguoi_dung nd ON tx.ma_nd = nd.ma_nd WHERE nd.ten_dang_nhap = ?",
+                (rs, rowNum) -> rs.getString("ma_tx"),
+                clean
+            );
+            if (!list.isEmpty()) {
+                return list.get(0);
+            }
+        } catch (Exception ignored) {}
+        // 3. Tìm theo mã người dùng (nguoi_dung.ma_nd)
+        var byMaNd = taiXeRepository.findByMaNd(clean);
+        if (byMaNd.isPresent()) {
+            return byMaNd.get().getMaTx();
+        }
+        return clean.toUpperCase();
+    }
+
     /**
      * Lấy danh sách chuyến giao của tài xế.
      */
     public List<ChuyenGiao> getChuyenGiaoByTaiXe(String maTx) {
-        return chuyenGiaoRepository.findByMaTx(maTx);
+        return chuyenGiaoRepository.findByMaTx(resolveMaTx(maTx));
     }
 
     /**
      * Lấy danh sách chuyến giao theo tài xế và trạng thái.
      */
     public List<ChuyenGiao> getChuyenGiaoByTaiXeAndTrangThai(String maTx, String trangThai) {
-        return chuyenGiaoRepository.findByMaTxAndTrangThai(maTx, trangThai);
+        return chuyenGiaoRepository.findByMaTxAndTrangThai(resolveMaTx(maTx), trangThai);
     }
 
     /**
@@ -158,6 +203,7 @@ public class TaiXeService {
      * Lấy toàn bộ danh sách chuyến giao được phân công cho tài xế (thẻ 1 & thẻ 2 trên Dashboard).
      */
     public List<ChuyenGiaoChiTietDTO> getChuyenPhanCongByTaiXe(String maTx) {
+        maTx = resolveMaTx(maTx);
         String sql = """
             SELECT c.ma_chuyen, c.loai_chuyen, c.trang_thai, c.ma_tuyen,
                    COALESCE(t.ma_kho_di, c.ma_kho_giao) AS ma_kho_xuat_phat,
@@ -220,6 +266,7 @@ public class TaiXeService {
      * Lấy danh sách kiện hàng cần giao thuộc trách nhiệm của tài xế (thẻ 3).
      */
     public List<KienTrongChuyenDTO> getKienCanGiaoByTaiXe(String maTx) {
+        maTx = resolveMaTx(maTx);
         String sql = """
             SELECT x.ma_chuyen, c.ma_tx, x.ma_kien, k.ma_dh,
                    COALESCE(d.ten_nguoi_nhan, 'Khách hàng') AS ten_nguoi_nhan,
@@ -265,6 +312,7 @@ public class TaiXeService {
      * Lấy danh sách kiện hàng đã giao thành công bởi tài xế (thẻ 4).
      */
     public List<KienTrongChuyenDTO> getKienDaGiaoByTaiXe(String maTx) {
+        maTx = resolveMaTx(maTx);
         String sql = """
             SELECT x.ma_chuyen, c.ma_tx, x.ma_kien, k.ma_dh,
                    COALESCE(d.ten_nguoi_nhan, 'Khách hàng') AS ten_nguoi_nhan,
@@ -317,14 +365,19 @@ public class TaiXeService {
      * Thống kê Dashboard Tài xế
      */
     public TaiXeDashboardDTO getDashboardStats(String maTx) {
-        // Nếu không truyền mã TX, lấy TX đầu tiên trong hệ thống
+        maTx = resolveMaTx(maTx);
         if (maTx == null || maTx.isBlank()) {
-            List<TaiXe> allTx = taiXeRepository.findAll();
-            if (!allTx.isEmpty()) {
-                maTx = allTx.get(0).getMaTx();
-            } else {
-                maTx = "TX001";
-            }
+            return TaiXeDashboardDTO.builder()
+                    .maTx("")
+                    .tenTaiXe("Tài xế")
+                    .bienSoXe("---")
+                    .loaiXe("Xe tải")
+                    .chuyenPhanCong(0L)
+                    .chuyenDangThucHien(0L)
+                    .kienCanGiao(0L)
+                    .kienDaGiao(0L)
+                    .chuyenHienTai(null)
+                    .build();
         }
 
         TaiXe tx = taiXeRepository.findById(maTx).orElse(null);
@@ -491,6 +544,7 @@ public class TaiXeService {
      * Lấy danh sách chuyến entity của tài xế có phân trang (Spring Data Pageable).
      */
     public PageResponse<ChuyenGiao> getChuyenGiaoByTaiXePaged(String maTx, String trangThai, int page, int size) {
+        maTx = resolveMaTx(maTx);
         int p = Math.max(0, page - 1);
         int s = (size > 0) ? size : 5;
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(p, s);

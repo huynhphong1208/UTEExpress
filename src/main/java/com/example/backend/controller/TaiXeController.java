@@ -36,7 +36,7 @@ public class TaiXeController {
 
     @GetMapping("/chuyen-giao")
     public ResponseEntity<ApiResponse<?>> getChuyenGiao(
-            @RequestParam String maTx,
+            @RequestParam(required = false) String maTx,
             @RequestParam(required = false) String trangThai,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
@@ -55,7 +55,7 @@ public class TaiXeController {
 
     @GetMapping("/chuyen-phan-cong")
     public ResponseEntity<ApiResponse<?>> getChuyenPhanCong(
-            @RequestParam String maTx,
+            @RequestParam(required = false) String maTx,
             @RequestParam(required = false) String trangThai,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
@@ -69,7 +69,7 @@ public class TaiXeController {
 
     @GetMapping("/kien-can-giao")
     public ResponseEntity<ApiResponse<?>> getKienCanGiao(
-            @RequestParam String maTx,
+            @RequestParam(required = false) String maTx,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
         if (page != null && size != null) {
@@ -82,7 +82,7 @@ public class TaiXeController {
 
     @GetMapping("/kien-da-giao")
     public ResponseEntity<ApiResponse<?>> getKienDaGiao(
-            @RequestParam String maTx,
+            @RequestParam(required = false) String maTx,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
         if (page != null && size != null) {

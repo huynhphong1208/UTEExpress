@@ -64,23 +64,33 @@ function getStatusBadge(status) {
         case 'Giao thành công':
         case 'Đã giao':
         case 'Hoạt động':
+        case 'Đã thanh toán':
         case 'Sẵn sàng':
             return `<span class="badge badge-success"><span class="badge-dot"></span>${status}</span>`;
             
         case 'Đang đi':
         case 'Đang thực hiện':
         case 'Đang vận chuyển':
+        case 'Đang xử lý':
+        case 'Đang chạy':
         case 'Đã quét':
             return `<span class="badge badge-info"><span class="badge-dot"></span>${status}</span>`;
             
         case 'Chưa đi':
         case 'Chưa xuất phát':
         case 'Đã gán':
+        case 'Mới tạo':
+        case 'Đã tiếp nhận':
+        case 'Đến kho':
         case 'Đang giao':
+        case 'Chờ tiếp nhận':
+        case 'Chưa thanh toán':
             return `<span class="badge badge-warning"><span class="badge-dot"></span>${status}</span>`;
             
         case 'Đã hủy':
         case 'Hủy':
+        case 'Trả hàng':
+        case 'Bị khóa':
         case 'Thất bại':
         case 'Bảo trì':
             return `<span class="badge badge-danger"><span class="badge-dot"></span>${status}</span>`;
@@ -252,4 +262,14 @@ class TablePagination {
         });
     }
 }
+
+// Global Logout Helper
+function logout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
+    window.location.href = '/logout';
+}
+window.logout = logout;
+
 

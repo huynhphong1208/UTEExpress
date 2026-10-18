@@ -16,14 +16,14 @@ INSERT INTO tuyen_van_chuyen (ma_tuyen, ma_kho_di, ma_kho_den, khoang_cach, thoi
 ('TU05','KHO04','KHO01',170,4);
 
 INSERT INTO nguoi_dung (ma_nd, ten_dang_nhap, mat_khau, ma_vai_tro) VALUES
-('ND001','admin','$2a$10$PLACEHOLDER_HASH_thay_bang_bcrypt_that_0000000000000','ADMIN'),
-('ND002','nvbc01','$2a$10$PLACEHOLDER_HASH_thay_bang_bcrypt_that_0000000000000','NVBC'),
-('ND003','nvbc02','$2a$10$PLACEHOLDER_HASH_thay_bang_bcrypt_that_0000000000000','NVBC'),
-('ND004','nvdp01','$2a$10$PLACEHOLDER_HASH_thay_bang_bcrypt_that_0000000000000','NVDP'),
-('ND005','tx01','$2a$10$PLACEHOLDER_HASH_thay_bang_bcrypt_that_0000000000000','TAI_XE'),
-('ND006','tx02','$2a$10$PLACEHOLDER_HASH_thay_bang_bcrypt_that_0000000000000','TAI_XE'),
-('ND007','0901000001','$2a$10$PLACEHOLDER_HASH_thay_bang_bcrypt_that_0000000000000','KHACH_HANG'),
-('ND008','0901000002','$2a$10$PLACEHOLDER_HASH_thay_bang_bcrypt_that_0000000000000','KHACH_HANG');
+('ND001','admin','$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi','ADMIN'),
+('ND002','nvbc01','$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi','NVBC'),
+('ND003','nvbc02','$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi','NVBC'),
+('ND004','nvdp01','$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi','NVDP'),
+('ND005','tx01','$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi','TAI_XE'),
+('ND006','tx02','$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi','TAI_XE'),
+('ND007','0901000001','$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi','KHACH_HANG'),
+('ND008','0901000002','$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi','KHACH_HANG');
 
 INSERT INTO khach_hang (ma_kh, ho_ten, sdt, email, dia_chi_mac_dinh, ma_nd) VALUES
 ('KH001','Nguyễn Văn An','0901000001','an@example.com','12 Võ Văn Ngân, Thủ Đức, TP.HCM','ND007'),

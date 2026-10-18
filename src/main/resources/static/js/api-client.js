@@ -15,6 +15,11 @@ const UteApi = (function() {
             'Accept': 'application/json'
         };
 
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+        if (token) {
+            defaultHeaders['Authorization'] = `Bearer ${token}`;
+        }
+
         const config = {
             ...options,
             headers: {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>15 – Dashboard Tài xế - UTE Express</title>
+    <title>15 – Bảng điều khiển - UTE Express</title>
     <link rel="stylesheet" href="../../static/css/design-system.css">
     <link rel="stylesheet" href="../../static/css/components.css">
     <link rel="stylesheet" href="../../static/css/layout.css">
@@ -78,7 +78,7 @@
                 <div class="nav-section-title">Nhiệm vụ vận chuyển</div>
                 <a href="15-dashboard.html" class="nav-item active">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span>Dashboard Tài xế</span>
+                    <span>Bảng điều khiển</span>
                 </a>
                 <a href="16-trip-detail.html" class="nav-item" id="navTripDetail">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -89,16 +89,16 @@
                     <span>Quét kiện & Cập nhật</span>
                 </a>
                 <div class="nav-section-title">Hệ thống</div>
-                <a href="15-dashboard.html" class="nav-item" style="color: #F87171; margin-top: auto;" onclick="showToast('Đăng xuất', 'Đã đăng xuất hệ thống.', 'info')">
+                <a href="/logout" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: auto;">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Đăng xuất</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <div class="user-avatar" style="background-color: #D97706;">TX</div>
+                <div class="user-avatar" id="sidebarDriverAvatar" style="background-color: #D97706;">TX</div>
                 <div class="user-info">
-                    <div class="user-name" id="sidebarDriverName">Huỳnh Văn Tài</div>
-                    <div class="user-sub" id="sidebarDriverSub">TX001</div>
+                    <div class="user-name" id="sidebarDriverName">Tài xế</div>
+                    <div class="user-sub" id="sidebarDriverSub">UTE Express</div>
                 </div>
             </div>
         </aside>
@@ -107,7 +107,7 @@
         <main class="main-wrapper">
             <header class="top-header">
                 <div class="breadcrumbs">
-                    <a href="#">Tài xế</a> <span>/</span> <span>Dashboard</span>
+                    <a href="#">Tài xế</a> <span>/</span> <span>Bảng điều khiển</span>
                 </div>
                 <div class="header-actions">
                     <a href="17-delivery-update.html" class="btn btn-primary btn-sm" id="btnQuickScan">📷 Quét kiện giao hàng</a>
@@ -361,7 +361,15 @@
         });
 
         function getCurrentDriverId() {
-            return localStorage.getItem('ute_current_driver') || 'TX001';
+            const saved = localStorage.getItem('ute_current_driver') || localStorage.getItem('maDoiTuong');
+            if (saved && saved !== 'undefined' && saved !== 'null' && saved.trim() !== '') {
+                return saved.trim();
+            }
+            const username = localStorage.getItem('tenDangNhap');
+            if (username && username !== 'undefined' && username !== 'null' && username.trim() !== '') {
+                return username.trim();
+            }
+            return '';
         }
 
         // 1. TẢI TAB 1: CHUYẾN ĐƯỢC PHÂN CÔNG (SERVER-SIDE)
@@ -474,15 +482,24 @@
 
         async function loadDriverDashboard() {
             const driverId = getCurrentDriverId();
+            const localHoTen = localStorage.getItem('hoTen') || localStorage.getItem('tenHienThi');
+            if (localHoTen) {
+                const nameEl = document.getElementById('sidebarDriverName');
+                if (nameEl) nameEl.innerText = localHoTen;
+            }
+            if (driverId) {
+                const subEl = document.getElementById('sidebarDriverSub');
+                if (subEl) subEl.innerText = driverId;
+            }
 
             try {
                 // 1. Tải thông tin chung dashboard & KPI tổng quan
                 const res = await UteApi.getDriverDashboard(driverId);
                 if (res && res.success && res.data) {
                     const d = res.data;
-                    document.getElementById('sidebarDriverName').innerText = d.tenTaiXe || 'Tài xế';
-                    document.getElementById('sidebarDriverSub').innerText = `${d.maTx} (${d.bienSoXe || 'Xe tải'})`;
-                    document.getElementById('driverWelcomeMsg').innerText = `Xin chào ${d.tenTaiXe}, bạn đang phụ trách phương tiện ${d.bienSoXe || '---'} (${d.loaiXe || 'Xe tải'}).`;
+                    document.getElementById('sidebarDriverName').innerText = d.tenTaiXe || localHoTen || 'Tài xế';
+                    document.getElementById('sidebarDriverSub').innerText = `${d.maTx || driverId} (${d.bienSoXe || 'Xe tải'})`;
+                    document.getElementById('driverWelcomeMsg').innerText = `Xin chào ${d.tenTaiXe || localHoTen || 'Tài xế'}, bạn đang phụ trách phương tiện ${d.bienSoXe || '---'} (${d.loaiXe || 'Xe tải'}).`;
 
                     document.getElementById('statChuyenPhanCong').innerText = d.chuyenPhanCong ?? 0;
                     document.getElementById('statChuyenDangThucHien').innerText = d.chuyenDangThucHien ?? 0;

@@ -22,7 +22,7 @@
                 <div class="nav-section-title">Nhiệm vụ vận chuyển</div>
                 <a href="15-dashboard.html" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span>Dashboard Tài xế</span>
+                    <span>Bảng điều khiển</span>
                 </a>
                 <a href="16-trip-detail.html" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -33,16 +33,16 @@
                     <span>Quét kiện & Cập nhật</span>
                 </a>
                 <div class="nav-section-title">Hệ thống</div>
-                <a href="15-dashboard.html" class="nav-item" style="color: #F87171; margin-top: auto;">
+                <a href="/logout" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: auto;">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Đăng xuất</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <div class="user-avatar" style="background-color: #D97706;">TX</div>
+                <div class="user-avatar" id="sidebarDriverAvatar" style="background-color: #D97706;">TX</div>
                 <div class="user-info">
-                    <div class="user-name">Huỳnh Văn Tài</div>
-                    <div class="user-sub">TX001</div>
+                    <div class="user-name" id="sidebarDriverName">Tài xế</div>
+                    <div class="user-sub" id="sidebarDriverSub">UTE Express</div>
                 </div>
             </div>
         </aside>
@@ -191,11 +191,23 @@
     <script src="../../static/js/components.js"></script>
     <script>
         function getCurrentDriverId() {
-            return localStorage.getItem('ute_current_driver') || 'TX001';
+            const saved = localStorage.getItem('ute_current_driver') || localStorage.getItem('maDoiTuong');
+            if (saved && saved !== 'undefined' && saved !== 'null' && saved.trim() !== '') {
+                return saved.trim();
+            }
+            const username = localStorage.getItem('tenDangNhap');
+            if (username && username !== 'undefined' && username !== 'null' && username.trim() !== '') {
+                return username.trim();
+            }
+            return '';
         }
 
         function getDriverUserId(driverId) {
-            return driverId === 'TX002' ? 'ND006' : 'ND005';
+            const savedMaNd = localStorage.getItem('maNd');
+            if (savedMaNd && savedMaNd !== 'undefined' && savedMaNd !== 'null' && savedMaNd.trim() !== '') {
+                return savedMaNd.trim();
+            }
+            return '';
         }
 
         let currentTripId = '';
@@ -204,6 +216,15 @@
         let currentSelectedPkg = null;
 
         async function initPage() {
+            const driverId = getCurrentDriverId();
+            const hoTen = localStorage.getItem('hoTen') || localStorage.getItem('tenHienThi');
+            if (hoTen) {
+                const nameEl = document.getElementById('sidebarDriverName');
+                if (nameEl) nameEl.innerText = hoTen;
+            }
+            const subEl = document.getElementById('sidebarDriverSub');
+            if (subEl) subEl.innerText = driverId;
+
             const urlParams = new URLSearchParams(window.location.search);
             const paramTripId = urlParams.get('id');
             const paramPkgId = urlParams.get('pkg');

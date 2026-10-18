@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface TaiXeRepository extends JpaRepository<TaiXe, String> {
     Optional<TaiXe> findByMaNd(String maNd);
+    boolean existsBySdt(String sdt);
 }
