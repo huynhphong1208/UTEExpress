@@ -168,14 +168,16 @@
                                     <td th:text="${order.cod != null ? #numbers.formatDecimal(order.cod, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">150,000 đ</td>
                                     <td>
                                         <span class="badge" 
-                                              th:classappend="${order.phiDaThanhToan ? 'badge-success' : 'badge-yellow'}"
-                                              th:text="${order.tinhTrangThanhToan}">Đã thanh toán</span>
+                                              th:classappend="${order.phiDaThanhToan ? 'badge-success' : (order.phuongThucThanhToan == 'Chuyển khoản' or order.tinhTrangThanhToan == 'Chưa thanh toán' ? 'badge-danger' : 'badge-yellow')}"
+                                              th:text="${order.phiDaThanhToan ? order.tinhTrangThanhToan : (order.phuongThucThanhToan == 'Chuyển khoản' or order.tinhTrangThanhToan == 'Chưa thanh toán' ? 'Chưa thanh toán (CK)' : order.tinhTrangThanhToan)}">Đã thanh toán</span>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-primary btn-sm" 
-                                                th:attr="data-madh=${order.maDh},data-phi=${order.phiVanChuyen != null ? order.phiVanChuyen : 0},data-khoiluong=${order.khoiLuong},data-dai=${order.dai},data-rong=${order.rong},data-cao=${order.cao},data-loaihang=${order.loaiHang},data-phidathanhtoan=${order.phiDaThanhToan},data-tinhtrang=${order.tinhTrangThanhToan}"
-                                                onclick="moHopThoaiTiepNhan(this.getAttribute('data-madh'), this.getAttribute('data-phi'), this.getAttribute('data-khoiluong'), this.getAttribute('data-dai'), this.getAttribute('data-rong'), this.getAttribute('data-cao'), this.getAttribute('data-loaihang'), this.getAttribute('data-phidathanhtoan'), this.getAttribute('data-tinhtrang'))">
-                                            Tiếp nhận đơn
+                                        <button type="button" class="btn btn-sm" 
+                                                th:classappend="${!order.phiDaThanhToan and (order.phuongThucThanhToan == 'Chuyển khoản' or order.tinhTrangThanhToan == 'Chưa thanh toán')} ? 'btn-outline-danger' : 'btn-primary'"
+                                                th:attr="data-madh=${order.maDh},data-phi=${order.phiVanChuyen != null ? order.phiVanChuyen : 0},data-khoiluong=${order.khoiLuong},data-dai=${order.dai},data-rong=${order.rong},data-cao=${order.cao},data-loaihang=${order.loaiHang},data-phidathanhtoan=${order.phiDaThanhToan},data-tinhtrang=${order.tinhTrangThanhToan},data-phuongthuc=${order.phuongThucThanhToan}"
+                                                onclick="moHopThoaiTiepNhan(this.getAttribute('data-madh'), this.getAttribute('data-phi'), this.getAttribute('data-khoiluong'), this.getAttribute('data-dai'), this.getAttribute('data-rong'), this.getAttribute('data-cao'), this.getAttribute('data-loaihang'), this.getAttribute('data-phidathanhtoan'), this.getAttribute('data-tinhtrang'), this.getAttribute('data-phuongthuc'))">
+                                            <span th:if="${!order.phiDaThanhToan and (order.phuongThucThanhToan == 'Chuyển khoản' or order.tinhTrangThanhToan == 'Chưa thanh toán')}"> Chưa thanh toán CK</span>
+                                            <span th:unless="${!order.phiDaThanhToan and (order.phuongThucThanhToan == 'Chuyển khoản' or order.tinhTrangThanhToan == 'Chưa thanh toán')}">Tiếp nhận đơn</span>
                                         </button>
                                     </td>
                                 </tr>
@@ -242,7 +244,7 @@
                 </div>
                 <div class="modal-footer" style="padding: 14px 20px; background: var(--bg-alt); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" class="btn btn-secondary" onclick="dongHopThoai()">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-primary">Xác nhận tiếp nhận</button>
+                    <button type="submit" id="btnSubmitTiepNhan" class="btn btn-primary">Xác nhận tiếp nhận</button>
                 </div>
             </form>
         </div>
@@ -288,7 +290,7 @@
             totalItems: ssrPendingTotal
         });
 
-        function moHopThoaiTiepNhan(maDh, phi, khoiLuong, dai, rong, cao, loaiHang, phiDaThanhToan, tinhTrang) {
+        function moHopThoaiTiepNhan(maDh, phi, khoiLuong, dai, rong, cao, loaiHang, phiDaThanhToan, tinhTrang, phuongThuc) {
             document.getElementById('modalMaDh').value = maDh;
             document.getElementById('modalKhoiLuong').value = (khoiLuong !== null && khoiLuong !== undefined && khoiLuong !== '') ? parseFloat(khoiLuong) : '1.5';
             document.getElementById('modalDai').value = (dai !== null && dai !== undefined && dai !== '') ? parseFloat(dai) : '20';
@@ -300,13 +302,56 @@
             var phiDisplayEl = document.getElementById('modalPhiDisplay');
             if (phiDisplayEl) phiDisplayEl.innerText = formattedPhi;
             
+            var feeNoticeBox = document.getElementById('modalFeeNotice');
             var noticeEl = document.getElementById('modalPaymentNotice');
-            if (noticeEl) {
-                var isPaid = (phiDaThanhToan === 'true' || phiDaThanhToan === true);
-                if (isPaid) {
-                    noticeEl.innerHTML = '<span style="color: var(--success); font-weight: 600;">✓ Đã thanh toán cước trước qua chuyển khoản</span>';
-                } else {
-                    noticeEl.innerHTML = '<span style="color: #2563eb; font-weight: 600;">ℹ Thanh toán tiền mặt: Tài xế giao nhận sẽ thu ' + formattedPhi + ' trực tiếp khi phát hàng đến tay người nhận</span>';
+            var submitBtn = document.getElementById('btnSubmitTiepNhan');
+            var isPaid = (phiDaThanhToan === 'true' || phiDaThanhToan === true);
+            var isCk = phuongThuc && (phuongThuc.indexOf('Chuyển khoản') !== -1 || phuongThuc.indexOf('CHUYEN') !== -1 || phuongThuc.indexOf('QR') !== -1);
+
+            if (isCk && !isPaid) {
+                if (feeNoticeBox) {
+                    feeNoticeBox.style.borderLeft = '4px solid var(--brand-red, #EF4444)';
+                    feeNoticeBox.style.backgroundColor = 'var(--brand-red-light, #FEE2E2)';
+                }
+                if (noticeEl) {
+                    noticeEl.innerHTML = '<div style="color: #DC2626; font-size: 13px; font-weight: 600; line-height: 1.5; margin-top: 4px;">' +
+                        '⛔ <strong style="text-decoration: underline;">CẢNH BÁO ĐỎ:</strong> Đơn hàng chọn hình thức <strong>Chuyển khoản trực tuyến</strong> nhưng <strong>CHƯA THANH TOÁN</strong> cước phí!<br>' +
+                        '<span style="font-weight: 500; color: #991B1B; font-size: 12px;">Nhân viên bưu cục KHÔNG THỂ tiếp nhận đơn hàng này cho đến khi khách hàng hoàn tất chuyển khoản.</span>' +
+                        '</div>';
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.5';
+                    submitBtn.style.cursor = 'not-allowed';
+                    submitBtn.innerText = '⛔ Chưa thanh toán - Không thể tiếp nhận';
+                }
+            } else if (isPaid) {
+                if (feeNoticeBox) {
+                    feeNoticeBox.style.borderLeft = '4px solid var(--success, #10B981)';
+                    feeNoticeBox.style.backgroundColor = 'var(--bg-alt)';
+                }
+                if (noticeEl) {
+                    noticeEl.innerHTML = '<span style="color: var(--success); font-weight: 600;">✓ Đã thanh toán cước trước qua chuyển khoản (' + formattedPhi + ')</span>';
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                    submitBtn.innerText = 'Xác nhận tiếp nhận';
+                }
+            } else {
+                if (feeNoticeBox) {
+                    feeNoticeBox.style.borderLeft = '4px solid var(--brand-blue, #2563EB)';
+                    feeNoticeBox.style.backgroundColor = 'var(--bg-alt)';
+                }
+                if (noticeEl) {
+                    noticeEl.innerHTML = '<span style="color: var(--brand-blue); font-weight: 600;">ℹ Thu tiền mặt khi giao: Bưu cục tiếp nhận đơn, tiền cước ' + formattedPhi + ' sẽ được thu tiền mặt khi giao hàng</span>';
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                    submitBtn.innerText = 'Xác nhận tiếp nhận';
                 }
             }
 
@@ -340,6 +385,13 @@
             modal.style.opacity = '0';
             modal.style.visibility = 'hidden';
             modal.style.display = 'none';
+            var submitBtn = document.getElementById('btnSubmitTiepNhan');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+                submitBtn.innerText = 'Xác nhận tiếp nhận';
+            }
         }
     </script>
 </body>

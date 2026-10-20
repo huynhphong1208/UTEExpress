@@ -98,11 +98,11 @@ public class DonHangService {
 
         // Xác định phương thức thanh toán cước phí và trạng thái
         String rawPt = request.getPhuongThucThanhToan();
-        boolean isChuyenKhoan = rawPt != null && (rawPt.toUpperCase().contains("CHUYEN") || rawPt.toUpperCase().contains("BANK"));
+        boolean isChuyenKhoan = rawPt != null && (rawPt.toUpperCase().contains("CHUYEN") || rawPt.toUpperCase().contains("CHUYỂN") || rawPt.toUpperCase().contains("BANK") || rawPt.toUpperCase().contains("QR"));
         String phuongThuc = isChuyenKhoan ? "Chuyển khoản" : "Tiền mặt";
-        String trangThai = isChuyenKhoan ? "Đã thanh toán" : "Chưa thanh toán";
+        String trangThai = "Chưa thanh toán";
         String thongBao = isChuyenKhoan
-                ? "Đã ghi nhận thanh toán cước qua chuyển khoản thành công"
+                ? "Vui lòng chuyển khoản quét mã QR để hoàn tất thanh toán cước phí"
                 : "Vui lòng chuẩn bị tiền mặt khi nhân viên bưu cục đến lấy hàng";
 
         BigDecimal phiVC = donHang.getPhiVanChuyen() != null ? donHang.getPhiVanChuyen() : BigDecimal.ZERO;

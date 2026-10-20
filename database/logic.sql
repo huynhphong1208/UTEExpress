@@ -931,6 +931,16 @@ BEGIN
             INSERT INTO thanh_toan (ma_dh, loai_khoan, so_tien, phuong_thuc, trang_thai, nguoi_thanh_toan)
             VALUES (v_dh.ma_dh, 'COD', v_dh.cod, 'COD', 'Đã thanh toán', COALESCE(p_nguoi_thu, v_dh.ten_nguoi_nhan));
         END IF;
+
+        -- Khi giao thành công và thu tiền: cập nhật cước tiền mặt chưa thanh toán sang Đã thanh toán
+        UPDATE thanh_toan
+        SET trang_thai = 'Đã thanh toán',
+            thoi_gian = CURRENT_TIMESTAMP,
+            nguoi_thanh_toan = COALESCE(p_nguoi_thu, nguoi_thanh_toan)
+        WHERE ma_dh = v_dh.ma_dh
+          AND loai_khoan = 'PHI_VC'
+          AND trang_thai <> 'Đã thanh toán';
+
         UPDATE don_hang SET ma_tt = 'TT06' WHERE ma_dh = v_dh.ma_dh;
     END IF;
 END;

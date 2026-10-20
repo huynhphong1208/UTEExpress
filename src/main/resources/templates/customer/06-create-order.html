@@ -444,7 +444,11 @@
                     const orderCode = data.data?.maDh || data.data;
                     const feeText = data.data?.phiVanChuyen ? Number(data.data.phiVanChuyen).toLocaleString('vi-VN') + ' đ' : '';
                     alert(`✓ Tạo đơn hàng thành công!\n- Mã vận đơn: ${orderCode}\n- Số kiện hàng: ${danhSachKien.length} kiện${feeText ? '\n- Cước phí dự kiến: ' + feeText : ''}`);
-                    window.location.href = '/customer/dashboard';
+                    if (requestData.phuongThucThanhToan === 'CHUYEN_KHOAN') {
+                        window.location.href = '/customer/payment?maDh=' + orderCode;
+                    } else {
+                        window.location.href = '/customer/dashboard';
+                    }
                 } else {
                     alertBox.style.display = 'block';
                     alertBox.innerText = data.message || 'Lỗi khi tạo đơn hàng!';

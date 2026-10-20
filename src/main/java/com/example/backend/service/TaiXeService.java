@@ -440,6 +440,21 @@ public class TaiXeService {
     @Transactional
     public void giaoThanhCong(String maChuyen, String maKien, String maNd, String ghiChu, String nguoiThu) {
         chuyenGiaoRepository.giaoThanhCong(maChuyen, maKien, maNd, ghiChu, nguoiThu);
+
+        // Khi tài xế giao hàng thành công và thu tiền: cập nhật các khoản cước tiền mặt/COD chưa thanh toán của đơn hàng sang Đã thanh toán
+        try {
+            jdbcTemplate.update("""
+                UPDATE thanh_toan
+                SET trang_thai = 'Đã thanh toán',
+                    thoi_gian = CURRENT_TIMESTAMP,
+                    nguoi_thanh_toan = COALESCE(?, nguoi_thanh_toan)
+                WHERE ma_dh = (SELECT ma_dh FROM kien_hang WHERE ma_kien = ?)
+                  AND (trang_thai IS NULL OR (trang_thai <> 'Đã thanh toán' AND trang_thai <> 'DA_THANH_TOAN'))
+            """, (nguoiThu != null && !nguoiThu.isBlank()) ? nguoiThu : maNd, maKien);
+        } catch (Exception ex) {
+            log.warn("Lỗi cập nhật trạng thái thanh toán khi giao kiện {}: {}", maKien, ex.getMessage());
+        }
+
         kiemTraVaTuDongHoanThanhChuyen(maChuyen, maNd);
     }
 

@@ -144,6 +144,24 @@ public class PostOfficeService {
                             + donHang.getMaKhoGui() + ")");
         }
 
+        // Kiểm tra phương thức thanh toán: nếu chuyển khoản mà chưa thanh toán thì KHÔNG THỂ tiếp nhận
+        List<ThanhToan> existingPayments = thanhToanRepository.findByDonHang_MaDhOrderByThoiGianDesc(donHang.getMaDh());
+        ThanhToan phiPayment = existingPayments.stream()
+                .filter(p -> "PHI_VC".equalsIgnoreCase(p.getLoaiKhoan()))
+                .findFirst()
+                .orElse(null);
+
+        if (phiPayment != null) {
+            String pt = phiPayment.getPhuongThuc() != null ? phiPayment.getPhuongThuc().toUpperCase() : "";
+            boolean isChuyenKhoan = pt.contains("CHUYEN") || pt.contains("CHUYỂN") || pt.contains("BANK") || pt.contains("QR");
+            boolean isDaThanhToan = "Đã thanh toán".equalsIgnoreCase(phiPayment.getTrangThai())
+                    || "DA_THANH_TOAN".equalsIgnoreCase(phiPayment.getTrangThai());
+            if (isChuyenKhoan && !isDaThanhToan) {
+                throw new IllegalArgumentException(
+                        "Đơn hàng " + maDH + " thanh toán bằng chuyển khoản nhưng chưa hoàn tất thanh toán cước phí. Không thể tiếp nhận đơn hàng khi chưa thanh toán!");
+            }
+        }
+
         // Lấy hoặc tạo trạng thái TT02 (Đã tiếp nhận)
         TrangThaiDH tt02 = trangThaiDHRepository.findById("TT02")
                 .orElseGet(() -> TrangThaiDH.builder().maTrangThai("TT02").tenTrangThai("Đã tiếp nhận").build());
@@ -202,21 +220,8 @@ public class PostOfficeService {
         }
         donHangRepository.save(donHang);
 
-        // Tự động cập nhật khoản cước vận chuyển tiền mặt sang Đã thanh toán (nhân viên thu tiền mặt khi tiếp nhận/lấy hàng)
-        List<ThanhToan> unpaidFees = thanhToanRepository.findByDonHang_MaDhOrderByThoiGianDesc(donHang.getMaDh())
-                .stream()
-                .filter(p -> "PHI_VC".equalsIgnoreCase(p.getLoaiKhoan())
-                        && !"DA_THANH_TOAN".equalsIgnoreCase(p.getTrangThai())
-                        && !"Đã thanh toán".equalsIgnoreCase(p.getTrangThai()))
-                .toList();
-        for (ThanhToan p : unpaidFees) {
-            p.setTrangThai("Đã thanh toán");
-            p.setThoiGian(LocalDateTime.now());
-            if (request.getMaNV() != null && !request.getMaNV().isBlank()) {
-                p.setNguoiThanhToan("NV " + request.getMaNV() + " (thu tiền mặt khi lấy hàng)");
-            }
-            thanhToanRepository.save(p);
-        }
+        // Đơn hàng thanh toán tiền mặt khi giao sẽ KHÔNG chuyển sang đã thanh toán ở bước tiếp nhận,
+        // mà sẽ do tài xế thu tiền mặt và chuyển sang Đã thanh toán khi giao hàng thành công.
 
         // Ghi nhận lịch sử trạng thái
         String maLs = "LS" + String.format("%08d", (int) (System.currentTimeMillis() % 100000000));
@@ -320,6 +325,44 @@ public class PostOfficeService {
 
         String maTrangThaiCu = donHang.getTrangThai().getMaTrangThai();
         String tenTrangThaiCu = donHang.getTrangThai().getTenTrangThai();
+        // Khi giao hàng thành công (TT06): tài xế thu tiền mặt, tự động cập nhật cước tiền mặt và COD sang Đã thanh toán TRƯỚC KHI lưu đơn (vì Trigger DB kiểm tra)
+        if ("TT06".equals(targetCode)) {
+            List<ThanhToan> unpaidPayments = thanhToanRepository.findByDonHang_MaDhOrderByThoiGianDesc(donHang.getMaDh())
+                    .stream()
+                    .filter(p -> !"DA_THANH_TOAN".equalsIgnoreCase(p.getTrangThai())
+                            && !"Đã thanh toán".equalsIgnoreCase(p.getTrangThai()))
+                    .toList();
+            for (ThanhToan p : unpaidPayments) {
+                p.setTrangThai("Đã thanh toán");
+                p.setThoiGian(LocalDateTime.now());
+                if (p.getNguoiThanhToan() == null || p.getNguoiThanhToan().isBlank()) {
+                    p.setNguoiThanhToan(donHang.getTenNguoiNhan());
+                }
+                thanhToanRepository.save(p);
+            }
+
+            // Nếu đơn có COD > 0 nhưng chưa có bản ghi COD thì lập bản ghi COD đã thanh toán
+            if (donHang.getCod() != null && donHang.getCod().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                boolean hasPaidCod = thanhToanRepository.findByDonHang_MaDhAndLoaiKhoan(donHang.getMaDh(), "COD")
+                        .stream()
+                        .anyMatch(p -> "Đã thanh toán".equalsIgnoreCase(p.getTrangThai()) || "DA_THANH_TOAN".equalsIgnoreCase(p.getTrangThai()));
+                if (!hasPaidCod) {
+                    String maTtCod = "GD" + String.format("%06d", (int) (System.currentTimeMillis() % 1000000));
+                    ThanhToan codPayment = ThanhToan.builder()
+                            .maTtToan(maTtCod)
+                            .donHang(donHang)
+                            .loaiKhoan("COD")
+                            .soTien(donHang.getCod())
+                            .phuongThuc("COD")
+                            .trangThai("Đã thanh toán")
+                            .thoiGian(LocalDateTime.now())
+                            .nguoiThanhToan(donHang.getTenNguoiNhan())
+                            .build();
+                    thanhToanRepository.save(codPayment);
+                }
+            }
+            thanhToanRepository.flush();
+        }
 
         // Cập nhật trạng thái mới
         donHang.setTrangThai(trangThaiMoi);

@@ -32,7 +32,7 @@ public class PaymentService {
             return "Tiền mặt";
         }
         String upper = pt.toUpperCase().trim();
-        if (upper.contains("CHUYEN") || upper.contains("BANK") || upper.equals("CHUYEN_KHOAN")) {
+        if (upper.contains("CHUYEN") || upper.contains("CHUYỂN") || upper.contains("BANK") || upper.contains("QR") || upper.equals("CHUYEN_KHOAN")) {
             return "Chuyển khoản";
         } else if (upper.equals("COD")) {
             return "COD";
@@ -94,6 +94,29 @@ public class PaymentService {
                 .build()
         ).toList();
 
+        // Xác định phương thức thanh toán cước phí và phương thức hiển thị tổng hợp
+        String phuongThucCuocRaw = payments.stream()
+                .filter(p -> "PHI_VC".equalsIgnoreCase(p.getLoaiKhoan()))
+                .map(ThanhToan::getPhuongThuc)
+                .filter(pt -> pt != null && !pt.isBlank())
+                .findFirst()
+                .orElseGet(() -> payments.stream()
+                        .map(ThanhToan::getPhuongThuc)
+                        .filter(pt -> pt != null && !pt.isBlank())
+                        .findFirst()
+                        .orElse("Tiền mặt"));
+
+        boolean isCk = phuongThucCuocRaw.toUpperCase().contains("CHUYEN")
+                || phuongThucCuocRaw.toUpperCase().contains("CHUYỂN")
+                || phuongThucCuocRaw.toUpperCase().contains("BANK")
+                || phuongThucCuocRaw.toUpperCase().contains("QR");
+        String phuongThucHienThi;
+        if (isCk) {
+            phuongThucHienThi = (cod.compareTo(BigDecimal.ZERO) > 0) ? "Chuyển khoản / Thu hộ COD" : "Chuyển khoản trực tuyến";
+        } else {
+            phuongThucHienThi = (cod.compareTo(BigDecimal.ZERO) > 0) ? "Tiền mặt / Thu hộ COD" : "Tiền mặt khi giao/lấy hàng";
+        }
+
         return PaymentSummaryResponse.builder()
                 .maDh(donHang.getMaDh())
                 .phiVanChuyen(phiVC)
@@ -103,6 +126,8 @@ public class PaymentService {
                 .phiDaThanhToan(phiDaThanhToan)
                 .codDaThu(codDaThu)
                 .tinhTrangThanhToan(tinhTrangThanhToan)
+                .phuongThucCuoc(isCk ? "Chuyển khoản" : "Tiền mặt")
+                .phuongThucThanhToan(phuongThucHienThi)
                 .maTrangThai(donHang.getTrangThai().getMaTrangThai())
                 .tenTrangThai(donHang.getTrangThai().getTenTrangThai())
                 .lichSuThanhToan(paymentDetailDtos)
@@ -148,22 +173,40 @@ public class PaymentService {
             }
         }
 
-        // Sinh mã giao dịch GDxxxxxx
-        String maTTToan = "GD" + String.format("%06d", (int) (System.currentTimeMillis() % 1000000));
         String phuongThucChuan = normalizePhuongThuc(request.getPhuongThuc());
 
-        ThanhToan thanhToan = ThanhToan.builder()
-                .maTtToan(maTTToan)
-                .donHang(donHang)
-                .loaiKhoan(loaiKhoan)
-                .soTien(request.getSoTien())
-                .phuongThuc(phuongThucChuan)
-                .trangThai("Đã thanh toán")
-                .thoiGian(LocalDateTime.now())
-                .nguoiThanhToan(request.getNguoiThanhToan() != null && !request.getNguoiThanhToan().isBlank()
-                        ? request.getNguoiThanhToan()
-                        : donHang.getTenNguoiNhan())
-                .build();
+        // Kiểm tra xem đã có bản ghi chưa thanh toán tương ứng chưa để cập nhật thay vì tạo trùng
+        List<ThanhToan> existingPending = thanhToanRepository.findByDonHang_MaDhAndLoaiKhoan(donHang.getMaDh(), loaiKhoan)
+                .stream()
+                .filter(p -> !isDaThanhToan(p.getTrangThai()))
+                .toList();
+
+        ThanhToan thanhToan;
+        if (!existingPending.isEmpty()) {
+            thanhToan = existingPending.get(0);
+            thanhToan.setPhuongThuc(phuongThucChuan);
+            thanhToan.setTrangThai("Đã thanh toán");
+            thanhToan.setSoTien(request.getSoTien());
+            thanhToan.setThoiGian(LocalDateTime.now());
+            if (request.getNguoiThanhToan() != null && !request.getNguoiThanhToan().isBlank()) {
+                thanhToan.setNguoiThanhToan(request.getNguoiThanhToan());
+            }
+        } else {
+            // Sinh mã giao dịch GDxxxxxx
+            String maTTToan = "GD" + String.format("%06d", (int) (System.currentTimeMillis() % 1000000));
+            thanhToan = ThanhToan.builder()
+                    .maTtToan(maTTToan)
+                    .donHang(donHang)
+                    .loaiKhoan(loaiKhoan)
+                    .soTien(request.getSoTien())
+                    .phuongThuc(phuongThucChuan)
+                    .trangThai("Đã thanh toán")
+                    .thoiGian(LocalDateTime.now())
+                    .nguoiThanhToan(request.getNguoiThanhToan() != null && !request.getNguoiThanhToan().isBlank()
+                            ? request.getNguoiThanhToan()
+                            : donHang.getTenNguoiNhan())
+                    .build();
+        }
 
         thanhToanRepository.save(thanhToan);
 
@@ -180,7 +223,7 @@ public class PaymentService {
         lichSuTrangThaiRepository.save(lichSu);
 
         return ProcessPaymentResponse.builder()
-                .maTTToan(maTTToan)
+                .maTTToan(thanhToan.getMaTtToan())
                 .maDh(donHang.getMaDh())
                 .loaiKhoan(loaiKhoan)
                 .soTien(request.getSoTien())

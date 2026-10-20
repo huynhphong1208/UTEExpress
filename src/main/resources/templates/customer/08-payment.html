@@ -138,10 +138,10 @@
                         </div>
                         <div>
                             <span class="badge" 
-                                  th:classappend="${paid == true or (paymentSummary != null and (paymentSummary.phiDaThanhToan or paymentSummary.tinhTrangThanhToan == 'Đã thanh toán đủ')) ? 'badge-success' : 'badge-warning'}" 
+                                  th:classappend="${paid == true or (paymentSummary != null and paymentSummary.phiDaThanhToan) ? 'badge-success' : 'badge-warning'}" 
                                   id="payStatusBadge">
                                 <span class="badge-dot"></span>
-                                <span th:text="${paid == true ? 'Đã thanh toán' : (paymentSummary != null ? paymentSummary.tinhTrangThanhToan : 'Chưa thanh toán')}">Chưa thanh toán</span>
+                                <span th:text="${paid == true or (paymentSummary != null and paymentSummary.phiDaThanhToan) ? 'Đã thanh toán' : 'Chưa thanh toán'}">Chưa thanh toán</span>
                             </span>
                         </div>
                     </div>
@@ -195,9 +195,9 @@
                                 </div>
 
                                 <div style="margin-top: 14px; font-size: 13px; color: var(--text-secondary);">
-                                    Số tiền thanh toán: 
+                                    Số tiền cước thanh toán: 
                                     <strong style="color: var(--primary-blue); font-size: 17px;" 
-                                            th:text="${paymentSummary != null ? #numbers.formatDecimal(paymentSummary.tongSoTienCanThu, 1, 'COMMA', 0, 'POINT') + ' đ' : #numbers.formatDecimal(donHang.phiVanChuyen.add(donHang.cod), 1, 'COMMA', 0, 'POINT') + ' đ'}">35,000 đ</strong>
+                                            th:text="${donHang.phiVanChuyen != null ? #numbers.formatDecimal(donHang.phiVanChuyen, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</strong>
                                 </div>
                             </div>
 
@@ -216,9 +216,9 @@
                                 </div>
 
                                 <div style="margin-top: 14px; font-size: 13px; color: var(--text-secondary);">
-                                    Số tiền thanh toán: 
+                                    Số tiền cước thanh toán: 
                                     <strong style="color: #A50064; font-size: 17px;" 
-                                            th:text="${paymentSummary != null ? #numbers.formatDecimal(paymentSummary.tongSoTienCanThu, 1, 'COMMA', 0, 'POINT') + ' đ' : #numbers.formatDecimal(donHang.phiVanChuyen.add(donHang.cod), 1, 'COMMA', 0, 'POINT') + ' đ'}">35,000 đ</strong>
+                                            th:text="${donHang.phiVanChuyen != null ? #numbers.formatDecimal(donHang.phiVanChuyen, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</strong>
                                 </div>
                             </div>
 
@@ -269,24 +269,24 @@
                                         </div>
                                         <hr style="border: none; border-top: 1px dashed var(--border-color);">
                                         <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                                            <span style="font-weight: 600;">Tổng tiền thanh toán:</span>
+                                            <span style="font-weight: 600;">Cước cần thanh toán:</span>
                                             <strong style="color: var(--primary-blue); font-size: 22px;" 
-                                                    th:text="${paymentSummary != null ? #numbers.formatDecimal(paymentSummary.tongSoTienCanThu, 1, 'COMMA', 0, 'POINT') + ' đ' : #numbers.formatDecimal(donHang.phiVanChuyen.add(donHang.cod), 1, 'COMMA', 0, 'POINT') + ' đ'}">35,000 đ</strong>
+                                                    th:text="${donHang.phiVanChuyen != null ? #numbers.formatDecimal(donHang.phiVanChuyen, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</strong>
                                         </div>
                                     </div>
 
                                     <!-- Nút xác nhận thanh toán kết nối trực tiếp DB -->
                                     <div style="margin-top: 20px;">
-                                        <div th:if="${paid == true or (paymentSummary != null and (paymentSummary.phiDaThanhToan or paymentSummary.tinhTrangThanhToan == 'Đã thanh toán đủ'))}">
+                                        <div th:if="${paid == true or (paymentSummary != null and paymentSummary.phiDaThanhToan)}">
                                             <div style="padding: 12px; background: var(--success-bg); border-radius: var(--radius-md); text-align: center; color: var(--success); font-weight: 600; margin-bottom: 10px;">
-                                                ✓ Đơn hàng đã được thanh toán đủ
+                                                ✓ Cước vận chuyển đã được thanh toán
                                             </div>
                                             <a th:href="@{/customer/order-detail(maDh=${donHang.maDh})}" class="btn btn-secondary btn-block">
                                                 Quay lại chi tiết đơn hàng
                                             </a>
                                         </div>
 
-                                        <form th:if="${paid != true and (paymentSummary == null or (!paymentSummary.phiDaThanhToan and paymentSummary.tinhTrangThanhToan != 'Đã thanh toán đủ'))}"
+                                        <form th:if="${paid != true and (paymentSummary == null or !paymentSummary.phiDaThanhToan)}"
                                               th:action="@{/customer/process-payment}" method="post">
                                             <input type="hidden" name="maDh" th:value="${donHang.maDh}">
                                             <input type="hidden" name="soTien" th:value="${donHang.phiVanChuyen != null ? donHang.phiVanChuyen : 0}">
