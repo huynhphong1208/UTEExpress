@@ -22,6 +22,7 @@ public class TraCuuController {
     private final DonHangService donHangService;
     private final com.example.backend.repository.KhoRepository khoRepository;
     private final com.example.backend.repository.TuyenVanChuyenRepository tuyenVanChuyenRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Operation(
         summary = "Tra cứu đơn hàng theo mã (UC03)",
@@ -82,31 +83,22 @@ public class TraCuuController {
         java.math.BigDecimal volWeight = java.math.BigDecimal.valueOf(Math.round(volWeightDouble * 100.0) / 100.0);
         java.math.BigDecimal chargeWeight = khoiLuong.max(volWeight);
 
-        // Quy tắc tính cước hợp lý:
-        // Cùng kho / Nội tỉnh (<= 25km): Cơ bản 15.000 đ
-        // Liên tỉnh gần (<= 300km): Cơ bản 22.000 đ
-        // Liên tỉnh xa / Bắc - Nam (> 300km): Cơ bản 30.000 đ
-        double dist = khoangCach.doubleValue();
-        double baseFee;
-        if (cungKho || dist <= 25.0) {
-            baseFee = 15000.0;
-        } else if (dist <= 300.0) {
-            baseFee = 22000.0;
-        } else {
-            baseFee = 30000.0;
+        // Gọi trực tiếp hàm Database fn_tinh_phi_van_chuyen để đảm bảo đồng bộ 100% với hệ thống tạo đơn
+        java.math.BigDecimal totalFee;
+        try {
+            totalFee = jdbcTemplate.queryForObject(
+                    "SELECT fn_tinh_phi_van_chuyen(?, ?, ?, ?, ?)",
+                    java.math.BigDecimal.class,
+                    khoiLuong, dai, rong, cao, khoangCach);
+        } catch (Exception ex) {
+            // Fallback công thức chuẩn Database: 15.000 + max(0, chargeWeight - 0.5) * 5.000 + khoangCach * 300
+            double extraKg = Math.max(0.0, chargeWeight.doubleValue() - 0.5);
+            double fee = 15000.0 + (extraKg * 5000.0) + (khoangCach.doubleValue() * 300.0);
+            totalFee = java.math.BigDecimal.valueOf(Math.round(fee / 100.0) * 100);
         }
-
-        // Phụ phí khối lượng vượt mức 1kg: +5.000 đ / mỗi kg vượt
-        double cw = chargeWeight.doubleValue();
-        double extraFee = 0.0;
-        if (cw > 1.0) {
-            extraFee = Math.ceil(cw - 1.0) * 5000.0;
-        }
-
-        long totalFee = Math.round(baseFee + extraFee);
 
         var resp = com.example.backend.dto.response.EstimateShippingFeeResponse.builder()
-                .phiVanChuyen(java.math.BigDecimal.valueOf(totalFee))
+                .phiVanChuyen(totalFee)
                 .khoangCachKm(khoangCach)
                 .khoiLuongTinhCuoc(chargeWeight)
                 .khoiLuongQuyDoi(volWeight)
@@ -114,7 +106,7 @@ public class TraCuuController {
                 .thoiGianDuKienGio(thoiGianGio)
                 .tenKhoGui(khoGui != null ? khoGui.getTenKho() : maKhoGui)
                 .tenKhoNhan(khoNhan != null ? khoNhan.getTenKho() : maKhoNhan)
-                .ghiChu("Cước tính chuẩn gồm cước cơ bản theo khoảng cách và phụ phí vượt khối lượng")
+                .ghiChu("Cước tính theo chuẩn Database UTE Express: Cước cơ bản 15.000đ + 5.000đ/kg vượt (trên 0.5kg) + 300đ/km")
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success("Ước tính cước phí thành công", resp));
