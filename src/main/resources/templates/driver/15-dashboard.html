@@ -188,6 +188,38 @@
                     </div>
                 </div>
 
+                <!-- NHIỆM VỤ LẤY HÀNG TẬN NƠI (PICKUP) -->
+                <div class="card" style="margin-bottom: 24px; border-left: 4px solid #10B981;" id="driverPickupCard">
+                    <div class="card-header" style="background: #F0FDF4; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 class="card-title" style="color: #065F46; margin: 0; font-size: 15.5px; font-weight: 700;">
+                                🛵 Đơn hàng cần đến lấy tận nơi (Nhiệm vụ lấy hàng)
+                            </h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12.5px; color: #047857;">
+                                Danh sách các đơn bạn được phân công qua lấy từ khách hàng để mang về kho bưu cục.
+                            </p>
+                        </div>
+                        <span class="badge badge-success" id="driverPickupBadge">0 đơn cần lấy</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table" style="font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Địa chỉ lấy hàng (Người gửi)</th>
+                                    <th>Người nhận & Địa chỉ giao</th>
+                                    <th>Cước phí</th>
+                                    <th>Trạng thái lấy</th>
+                                    <th style="text-align: right; min-width: 170px;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyDriverPickupOrders">
+                                <tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--text-muted);">Đang tải danh sách đơn lấy...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- KHU VỰC CHI TIẾT TỪNG THẺ KHI NHẤN VÀO (THẺ 1, 2, 3, 4) -->
                 <div class="card" id="driverDetailSection">
                     <div class="card-header" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
@@ -369,7 +401,7 @@
             if (username && username !== 'undefined' && username !== 'null' && username.trim() !== '') {
                 return username.trim();
             }
-            return '';
+            return 'TX001';
         }
 
         // 1. TẢI TAB 1: CHUYẾN ĐƯỢC PHÂN CÔNG (SERVER-SIDE)
@@ -921,7 +953,86 @@
             showToast('Đã nhận chuyến', `Tài xế đã xác nhận tiếp nhận chuyến giao ${tripId}.`, 'success');
         }
 
-        document.addEventListener('DOMContentLoaded', loadDriverDashboard);
+        // ========================== XỬ LÝ LẤY HÀNG TẬN NƠI ==========================
+        async function loadDriverPickupOrders() {
+            const tbody = document.getElementById('tbodyDriverPickupOrders');
+            if (!tbody) return;
+
+            try {
+                const driverId = getCurrentDriverId() || 'TX001';
+                const res = await fetch(`/api/tai-xe/don-can-lay?maTx=${encodeURIComponent(driverId)}`);
+                const json = await res.json();
+                const orders = (json && json.data) ? json.data : [];
+                const badge = document.getElementById('driverPickupBadge');
+                if (badge) badge.innerText = `${orders.length} đơn cần lấy`;
+
+                if (orders.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--text-muted);">Hiện tại bạn không có đơn hàng nào cần đi lấy.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(d => {
+                    const statusBadge = d.trangThaiLay === 'DANG_LAY'
+                        ? '<span class="badge badge-info"><span class="badge-dot"></span>Đang đi lấy</span>'
+                        : '<span class="badge badge-warning"><span class="badge-dot"></span>Chưa lấy</span>';
+
+                    return `
+                        <tr>
+                            <td><strong style="color: #2563EB;">${d.maDh}</strong></td>
+                            <td style="max-width: 250px;">
+                                <div style="font-weight: 600;">${d.tenNguoiNhan ? 'Người gửi (đơn ' + d.maDh + ')' : ''}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiLay || ''}</div>
+                            </td>
+                            <td style="max-width: 220px;">
+                                <div style="font-weight: 500;">${d.tenNguoiNhan || ''} (${d.sdtNhan || ''})</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiGiao || ''}</div>
+                            </td>
+                            <td>
+                                <div><strong>${d.phiVanChuyen ? Number(d.phiVanChuyen).toLocaleString('vi-VN') + ' đ' : '0 đ'}</strong></div>
+                                <div style="font-size: 11px; color: var(--text-muted);">(Thu tiền mặt nếu khách chọn tiền mặt)</div>
+                            </td>
+                            <td>${statusBadge}</td>
+                            <td style="text-align: right;">
+                                <button class="btn btn-success btn-sm" onclick="confirmDriverPickup('${d.maDh}')" style="font-size: 12px; padding: 5px 12px; font-weight: 600;">
+                                    ✓ Đã lấy hàng
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Lỗi tải danh sách đơn cần lấy:', err);
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--danger);">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
+            }
+        }
+
+        async function confirmDriverPickup(maDh) {
+            if (!confirm(`Xác nhận bạn đã nhận hàng thành công từ khách cho đơn hàng ${maDh}?`)) {
+                return;
+            }
+
+            try {
+                const driverId = getCurrentDriverId() || 'TX001';
+                const res = await fetch(`/api/tai-xe/orders/${encodeURIComponent(maDh)}/confirm-pickup?maTx=${encodeURIComponent(driverId)}`, {
+                    method: 'POST'
+                });
+                const json = await res.json();
+                if (json && json.success) {
+                    alert(`✓ Thành công! Đơn hàng ${maDh} đã được xác nhận lấy hàng, kiện hàng đã nhập vào kho bưu cục và cước phí tiền mặt (nếu có) đã tự động cập nhật 'Đã thanh toán'.`);
+                    loadDriverPickupOrders();
+                    loadDriverDashboard();
+                } else {
+                    alert('Lỗi: ' + (json.message || 'Không thể xác nhận lấy hàng'));
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDriverDashboard();
+            loadDriverPickupOrders();
+        });
     </script>
     <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
 </body>

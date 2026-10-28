@@ -200,7 +200,12 @@ public class PostOfficeService {
             if (request.getLoaiHang() != null) {
                 kien.setLoaiHang(request.getLoaiHang());
             }
-            kien.setKhoHienTai(kho);
+            // Hàng đang chờ tài xế đi lấy về kho, chưa nhập vào kho thực tế
+            if ("DA_LAY".equals(donHang.getTrangThaiLay())) {
+                kien.setKhoHienTai(kho);
+            } else {
+                kien.setKhoHienTai(null);
+            }
             kienHangRepository.save(kien);
             maKien = kien.getMaKien();
         } else {
@@ -214,7 +219,7 @@ public class PostOfficeService {
                     .rong(request.getRong() != null ? request.getRong() : new java.math.BigDecimal("15.00"))
                     .cao(request.getCao() != null ? request.getCao() : new java.math.BigDecimal("10.00"))
                     .loaiHang(request.getLoaiHang() != null ? request.getLoaiHang() : "Hàng tiêu chuẩn")
-                    .khoHienTai(kho)
+                    .khoHienTai("DA_LAY".equals(donHang.getTrangThaiLay()) ? kho : null)
                     .build();
             if (request.getKichThuoc() != null && !request.getKichThuoc().isBlank()) {
                 newKien.setKichThuoc(request.getKichThuoc());
@@ -222,8 +227,11 @@ public class PostOfficeService {
             kienHangRepository.save(newKien);
         }
 
-        // Cập nhật đơn hàng
+        // Cập nhật đơn hàng: Đã tiếp nhận (TT02) nhưng vẫn giữ tag CHUA_LAY để điều phối gán tài xế lấy hàng
         donHang.setTrangThai(tt02);
+        if (donHang.getTrangThaiLay() == null || donHang.getTrangThaiLay().isBlank()) {
+            donHang.setTrangThaiLay("CHUA_LAY");
+        }
         if (request.getMaNV() != null && !request.getMaNV().isBlank()) {
             donHang.setMaNv(request.getMaNV());
         }

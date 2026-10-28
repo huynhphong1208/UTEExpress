@@ -117,40 +117,22 @@
                                 </div>
                             </div>
 
-                            <!-- SECTION C: KHO & KIỆN HÀNG -->
+                            <!-- SECTION C: KIỆN HÀNG -->
                             <div class="card">
                                 <div class="card-header" style="background-color: var(--bg-alt); display: flex; justify-content: space-between; align-items: center;">
-                                    <h3 class="card-title">C. Kho tiếp nhận & Thông tin kiện hàng</h3>
+                                    <h3 class="card-title">C. Thông tin kiện hàng gửi</h3>
                                     <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPackageItem()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 6px 12px;">
                                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                         + Thêm kiện hàng
                                     </button>
                                 </div>
                                 <div class="card-body">
-                                    <div class="grid-2" style="margin-bottom: 20px;">
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label class="form-label">Kho gửi <span style="color: red;">*</span></label>
-                                            <select class="form-select" id="maKhoGui" name="maKhoGui">
-                                                <option th:each="kho : ${danhSachKho}" 
-                                                        th:value="${kho.maKho}" 
-                                                        th:text="|${kho.maKho} - ${kho.tenKho} (${kho.diaChi})|"
-                                                        th:selected="${kho.maKho == 'KHO01'}">KHO01 - Bưu cục Thủ Đức</option>
-                                                <!-- Fallback if not rendered with Thymeleaf model -->
-                                                <option th:if="${danhSachKho == null || #lists.isEmpty(danhSachKho)}" value="KHO01">KHO01 - Bưu cục Thủ Đức</option>
-                                                <option th:if="${danhSachKho == null || #lists.isEmpty(danhSachKho)}" value="KHO02">KHO02 - Bưu cục Cầu Giấy</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label class="form-label">Kho nhận <span style="color: red;">*</span></label>
-                                            <select class="form-select" id="maKhoNhan" name="maKhoNhan">
-                                                <option th:each="kho : ${danhSachKho}" 
-                                                        th:value="${kho.maKho}" 
-                                                        th:text="|${kho.maKho} - ${kho.tenKho} (${kho.diaChi})|"
-                                                        th:selected="${kho.maKho == 'KHO02'}">KHO02 - Bưu cục Cầu Giấy</option>
-                                                <!-- Fallback if not rendered with Thymeleaf model -->
-                                                <option th:if="${danhSachKho == null || #lists.isEmpty(danhSachKho)}" value="KHO02">KHO02 - Bưu cục Cầu Giấy</option>
-                                                <option th:if="${danhSachKho == null || #lists.isEmpty(danhSachKho)}" value="KHO01">KHO01 - Bưu cục Thủ Đức</option>
-                                            </select>
+                                    <!-- Gemini AI Banner -->
+                                    <div style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(14, 165, 233, 0.08)); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px;">
+                                        <div style="font-size: 26px; line-height: 1;">🤖</div>
+                                        <div style="font-size: 13px; line-height: 1.45;">
+                                            <strong style="color: var(--primary-blue); font-size: 13.5px;">Tự động phân bổ bưu cục với Gemini AI:</strong><br>
+                                            <span style="color: var(--text-secondary);">Bạn không cần chọn bưu cục thủ công. Hệ thống AI sẽ tự động phân tích địa chỉ lấy hàng và địa chỉ giao hàng để phân bổ bưu cục gần nhất xử lý đơn hàng.</span>
                                         </div>
                                     </div>
 
@@ -427,8 +409,6 @@
                 sdtNhan: document.getElementById('receiverPhone').value.trim(),
                 diaChiLay: document.getElementById('senderAddress').value.trim(),
                 diaChiGiao: document.getElementById('receiverAddress').value.trim(),
-                maKhoGui: document.getElementById('maKhoGui').value,
-                maKhoNhan: document.getElementById('maKhoNhan').value,
                 cod: parseFloat(document.getElementById('codAmount').value) || 0,
                 phuongThucThanhToan: document.getElementById('paymentMethod')?.value || 'TIEN_MAT',
                 danhSachKien: danhSachKien

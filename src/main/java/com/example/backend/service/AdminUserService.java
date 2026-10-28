@@ -41,7 +41,7 @@ public class AdminUserService {
         this.entityManager = entityManager;
     }
 
-    private static final String DEFAULT_PASSWORD = "123456@Ute";
+    private static final String DEFAULT_PASSWORD = "123456";
 
     // =========================================================
     // Lấy danh sách tài khoản (phân trang, tìm kiếm, lọc role)

@@ -3,12 +3,8 @@ package com.example.backend.service;
 import com.example.backend.dto.common.*;
 import com.example.backend.dto.chuyengiao.*;
 import com.example.backend.dto.taixe.*;
-import com.example.backend.entity.ChiTietChuyenGiao;
-import com.example.backend.entity.ChuyenGiao;
-import com.example.backend.entity.TaiXe;
-import com.example.backend.repository.ChiTietChuyenGiaoRepository;
-import com.example.backend.repository.ChuyenGiaoRepository;
-import com.example.backend.repository.TaiXeRepository;
+import com.example.backend.entity.*;
+import com.example.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +22,11 @@ public class TaiXeService {
     private final ChuyenGiaoRepository chuyenGiaoRepository;
     private final ChiTietChuyenGiaoRepository chiTietChuyenGiaoRepository;
     private final TaiXeRepository taiXeRepository;
+    private final DonHangRepository donHangRepository;
+    private final KienHangRepository kienHangRepository;
+    private final KhoRepository khoRepository;
+    private final ThanhToanRepository thanhToanRepository;
+    private final LichSuTrangThaiRepository lichSuTrangThaiRepository;
     private final JdbcTemplate jdbcTemplate;
 
     // ========================== TRA CỨU ==========================
@@ -579,6 +580,66 @@ public class TaiXeService {
     public PageResponse<KienTrongChuyenDTO> getKienDaGiaoPaged(String maTx, int page, int size) {
         List<KienTrongChuyenDTO> all = getKienDaGiaoByTaiXe(maTx);
         return PageResponse.of(all, page, size);
+    }
+
+    // ========================== NHẬN VÀ LẤY HÀNG (PICKUP) ==========================
+
+    /**
+     * Lấy danh sách các đơn hàng được điều phối phân công cho tài xế đến lấy hàng.
+     */
+    public List<DonHang> getDonHangCanLayByTaiXe(String maTx) {
+        String resolvedTx = resolveMaTx(maTx);
+        return donHangRepository.findByMaTxLayAndTrangThaiLayIn(resolvedTx, List.of("CHUA_LAY", "DANG_LAY"));
+    }
+
+    /**
+     * Tài xế bấm xác nhận đã lấy hàng thành công:
+     * - Cập nhật trạng thái lấy hàng sang DA_LAY.
+     * - Kiện hàng chính thức nhập vào kho gửi (ma_kho_hien_tai = ma_kho_gui).
+     * - Nếu thanh toán tiền mặt, tự động đánh dấu phí vận chuyển đã thanh toán.
+     */
+    @Transactional
+    public DonHang xacNhanDaLayHang(String maDh, String maTx) {
+        String resolvedTx = resolveMaTx(maTx);
+        DonHang donHang = donHangRepository.findById(maDh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + maDh));
+
+        donHang.setTrangThaiLay("DA_LAY");
+        donHang.setMaTxLay(resolvedTx);
+
+        // Nhập kiện hàng vào kho gửi
+        Kho khoGui = khoRepository.findById(donHang.getMaKhoGui()).orElse(null);
+        List<KienHang> kienList = kienHangRepository.findByDonHang_MaDh(maDh);
+        for (KienHang k : kienList) {
+            k.setKhoHienTai(khoGui);
+            kienHangRepository.save(k);
+        }
+
+        // Tự động cập nhật thanh toán cước phí nếu là tiền mặt
+        List<ThanhToan> thanhToanList = thanhToanRepository.findByDonHang_MaDhAndLoaiKhoan(maDh, "PHI_VC");
+        for (ThanhToan tt : thanhToanList) {
+            String pt = tt.getPhuongThuc() != null ? tt.getPhuongThuc().toUpperCase() : "";
+            if (pt.contains("TIỀN MẶT") || pt.contains("TIEN_MAT") || pt.contains("CASH")) {
+                tt.setTrangThai("Đã thanh toán");
+                tt.setThoiGian(java.time.LocalDateTime.now());
+                tt.setNguoiThanhToan("Tài xế " + resolvedTx + " đã thu tiền mặt khi lấy hàng");
+                thanhToanRepository.save(tt);
+                log.info("Tài xế {} đã thu tiền mặt và cập nhật cước phí đã thanh toán cho đơn hàng {}", resolvedTx, maDh);
+            }
+        }
+
+        // Ghi nhận lịch sử trạng thái
+        String maLs = "LS" + String.format("%08d", (int) (System.currentTimeMillis() % 100000000));
+        LichSuTrangThai lichSu = LichSuTrangThai.builder()
+                .maLs(maLs)
+                .donHang(donHang)
+                .trangThai(donHang.getTrangThai())
+                .thoiGian(java.time.LocalDateTime.now())
+                .ghiChu("Tài xế " + resolvedTx + " đã lấy hàng thành công từ khách hàng và bàn giao về kho " + donHang.getMaKhoGui())
+                .build();
+        lichSuTrangThaiRepository.save(lichSu);
+
+        return donHangRepository.save(donHang);
     }
 }
 

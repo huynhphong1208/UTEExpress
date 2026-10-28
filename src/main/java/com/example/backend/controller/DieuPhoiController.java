@@ -48,6 +48,26 @@ public class DieuPhoiController {
         return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách đơn cần điều phối thành công"));
     }
 
+    // ========================== ĐIỀU PHỐI LẤY HÀNG ==========================
+
+    @GetMapping("/don-can-lay")
+    public ResponseEntity<ApiResponse<List<DonHang>>> getDonCanLay(
+            @RequestParam(required = false) String maKho) {
+        List<DonHang> list = dieuPhoiService.getDonHangCanLay(maKho);
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách đơn cần lấy thành công"));
+    }
+
+    @PostMapping("/assign-pickup")
+    public ResponseEntity<ApiResponse<DonHang>> assignPickup(@RequestBody java.util.Map<String, String> body) {
+        String maDh = body.get("maDh");
+        String maTx = body.get("maTx");
+        if (maDh == null || maDh.isBlank() || maTx == null || maTx.isBlank()) {
+            throw new RuntimeException("Vui lòng cung cấp đầy đủ maDh và maTx");
+        }
+        DonHang updated = dieuPhoiService.assignTaiXeLayHang(maDh, maTx);
+        return ResponseEntity.ok(ApiResponse.ok(updated, "Phân công tài xế " + maTx + " lấy đơn " + maDh + " thành công"));
+    }
+
     @GetMapping("/chuyen-dang-chay")
     public ResponseEntity<ApiResponse<?>> getChuyenDangChay(
             @RequestParam(required = false) Integer page,

@@ -256,6 +256,40 @@
                     </div>
                 </div>
 
+                <!-- SECTION: ĐIỀU PHỐI TÀI XẾ LẤY HÀNG (PICKUP) -->
+                <div class="card" style="margin-bottom: 24px; border-left: 4px solid #2563EB;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;">
+                        <div>
+                            <h3 class="card-title" style="margin: 0; font-size: 15.5px; font-weight: 700; color: #1E293B;">
+                                🛵 Đơn bưu cục đã tiếp nhận (TT02) – Cần điều tài xế đi lấy hàng tận nơi
+                            </h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12.5px; color: var(--text-muted);">
+                                Bưu cục đã tiếp nhận đơn trên hệ thống. Nhân viên điều phối phân công tài xế đến nhà khách lấy hàng về kho.
+                            </p>
+                        </div>
+                        <span class="badge badge-warning" id="badgePendingPickup">0 đơn chờ lấy</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table" style="font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Bưu cục gửi</th>
+                                    <th>Địa chỉ lấy hàng</th>
+                                    <th>Người nhận & Giao</th>
+                                    <th>Cước phí</th>
+                                    <th>Trạng thái lấy</th>
+                                    <th>Tài xế phụ trách</th>
+                                    <th style="text-align: right; min-width: 250px;">Phân công tài xế</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyPickupOrders">
+                                <tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">Đang tải danh sách đơn cần lấy...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="card" id="detailSection">
                     <div class="card-header"
                         style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
@@ -947,7 +981,110 @@
             onFilterTable(query);
         }
 
-        document.addEventListener('DOMContentLoaded', loadDashboardData);
+        // ========================== XỬ LÝ LẤY HÀNG (PICKUP) ==========================
+        let globalAvailableDrivers = [];
+
+        async function loadPickupOrders() {
+            const tbody = document.getElementById('tbodyPickupOrders');
+            if (!tbody) return;
+
+            try {
+                // Tải danh sách tài xế nếu chưa có
+                if (globalAvailableDrivers.length === 0) {
+                    const txRes = await fetch('/api/dieu-phoi/tai-xe-kha-dung');
+                    const txJson = await txRes.json();
+                    if (txJson && txJson.data) {
+                        globalAvailableDrivers = txJson.data;
+                    }
+                }
+
+                const res = await fetch('/api/dieu-phoi/don-can-lay');
+                const json = await res.json();
+                const orders = (json && json.data) ? json.data : [];
+                const badge = document.getElementById('badgePendingPickup');
+                if (badge) badge.innerText = `${orders.length} đơn chờ lấy`;
+
+                if (orders.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">Không có đơn hàng nào chờ lấy tận nơi.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(d => {
+                    const statusText = d.trangThaiLay === 'DANG_LAY' 
+                        ? '<span class="badge badge-info"><span class="badge-dot"></span>Đang đi lấy</span>' 
+                        : '<span class="badge badge-warning"><span class="badge-dot"></span>Chưa lấy</span>';
+                    const txPhuTrach = d.maTxLay ? `<strong style="color: #2563EB;">${d.maTxLay}</strong>` : '<span style="color: var(--text-muted);">Chưa gán</span>';
+
+                    let driverOptions = '<option value="">-- Chọn tài xế --</option>';
+                    globalAvailableDrivers.forEach(tx => {
+                        const isSel = (d.maTxLay && d.maTxLay.toUpperCase() === tx.maTx.toUpperCase()) ? 'selected' : '';
+                        driverOptions += `<option value="${tx.maTx}" ${isSel}>${tx.maTx} - ${tx.hoTen}</option>`;
+                    });
+
+                    return `
+                        <tr>
+                            <td><strong>${d.maDh}</strong></td>
+                            <td><span class="badge badge-secondary">${d.maKhoGui || ''}</span></td>
+                            <td style="max-width: 220px;">
+                                <div style="font-weight: 600;">${d.tenNguoiNhan || ''}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiLay || ''}</div>
+                            </td>
+                            <td style="max-width: 200px;">
+                                <div style="font-weight: 500;">${d.tenNguoiNhan || ''} (${d.sdtNhan || ''})</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiGiao || ''}</div>
+                            </td>
+                            <td><strong>${d.phiVanChuyen ? Number(d.phiVanChuyen).toLocaleString('vi-VN') + ' đ' : '0 đ'}</strong></td>
+                            <td>${statusText}</td>
+                            <td>${txPhuTrach}</td>
+                            <td style="text-align: right;">
+                                <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                    <select class="form-select form-select-sm" id="selectTx_${d.maDh}" style="width: 150px; font-size: 12px;">
+                                        ${driverOptions}
+                                    </select>
+                                    <button class="btn btn-primary btn-sm" onclick="assignPickupDriver('${d.maDh}', 'selectTx_${d.maDh}')" style="white-space: nowrap; font-size: 12px; padding: 4px 10px;">
+                                        Giao việc
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Lỗi tải đơn cần lấy:', err);
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--danger);">Lỗi tải danh sách: ${err.message}</td></tr>`;
+            }
+        }
+
+        async function assignPickupDriver(maDh, selectId) {
+            const select = document.getElementById(selectId);
+            const maTx = select ? select.value : '';
+            if (!maTx) {
+                alert('Vui lòng chọn một tài xế để phân công đi lấy hàng!');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/dieu-phoi/assign-pickup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ maDh: maDh, maTx: maTx })
+                });
+                const json = await res.json();
+                if (json && json.success) {
+                    alert(`✓ Đã phân công tài xế ${maTx} đi lấy đơn hàng ${maDh} thành công!`);
+                    loadPickupOrders();
+                } else {
+                    alert('Lỗi: ' + (json.message || 'Không thể phân công tài xế'));
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardData();
+            loadPickupOrders();
+        });
     </script>
     <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
 </body>

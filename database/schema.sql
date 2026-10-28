@@ -149,7 +149,10 @@ CREATE TABLE don_hang (
     phi_van_chuyen NUMERIC(12,2) NOT NULL DEFAULT 0 CONSTRAINT ck_dh_phi CHECK (phi_van_chuyen >= 0),
     cod            NUMERIC(12,2) NOT NULL DEFAULT 0 CONSTRAINT ck_dh_cod CHECK (cod >= 0),
     ma_tt          VARCHAR(20) NOT NULL DEFAULT 'TT01' REFERENCES trang_thai_dh(ma_trang_thai),
-    ma_nv          VARCHAR(20) REFERENCES nhan_vien(ma_nv)
+    ma_nv          VARCHAR(20) REFERENCES nhan_vien(ma_nv),
+    trang_thai_lay VARCHAR(20) NOT NULL DEFAULT 'CHUA_LAY'
+                   CONSTRAINT ck_dh_trang_thai_lay CHECK (trang_thai_lay IN ('CHUA_LAY','DANG_LAY','DA_LAY')),
+    ma_tx_lay      VARCHAR(20) REFERENCES tai_xe(ma_tx)
 );
 
 -- 12. KIỆN HÀNG (ma_kho_hien_tai NULL = chưa tiếp nhận / đang trên đường)

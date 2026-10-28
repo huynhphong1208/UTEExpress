@@ -77,6 +77,15 @@ public class DonHang {
     @Schema(description = "Mã nhân viên phụ trách", example = "NV001")
     private String maNv;
 
+    @Column(name = "trang_thai_lay", length = 20)
+    @Schema(description = "Trạng thái lấy hàng (CHUA_LAY, DANG_LAY, DA_LAY)", example = "CHUA_LAY")
+    @Builder.Default
+    private String trangThaiLay = "CHUA_LAY";
+
+    @Column(name = "ma_tx_lay", length = 20)
+    @Schema(description = "Mã tài xế được phân công đi lấy hàng", example = "TX00001")
+    private String maTxLay;
+
     /**
      * Getter tương thích ngược cho maTt
      */

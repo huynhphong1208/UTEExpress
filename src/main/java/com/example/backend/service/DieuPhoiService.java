@@ -23,6 +23,7 @@ public class DieuPhoiService {
     private final TaiXeRepository taiXeRepository;
     private final PhuongTienRepository phuongTienRepository;
     private final KienHangRepository kienHangRepository;
+    private final DonHangRepository donHangRepository;
     private final JdbcTemplate jdbcTemplate;
 
     public DieuPhoiService(TuyenVanChuyenRepository tuyenVanChuyenRepository,
@@ -32,6 +33,7 @@ public class DieuPhoiService {
                            TaiXeRepository taiXeRepository,
                            PhuongTienRepository phuongTienRepository,
                            KienHangRepository kienHangRepository,
+                           DonHangRepository donHangRepository,
                            JdbcTemplate jdbcTemplate) {
         this.tuyenVanChuyenRepository = tuyenVanChuyenRepository;
         this.chuyenGiaoRepository = chuyenGiaoRepository;
@@ -40,6 +42,7 @@ public class DieuPhoiService {
         this.taiXeRepository = taiXeRepository;
         this.phuongTienRepository = phuongTienRepository;
         this.kienHangRepository = kienHangRepository;
+        this.donHangRepository = donHangRepository;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -96,6 +99,37 @@ public class DieuPhoiService {
             return kienHangRepository.findAvailableKienHangByKho(maKho);
         }
         return kienHangRepository.findAvailableKienHang();
+    }
+
+    // ========================== ĐIỀU PHỐI LẤY HÀNG (PICKUP) ==========================
+
+    /**
+     * Lấy danh sách các đơn hàng đã được bưu cục tiếp nhận (TT02) nhưng đang chờ lấy hoặc đang lấy.
+     */
+    public List<DonHang> getDonHangCanLay(String maKho) {
+        if (maKho != null && !maKho.isBlank()) {
+            return donHangRepository.findByMaKhoGuiAndTrangThai_MaTrangThaiAndTrangThaiLayIn(
+                    maKho, "TT02", List.of("CHUA_LAY", "DANG_LAY"));
+        }
+        return donHangRepository.findByTrangThai_MaTrangThaiAndTrangThaiLayIn(
+                "TT02", List.of("CHUA_LAY", "DANG_LAY"));
+    }
+
+    /**
+     * Điều phối viên phân công tài xế đến nhà khách lấy hàng.
+     */
+    @Transactional
+    public DonHang assignTaiXeLayHang(String maDh, String maTx) {
+        DonHang donHang = donHangRepository.findById(maDh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + maDh));
+
+        if (donHang.getTrangThai() == null || !"TT02".equals(donHang.getTrangThai().getMaTrangThai())) {
+            throw new RuntimeException("Đơn hàng chưa được bưu cục tiếp nhận, không thể phân công tài xế lấy hàng");
+        }
+
+        donHang.setMaTxLay(maTx);
+        donHang.setTrangThaiLay("DANG_LAY");
+        return donHangRepository.save(donHang);
     }
 
     // ========================== CHUYẾN GIAO ==========================
@@ -395,6 +429,7 @@ public class DieuPhoiService {
             LEFT JOIN kho kn ON dh.ma_kho_nhan = kn.ma_kho
             LEFT JOIN trang_thai_dh tt ON dh.ma_tt = tt.ma_trang_thai
             WHERE k.ma_kho_hien_tai IS NOT NULL
+              AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY')
               AND k.ma_kien NOT IN (
                   SELECT c.ma_kien FROM chi_tiet_chuyen_giao c
                   JOIN chuyen_giao cg ON cg.ma_chuyen = c.ma_chuyen

@@ -3,8 +3,7 @@ package com.example.backend.controller;
 import com.example.backend.dto.common.*;
 import com.example.backend.dto.chuyengiao.*;
 import com.example.backend.dto.taixe.*;
-import com.example.backend.entity.ChiTietChuyenGiao;
-import com.example.backend.entity.ChuyenGiao;
+import com.example.backend.entity.*;
 import com.example.backend.service.TaiXeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -78,6 +77,23 @@ public class TaiXeController {
         }
         List<KienTrongChuyenDTO> list = taiXeService.getKienCanGiaoByTaiXe(maTx);
         return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách kiện cần giao thành công"));
+    }
+
+    // ========================== NHẬN VÀ LẤY HÀNG (PICKUP) ==========================
+
+    @GetMapping("/don-can-lay")
+    public ResponseEntity<ApiResponse<List<com.example.backend.entity.DonHang>>> getDonCanLay(
+            @RequestParam(required = false) String maTx) {
+        List<com.example.backend.entity.DonHang> list = taiXeService.getDonHangCanLayByTaiXe(maTx);
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách đơn cần lấy của tài xế thành công"));
+    }
+
+    @PostMapping("/orders/{maDh}/confirm-pickup")
+    public ResponseEntity<ApiResponse<com.example.backend.entity.DonHang>> confirmPickup(
+            @PathVariable String maDh,
+            @RequestParam(required = false) String maTx) {
+        com.example.backend.entity.DonHang updated = taiXeService.xacNhanDaLayHang(maDh, maTx);
+        return ResponseEntity.ok(ApiResponse.ok(updated, "Xác nhận đã lấy hàng thành công cho đơn " + maDh));
     }
 
     @GetMapping("/kien-da-giao")

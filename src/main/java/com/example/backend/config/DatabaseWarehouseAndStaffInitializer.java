@@ -35,6 +35,7 @@ public class DatabaseWarehouseAndStaffInitializer implements ApplicationRunner {
     private final KienHangRepository kienHangRepository;
     private final TrangThaiDHRepository trangThaiDHRepository;
     private final VaiTroRepository vaiTroRepository;
+    private final TaiXeRepository taiXeRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -144,12 +145,31 @@ public class DatabaseWarehouseAndStaffInitializer implements ApplicationRunner {
     }
 
     private void initStaffAndAccounts() {
+        VaiTro vtAdmin = vaiTroRepository.findById("ADMIN").orElseGet(() ->
+                vaiTroRepository.save(new VaiTro("ADMIN", "Quản trị viên", "Quản trị toàn bộ hệ thống")));
         VaiTro vtNvbc = vaiTroRepository.findById("NVBC").orElseGet(() ->
-                vaiTroRepository.save(new VaiTro("NVBC", "Nhân viên bưu cục", "Tiếp nhận và xử lý đơn tại bưu cục"))
-        );
+                vaiTroRepository.save(new VaiTro("NVBC", "Nhân viên bưu cục", "Tiếp nhận và xử lý đơn tại bưu cục")));
+        VaiTro vtNvdp = vaiTroRepository.findById("NVDP").orElseGet(() ->
+                vaiTroRepository.save(new VaiTro("NVDP", "Nhân viên điều phối", "Điều phối chuyến xe liên kho và giao cuối")));
+        VaiTro vtTx = vaiTroRepository.findById("TAI_XE").orElseGet(() ->
+                vaiTroRepository.save(new VaiTro("TAI_XE", "Tài xế giao nhận", "Thực hiện vận chuyển liên kho và giao hàng")));
+        VaiTro vtKh = vaiTroRepository.findById("KHACH_HANG").orElseGet(() ->
+                vaiTroRepository.save(new VaiTro("KHACH_HANG", "Khách hàng", "Người gửi và người nhận")));
 
-        String defaultEncodedPass = passwordEncoder.encode("123456@Ute");
+        String defaultEncodedPass = passwordEncoder.encode("123456");
 
+        // 1. Quản trị viên
+        if (!nguoiDungRepository.existsByTenDangNhap("admin")) {
+            nguoiDungRepository.save(NguoiDung.builder()
+                    .maNd("ND001")
+                    .tenDangNhap("admin")
+                    .matKhau(defaultEncodedPass)
+                    .trangThai("Hoạt động")
+                    .vaiTro(vtAdmin)
+                    .build());
+        }
+
+        // 2. 10 Nhân viên bưu cục
         record StaffData(String maNd, String username, String maNv, String hoTen, String sdt, String email, String maKho) {}
         List<StaffData> staffList = List.of(
                 new StaffData("ND002", "nvbc01", "NV001", "Phạm Hoàng Nam",  "0902000001", "nam@uteexpress.vn",   "KHO01"),
@@ -165,61 +185,145 @@ public class DatabaseWarehouseAndStaffInitializer implements ApplicationRunner {
         );
 
         for (var s : staffList) {
-            // 1. Tạo hoặc lấy NguoiDung
             NguoiDung nd = nguoiDungRepository.findByTenDangNhap(s.username())
                     .or(() -> nguoiDungRepository.findById(s.maNd()))
-                    .orElseGet(() -> {
-                        NguoiDung newNd = NguoiDung.builder()
-                                .maNd(s.maNd())
-                                .tenDangNhap(s.username())
-                                .matKhau(defaultEncodedPass)
-                                .trangThai("Hoạt động")
-                                .vaiTro(vtNvbc)
-                                .build();
-                        return nguoiDungRepository.save(newNd);
-                    });
+                    .orElseGet(() -> nguoiDungRepository.save(NguoiDung.builder()
+                            .maNd(s.maNd())
+                            .tenDangNhap(s.username())
+                            .matKhau(defaultEncodedPass)
+                            .trangThai("Hoạt động")
+                            .vaiTro(vtNvbc)
+                            .build()));
 
-            // 2. Tạo hoặc gán NhanVien cho bưu cục tương ứng
             NhanVien nv = nhanVienRepository.findById(s.maNv())
                     .or(() -> nhanVienRepository.findByNguoiDung_MaNd(nd.getMaNd()))
-                    .orElseGet(() -> {
-                        NhanVien newNv = NhanVien.builder()
-                                .maNv(s.maNv())
-                                .hoTen(s.hoTen())
-                                .chucVu("Nhân viên bưu cục")
-                                .sdt(s.sdt())
-                                .email(s.email())
-                                .maKho(s.maKho())
-                                .nguoiDung(nd)
-                                .build();
-                        return nhanVienRepository.save(newNv);
-                    });
+                    .orElseGet(() -> nhanVienRepository.save(NhanVien.builder()
+                            .maNv(s.maNv())
+                            .hoTen(s.hoTen())
+                            .chucVu("Nhân viên bưu cục")
+                            .sdt(s.sdt())
+                            .email(s.email())
+                            .maKho(s.maKho())
+                            .nguoiDung(nd)
+                            .build()));
 
-            // Đồng bộ lại mã kho, họ tên, SĐT, email và liên kết tài khoản
             boolean needUpdate = false;
-            if (!s.maKho().equals(nv.getMaKho())) {
-                nv.setMaKho(s.maKho());
-                needUpdate = true;
-            }
-            if (!s.hoTen().equals(nv.getHoTen())) {
-                nv.setHoTen(s.hoTen());
-                needUpdate = true;
-            }
-            if (!s.sdt().equals(nv.getSdt())) {
-                nv.setSdt(s.sdt());
-                needUpdate = true;
-            }
-            if (!s.email().equals(nv.getEmail())) {
-                nv.setEmail(s.email());
-                needUpdate = true;
-            }
-            if (nv.getNguoiDung() == null || !nv.getNguoiDung().getMaNd().equals(nd.getMaNd())) {
-                nv.setNguoiDung(nd);
-                needUpdate = true;
-            }
-            if (needUpdate) {
-                nhanVienRepository.save(nv);
-            }
+            if (!s.maKho().equals(nv.getMaKho())) { nv.setMaKho(s.maKho()); needUpdate = true; }
+            if (!s.hoTen().equals(nv.getHoTen())) { nv.setHoTen(s.hoTen()); needUpdate = true; }
+            if (!s.sdt().equals(nv.getSdt())) { nv.setSdt(s.sdt()); needUpdate = true; }
+            if (!s.email().equals(nv.getEmail())) { nv.setEmail(s.email()); needUpdate = true; }
+            if (nv.getNguoiDung() == null || !nv.getNguoiDung().getMaNd().equals(nd.getMaNd())) { nv.setNguoiDung(nd); needUpdate = true; }
+            if (needUpdate) nhanVienRepository.save(nv);
+        }
+
+        // 3. Nhân viên điều phối
+        List<StaffData> dpList = List.of(
+                new StaffData("ND004", "nvdp01", "NV011", "Đặng Quốc Huy",     "0902000011", "huy@uteexpress.vn",  "KHO01"),
+                new StaffData("ND009", "nvdp02", "NV012", "Nguyễn Thanh Tùng", "0902000012", "tung@uteexpress.vn", "KHO03")
+        );
+        for (var s : dpList) {
+            NguoiDung nd = nguoiDungRepository.findByTenDangNhap(s.username())
+                    .or(() -> nguoiDungRepository.findById(s.maNd()))
+                    .orElseGet(() -> nguoiDungRepository.save(NguoiDung.builder()
+                            .maNd(s.maNd())
+                            .tenDangNhap(s.username())
+                            .matKhau(defaultEncodedPass)
+                            .trangThai("Hoạt động")
+                            .vaiTro(vtNvdp)
+                            .build()));
+
+            NhanVien nv = nhanVienRepository.findById(s.maNv())
+                    .or(() -> nhanVienRepository.findByNguoiDung_MaNd(nd.getMaNd()))
+                    .orElseGet(() -> nhanVienRepository.save(NhanVien.builder()
+                            .maNv(s.maNv())
+                            .hoTen(s.hoTen())
+                            .chucVu("Nhân viên điều phối")
+                            .sdt(s.sdt())
+                            .email(s.email())
+                            .maKho(s.maKho())
+                            .nguoiDung(nd)
+                            .build()));
+
+            boolean needUpdate = false;
+            if (!s.maKho().equals(nv.getMaKho())) { nv.setMaKho(s.maKho()); needUpdate = true; }
+            if (!s.hoTen().equals(nv.getHoTen())) { nv.setHoTen(s.hoTen()); needUpdate = true; }
+            if (!s.sdt().equals(nv.getSdt())) { nv.setSdt(s.sdt()); needUpdate = true; }
+            if (!s.email().equals(nv.getEmail())) { nv.setEmail(s.email()); needUpdate = true; }
+            if (nv.getNguoiDung() == null || !nv.getNguoiDung().getMaNd().equals(nd.getMaNd())) { nv.setNguoiDung(nd); needUpdate = true; }
+            if (needUpdate) nhanVienRepository.save(nv);
+        }
+
+        // 4. Tài xế
+        record DriverData(String maNd, String username, String maTx, String hoTen, String sdt, String bangLai) {}
+        List<DriverData> driverList = List.of(
+                new DriverData("ND005", "tx01", "TX001", "Huỳnh Văn Tài",   "0903000001", "C"),
+                new DriverData("ND006", "tx02", "TX002", "Ngô Minh Đức",    "0903000002", "E"),
+                new DriverData("ND010", "tx03", "TX003", "Lê Hoàng Long",   "0903000003", "C"),
+                new DriverData("ND011", "tx04", "TX004", "Trần Quốc Toản",  "0903000004", "B2"),
+                new DriverData("ND012", "tx05", "TX005", "Nguyễn Văn Dũng", "0903000005", "E")
+        );
+        for (var d : driverList) {
+            NguoiDung nd = nguoiDungRepository.findByTenDangNhap(d.username())
+                    .or(() -> nguoiDungRepository.findById(d.maNd()))
+                    .orElseGet(() -> nguoiDungRepository.save(NguoiDung.builder()
+                            .maNd(d.maNd())
+                            .tenDangNhap(d.username())
+                            .matKhau(defaultEncodedPass)
+                            .trangThai("Hoạt động")
+                            .vaiTro(vtTx)
+                            .build()));
+
+            TaiXe tx = taiXeRepository.findById(d.maTx())
+                    .or(() -> taiXeRepository.findByNguoiDung_MaNd(nd.getMaNd()))
+                    .orElseGet(() -> taiXeRepository.save(TaiXe.builder()
+                            .maTx(d.maTx())
+                            .hoTen(d.hoTen())
+                            .sdt(d.sdt())
+                            .bangLai(d.bangLai())
+                            .nguoiDung(nd)
+                            .build()));
+
+            boolean needUpdate = false;
+            if (!d.hoTen().equals(tx.getHoTen())) { tx.setHoTen(d.hoTen()); needUpdate = true; }
+            if (!d.sdt().equals(tx.getSdt())) { tx.setSdt(d.sdt()); needUpdate = true; }
+            if (!d.bangLai().equals(tx.getBangLai())) { tx.setBangLai(d.bangLai()); needUpdate = true; }
+            if (tx.getNguoiDung() == null || !tx.getNguoiDung().getMaNd().equals(nd.getMaNd())) { tx.setNguoiDung(nd); needUpdate = true; }
+            if (needUpdate) taiXeRepository.save(tx);
+        }
+
+        // 5. Khách hàng
+        record CustomerData(String maNd, String sdt, String maKh, String hoTen, String email, String diaChi) {}
+        List<CustomerData> customerList = List.of(
+                new CustomerData("ND007", "0901000001", "KH001", "Nguyễn Văn An", "an@example.com",   "12 Võ Văn Ngân, Thủ Đức, TP.HCM"),
+                new CustomerData("ND008", "0901000002", "KH002", "Trần Thị Bích", "bich@example.com", "34 Lê Lợi, Quận 1, TP.HCM")
+        );
+        for (var c : customerList) {
+            NguoiDung nd = nguoiDungRepository.findByTenDangNhap(c.sdt())
+                    .or(() -> nguoiDungRepository.findById(c.maNd()))
+                    .orElseGet(() -> nguoiDungRepository.save(NguoiDung.builder()
+                            .maNd(c.maNd())
+                            .tenDangNhap(c.sdt())
+                            .matKhau(defaultEncodedPass)
+                            .trangThai("Hoạt động")
+                            .vaiTro(vtKh)
+                            .build()));
+
+            KhachHang kh = khachHangRepository.findById(c.maKh())
+                    .or(() -> khachHangRepository.findBySdt(c.sdt()))
+                    .orElseGet(() -> khachHangRepository.save(KhachHang.builder()
+                            .maKh(c.maKh())
+                            .hoTen(c.hoTen())
+                            .sdt(c.sdt())
+                            .email(c.email())
+                            .diaChiMacDinh(c.diaChi())
+                            .nguoiDung(nd)
+                            .build()));
+
+            boolean needUpdate = false;
+            if (!c.hoTen().equals(kh.getHoTen())) { kh.setHoTen(c.hoTen()); needUpdate = true; }
+            if (!c.sdt().equals(kh.getSdt())) { kh.setSdt(c.sdt()); needUpdate = true; }
+            if (kh.getNguoiDung() == null || !kh.getNguoiDung().getMaNd().equals(nd.getMaNd())) { kh.setNguoiDung(nd); needUpdate = true; }
+            if (needUpdate) khachHangRepository.save(kh);
         }
     }
 

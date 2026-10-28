@@ -93,33 +93,33 @@ INSERT INTO tuyen_van_chuyen (ma_tuyen, ma_kho_di, ma_kho_den, khoang_cach, thoi
 ON CONFLICT (ma_tuyen) DO UPDATE 
 SET khoang_cach = EXCLUDED.khoang_cach, thoi_gian_du_kien_gio = EXCLUDED.thoi_gian_du_kien_gio;
 
--- 6. TÀI KHOẢN NGƯỜI DÙNG (Mật khẩu mã hóa BCrypt cho '123456@Ute')
+-- 6. TÀI KHOẢN NGƯỜI DÙNG (Mật khẩu mã hóa BCrypt cho '123456')
 INSERT INTO nguoi_dung (ma_nd, ten_dang_nhap, mat_khau, ma_vai_tro, trang_thai) VALUES
 -- Quản trị viên
-('ND001', 'admin',      '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'ADMIN',      'Hoạt động'),
+('ND001', 'admin',      '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'ADMIN',      'Hoạt động'),
 -- 10 Nhân viên bưu cục (Khớp chuẩn 1-1 với KHO01 -> KHO10)
-('ND002', 'nvbc01',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
-('ND013', 'nvbc02',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
-('ND003', 'nvbc03',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
-('ND014', 'nvbc04',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
-('ND015', 'nvbc05',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
-('ND016', 'nvbc06',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
-('ND017', 'nvbc07',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
-('ND018', 'nvbc08',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
-('ND019', 'nvbc09',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
-('ND020', 'nvbc10',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVBC',       'Hoạt động'),
+('ND002', 'nvbc01',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
+('ND013', 'nvbc02',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
+('ND003', 'nvbc03',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
+('ND014', 'nvbc04',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
+('ND015', 'nvbc05',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
+('ND016', 'nvbc06',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
+('ND017', 'nvbc07',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
+('ND018', 'nvbc08',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
+('ND019', 'nvbc09',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
+('ND020', 'nvbc10',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVBC',       'Hoạt động'),
 -- Điều phối viên (Dispatcher)
-('ND004', 'nvdp01',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVDP',       'Hoạt động'),
-('ND009', 'nvdp02',     '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'NVDP',       'Hoạt động'),
+('ND004', 'nvdp01',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVDP',       'Hoạt động'),
+('ND009', 'nvdp02',     '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'NVDP',       'Hoạt động'),
 -- Đội ngũ Tài xế (Driver)
-('ND005', 'tx01',       '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'TAI_XE',     'Hoạt động'),
-('ND006', 'tx02',       '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'TAI_XE',     'Hoạt động'),
-('ND010', 'tx03',       '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'TAI_XE',     'Hoạt động'),
-('ND011', 'tx04',       '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'TAI_XE',     'Hoạt động'),
-('ND012', 'tx05',       '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'TAI_XE',     'Hoạt động'),
+('ND005', 'tx01',       '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'TAI_XE',     'Hoạt động'),
+('ND006', 'tx02',       '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'TAI_XE',     'Hoạt động'),
+('ND010', 'tx03',       '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'TAI_XE',     'Hoạt động'),
+('ND011', 'tx04',       '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'TAI_XE',     'Hoạt động'),
+('ND012', 'tx05',       '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'TAI_XE',     'Hoạt động'),
 -- Khách hàng
-('ND007', '0901000001', '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'KHACH_HANG', 'Hoạt động'),
-('ND008', '0901000002', '$2a$10$BaxCyj/IY6CxGzc7aG2WauO0rOSnphOXftgCMNQDjMt2R24eUOgAi', 'KHACH_HANG', 'Hoạt động')
+('ND007', '0901000001', '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'KHACH_HANG', 'Hoạt động'),
+('ND008', '0901000002', '$2a$10$kcnZZxNstrOglbtRSGlgC.2sZmd6GXZhSRcPW1Qhup4Mgnad5eyKO', 'KHACH_HANG', 'Hoạt động')
 ON CONFLICT (ma_nd) DO UPDATE 
 SET mat_khau = EXCLUDED.mat_khau, trang_thai = EXCLUDED.trang_thai;
 
@@ -173,6 +173,9 @@ SET bien_so = EXCLUDED.bien_so, tai_trong = EXCLUDED.tai_trong, trang_thai = EXC
 
 -- =========================================================
 -- PHẦN 2. SCRIPT KIỂM THỬ PL/PGSQL (38 CA TEST TỔNG HỢP)
+-- Dọn dẹp dữ liệu giao dịch cũ (nếu chạy lại nhiều lần) để không bị trùng lịch tài xế / trùng mã
+TRUNCATE TABLE chi_tiet_chuyen_giao, chuyen_giao, thanh_toan, lich_su_trang_thai, kien_hang, don_hang RESTART IDENTITY CASCADE;
+
 -- Khối transaction kiểm thử tự động ROLLBACK để không gây nhiễu dữ liệu vận hành.
 -- =========================================================
 BEGIN;
@@ -876,6 +879,8 @@ BEGIN
     PERFORM setval('seq_nv',     GREATEST((SELECT COALESCE(MAX(SUBSTRING(ma_nv FROM 3)::BIGINT), 1) FROM nhan_vien WHERE ma_nv ~ '^NV[0-9]{1,4}$'), 20));
     PERFORM setval('seq_nd',     GREATEST((SELECT COALESCE(MAX(SUBSTRING(ma_nd FROM 3)::BIGINT), 1) FROM nguoi_dung WHERE ma_nd ~ '^ND[0-9]{1,4}$'), 30));
 END $$;
+
+UPDATE don_hang SET trang_thai_lay = 'DA_LAY' WHERE ma_tt NOT IN ('TT01');
 
 COMMIT;
 
