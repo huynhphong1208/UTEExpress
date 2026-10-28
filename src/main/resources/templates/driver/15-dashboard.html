@@ -233,13 +233,13 @@
 
                         <!-- Thanh tìm kiếm & lọc ngày & nút hành động -->
                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                            <input type="text" class="form-control form-control-sm" id="driverTableFilterInput" 
+                            <input type="text" class="form-control form-control-sm" id="driverTableFilterInput"
                                    placeholder="Lọc trong danh sách..." style="width: 220px;" oninput="onFilterDriverTable(this.value)">
 
                             <!-- Bộ lọc ngày dành riêng cho Thẻ 4 -->
                             <div id="dateFilterWrapper" style="display: none; align-items: center; gap: 6px;">
                                 <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Ngày:</span>
-                                <input type="date" class="form-control form-control-sm" id="driverDateFilterInput" 
+                                <input type="date" class="form-control form-control-sm" id="driverDateFilterInput"
                                        style="width: 140px;" onchange="onFilterDriverTable()">
                                 <button class="btn btn-outline-secondary btn-sm" onclick="clearDateFilter()" title="Xóa lọc ngày" style="padding: 4px 8px;">✕</button>
                             </div>
@@ -315,7 +315,7 @@
                                         <th>Tên người nhận</th>
                                         <th>Số điện thoại</th>
                                         <th>Địa chỉ giao hàng</th>
-                                        <th>Thu hộ COD</th>
+                                        <th>Tiền cần thu</th>
                                         <th>Trạng thái kiện</th>
                                         <th style="text-align: right;">Thao tác</th>
                                     </tr>
@@ -749,8 +749,35 @@
 
             tbody.innerHTML = list.map(p => {
                 const codVal = Number(p.cod || 0);
-                const codStr = codVal > 0 ? codVal.toLocaleString('vi-VN') + ' đ' : '0 đ';
+                const phiVC = Number(p.phiVanChuyen || 0);
+                const isCk = p.phiDaThanhToan || (p.phuongThucThanhToan && p.phuongThucThanhToan.toLowerCase().includes('chuyển'));
                 const badgeCls = p.trangThai === 'Đã quét' ? 'badge-primary' : 'badge-warning';
+
+                let paymentHtml = '';
+                if (isCk) {
+                    const codStr = codVal > 0 ? codVal.toLocaleString('vi-VN') + ' đ' : '0 đ';
+                    paymentHtml = `
+                        <div>
+                            <strong style="color: ${codVal > 0 ? '#D97706' : 'var(--text-muted)'}; font-size: 13px;">Thu COD: ${codStr}</strong>
+                        </div>
+                        <div style="font-size: 11px; color: var(--success); font-weight: 500; margin-top: 2px;">
+                            ✓ Đã TT cước (CK)
+                        </div>
+                    `;
+                } else {
+                    const tongThu = (p.tongTienThu !== undefined && p.tongTienThu !== null) ? Number(p.tongTienThu) : (phiVC + codVal);
+                    paymentHtml = `
+                        <div>
+                            <strong style="color: #DC2626; font-size: 13px;">Thu: ${tongThu.toLocaleString('vi-VN')} đ</strong>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+                            Cước: ${phiVC.toLocaleString('vi-VN')}đ + COD: ${codVal.toLocaleString('vi-VN')}đ
+                        </div>
+                        <div style="font-size: 10px; color: #D97706; font-weight: 600;">
+                            (Thu tiền mặt)
+                        </div>
+                    `;
+                }
 
                 return `
                     <tr>
@@ -775,7 +802,7 @@
                             ${p.diaChiGiao || '---'}
                         </td>
                         <td>
-                            <strong style="color: ${codVal > 0 ? '#D97706' : 'var(--text-muted)'};">${codStr}</strong>
+                            ${paymentHtml}
                         </td>
                         <td>
                             <span class="badge ${badgeCls}">
@@ -783,8 +810,8 @@
                             </span>
                         </td>
                         <td style="text-align: right;">
-                            <a href="17-delivery-update.html?id=${p.maChuyen}&package=${p.maKien}" 
-                                class="btn btn-warning btn-sm" 
+                            <a href="17-delivery-update.html?id=${p.maChuyen}&package=${p.maKien}"
+                                class="btn btn-warning btn-sm"
                                 style="color: #FFFFFF; background: #D97706; border-color: #D97706; font-weight: 600;">
                                 📷 Quét mã / Cập nhật
                             </a>
@@ -910,7 +937,7 @@
                     <a href="16-trip-detail.html?id=${trip.maChuyen}" class="btn btn-primary">Xem chi tiết kiện & lộ trình</a>
                     <a href="17-delivery-update.html?id=${trip.maChuyen}" class="btn btn-secondary">Quét mã cập nhật giao hàng</a>
                     ${trip.trangThai === 'Chưa đi' ? `
-                        <button class="btn ${isTripAcknowledged(trip.maChuyen) ? 'btn-success' : 'btn-outline-primary'}" 
+                        <button class="btn ${isTripAcknowledged(trip.maChuyen) ? 'btn-success' : 'btn-outline-primary'}"
                                 id="btnDashAck_${trip.maChuyen}"
                                 ${isTripAcknowledged(trip.maChuyen) ? 'disabled' : ''}
                                 onclick="handleDashAcknowledge('${trip.maChuyen}')">
@@ -988,8 +1015,21 @@
                                 <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiGiao || ''}</div>
                             </td>
                             <td>
-                                <div><strong>${d.phiVanChuyen ? Number(d.phiVanChuyen).toLocaleString('vi-VN') + ' đ' : '0 đ'}</strong></div>
-                                <div style="font-size: 11px; color: var(--text-muted);">(Thu tiền mặt nếu khách chọn tiền mặt)</div>
+                                ${(() => {
+                                    const isCk = d.phiDaThanhToan || (d.phuongThucThanhToan && d.phuongThucThanhToan.toLowerCase().includes('chuyển'));
+                                    const phiVC = Number(d.phiVanChuyen || 0);
+                                    if (isCk) {
+                                        return `
+                                            <div><strong style="color: var(--success); font-size: 13px;">0 đ</strong></div>
+                                            <div style="font-size: 11px; color: var(--success); font-weight: 500;">✓ Đã TT chuyển khoản</div>
+                                        `;
+                                    } else {
+                                        return `
+                                            <div><strong style="color: #DC2626; font-size: 13px;">Thu: ${phiVC.toLocaleString('vi-VN')} đ</strong></div>
+                                            <div style="font-size: 11px; color: #D97706; font-weight: 500;">(Thu cước tiền mặt khi lấy)</div>
+                                        `;
+                                    }
+                                })()}
                             </td>
                             <td>${statusBadge}</td>
                             <td style="text-align: right;">

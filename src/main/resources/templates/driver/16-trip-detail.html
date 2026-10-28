@@ -101,7 +101,7 @@
                                     <th>Khối lượng</th>
                                     <th>Người nhận / SĐT</th>
                                     <th>Địa chỉ giao hàng</th>
-                                    <th>Tiền COD</th>
+                                    <th>Tiền cần thu</th>
                                     <th>Trạng thái kiện</th>
                                     <th>Thao tác</th>
                                 </tr>
@@ -175,7 +175,7 @@
 
                 if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
                     const trips = res.data;
-                    select.innerHTML = trips.map(t => 
+                    select.innerHTML = trips.map(t =>
                         `<option value="${t.maChuyen}">${t.maChuyen} - ${t.loaiChuyen} (${t.trangThai})</option>`
                     ).join('');
 
@@ -270,7 +270,22 @@
 
             tbody.innerHTML = pkgs.map(p => {
                 const badge = getStatusBadge(p.trangThai);
-                const codFormatted = (p.cod || 0).toLocaleString('vi-VN') + ' đ';
+                const codVal = Number(p.cod || 0);
+                const phiVC = Number(p.phiVanChuyen || 0);
+                const isCk = p.phiDaThanhToan || (p.phuongThucThanhToan && p.phuongThucThanhToan.toLowerCase().includes('chuyển'));
+                let paymentHtml = '';
+                if (isCk) {
+                    paymentHtml = `
+                        <div><strong style="color: ${codVal > 0 ? 'var(--danger)' : 'var(--text-muted)'};">Thu COD: ${codVal > 0 ? codVal.toLocaleString('vi-VN') + ' đ' : '0 đ'}</strong></div>
+                        <small style="color: var(--success); font-weight: 500;">✓ Đã TT cước CK</small>
+                    `;
+                } else {
+                    const tongThu = (p.tongTienThu !== undefined && p.tongTienThu !== null) ? Number(p.tongTienThu) : (phiVC + codVal);
+                    paymentHtml = `
+                        <div><strong style="color: #DC2626;">Thu: ${tongThu.toLocaleString('vi-VN')} đ</strong></div>
+                        <small style="color: var(--text-muted);">Cước: ${phiVC.toLocaleString('vi-VN')}đ + COD: ${codVal.toLocaleString('vi-VN')}đ (Tiền mặt)</small>
+                    `;
+                }
 
                 let actionHtml = '';
                 if (isLienKho) {
@@ -294,7 +309,7 @@
                         <td>${p.khoiLuong || 0} kg</td>
                         <td><strong>${p.tenNguoiNhan}</strong><br><small style="color: var(--text-muted);">${p.sdtNhan}</small></td>
                         <td>${p.diaChiGiao}</td>
-                        <td style="font-weight: 600; color: ${p.cod > 0 ? 'var(--danger)' : 'var(--text-muted)'};">${codFormatted}</td>
+                        <td>${paymentHtml}</td>
                         <td>${badge}</td>
                         <td class="cell-actions">
                             ${actionHtml}
@@ -413,7 +428,22 @@
 
             tbody.innerHTML = paged.map(p => {
                 const badge = getStatusBadge(p.trangThai);
-                const codFormatted = (p.cod || 0).toLocaleString('vi-VN') + ' đ';
+                const codVal = Number(p.cod || 0);
+                const phiVC = Number(p.phiVanChuyen || 0);
+                const isCk = p.phiDaThanhToan || (p.phuongThucThanhToan && p.phuongThucThanhToan.toLowerCase().includes('chuyển'));
+                let paymentHtml = '';
+                if (isCk) {
+                    paymentHtml = `
+                        <div><strong style="color: ${codVal > 0 ? 'var(--danger)' : 'var(--text-muted)'};">Thu COD: ${codVal > 0 ? codVal.toLocaleString('vi-VN') + ' đ' : '0 đ'}</strong></div>
+                        <small style="color: var(--success); font-weight: 500;">✓ Đã TT cước CK</small>
+                    `;
+                } else {
+                    const tongThu = (p.tongTienThu !== undefined && p.tongTienThu !== null) ? Number(p.tongTienThu) : (phiVC + codVal);
+                    paymentHtml = `
+                        <div><strong style="color: #DC2626;">Thu: ${tongThu.toLocaleString('vi-VN')} đ</strong></div>
+                        <small style="color: var(--text-muted);">Cước: ${phiVC.toLocaleString('vi-VN')}đ + COD: ${codVal.toLocaleString('vi-VN')}đ (Tiền mặt)</small>
+                    `;
+                }
 
                 let actionHtml = '';
                 if (isLienKho) {
@@ -437,7 +467,7 @@
                         <td>${p.khoiLuong || 0} kg</td>
                         <td><strong>${p.tenNguoiNhan}</strong><br><small style="color: var(--text-muted);">${p.sdtNhan}</small></td>
                         <td>${p.diaChiGiao}</td>
-                        <td style="font-weight: 600; color: ${p.cod > 0 ? 'var(--danger)' : 'var(--text-muted)'};">${codFormatted}</td>
+                        <td>${paymentHtml}</td>
                         <td>${badge}</td>
                         <td class="cell-actions">
                             ${actionHtml}

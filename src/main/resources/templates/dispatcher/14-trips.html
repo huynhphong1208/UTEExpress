@@ -42,7 +42,7 @@
                 <div class="user-avatar" style="background-color: #2563EB;">DP</div>
                 <div class="user-info">
                     <div class="user-name">Đặng Quốc Huy</div>
-                    <div class="user-sub">NV Điều phối (NV003)</div>
+                    <div class="user-sub">NV Điều phối (NV011)</div>
                 </div>
             </div>
         </aside>
@@ -187,7 +187,7 @@
                             <button type="button" class="btn btn-outline-success btn-sm" style="padding: 3px 8px; font-size: 11.5px;" onclick="selectOptimalPackages()" title="Tự động chọn tối đa kiện trong giới hạn tải trọng xe">⚡ Vừa tải xe</button>
                         </div>
                     </div>
-                    
+
                     <div id="pkgListContainer" style="background: var(--bg-alt); padding: 12px; border-radius: var(--radius-md); max-height: 240px; overflow-y: auto; border: 1px solid var(--border-color);">
                         <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 14px;">Đang tải danh sách kiện hàng khả dụng...</div>
                     </div>
@@ -475,25 +475,25 @@
         function populateDropdowns() {
             // 1. Tuyến
             const routeSel = document.getElementById('tripRoute');
-            routeSel.innerHTML = allRoutes.map(r => 
+            routeSel.innerHTML = allRoutes.map(r =>
                 `<option value="${r.maTuyen}">${r.maTuyen}: ${r.maKhoDi} ➔ ${r.maKhoDen} (${r.khoangCach} km, ~${r.thoiGianDuKienGio}h)</option>`
             ).join('');
 
             // 2. Kho xuất phát (cho giao cuối)
             const whSel = document.getElementById('tripDepartureWarehouse');
-            whSel.innerHTML = allWarehouses.map(k => 
+            whSel.innerHTML = allWarehouses.map(k =>
                 `<option value="${k.maKho}">${k.tenKho} (${k.maKho})</option>`
             ).join('');
 
             // 3. Tài xế
             const drvSel = document.getElementById('tripDriver');
-            drvSel.innerHTML = allDrivers.map(d => 
+            drvSel.innerHTML = allDrivers.map(d =>
                 `<option value="${d.maTx}">${d.hoTen} (${d.maTx}) - SĐT: ${d.sdt} - Bằng: ${d.bangLai || 'C'}</option>`
             ).join('');
 
             // 4. Phương tiện
             const vehSel = document.getElementById('tripVehicle');
-            vehSel.innerHTML = allVehicles.map(v => 
+            vehSel.innerHTML = allVehicles.map(v =>
                 `<option value="${v.maPt}" data-capacity="${v.taiTrong}">${v.bienSo} (${v.loaiXe || 'Xe tải'} - Tải trọng max ${v.taiTrong} kg)</option>`
             ).join('');
 
@@ -614,7 +614,7 @@
                 pkgsAtWarehouse.forEach(p => {
                     const destWh = p.maKhoNhan;
                     const isCorrectDest = (destWh === departureWh);
-                    const statusOk = (p.maTt === 'TT02' || p.maTt === 'TT04' || p.maTt === 'TT08' 
+                    const statusOk = (p.maTt === 'TT02' || p.maTt === 'TT04' || p.maTt === 'TT08'
                                    || p.trangThaiDon === 'Đã tiếp nhận' || p.trangThaiDon === 'Đã đến kho' || p.trangThaiDon === 'Giao thất bại');
 
                     if (isCorrectDest && statusOk) {
@@ -886,7 +886,7 @@
             }
 
             tbody.innerHTML = trips.map(t => {
-                const routeName = t.loaiChuyen === 'LIEN_KHO' 
+                const routeName = t.loaiChuyen === 'LIEN_KHO'
                     ? `${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`
                     : `Giao cuối: ${t.tenKhoXuatPhat || 'Kho'} ➔ Địa chỉ khách`;
 
@@ -935,11 +935,24 @@
         async function openCreateTripModal() {
             initDefaultDates();
             try {
-                const pkgsRes = await UteApi.getAvailablePackages();
+                const [pkgsRes, drvRes, vehRes] = await Promise.all([
+                    UteApi.getAvailablePackages(),
+                    UteApi.getAvailableDrivers(),
+                    UteApi.getAvailableVehicles()
+                ]);
                 if (pkgsRes && pkgsRes.success && Array.isArray(pkgsRes.data)) {
                     availablePackages = pkgsRes.data;
                 }
-            } catch (e) {}
+                if (drvRes && drvRes.success && Array.isArray(drvRes.data)) {
+                    allDrivers = drvRes.data;
+                }
+                if (vehRes && vehRes.success && Array.isArray(vehRes.data)) {
+                    allVehicles = vehRes.data;
+                }
+                populateDropdowns();
+            } catch (e) {
+                console.error('Lỗi tải tài xế / xe khả dụng khi mở modal tạo chuyến:', e);
+            }
             toggleTripType();
             onVehicleChanged();
             openModal('createTripModal');
@@ -975,6 +988,9 @@
                 return;
             }
 
+            const currentMaNv = localStorage.getItem('maDoiTuong') || 'NV011';
+            const currentMaNd = localStorage.getItem('maNd') || 'ND004';
+
             const payload = {
                 loai: type,
                 maTuyen: maTuyen || null,
@@ -983,8 +999,8 @@
                 maPt: maPt,
                 ngayXuatPhat: depTime ? `${depTime}:00` : null,
                 ngayDenDuKien: arrTime ? `${arrTime}:00` : null,
-                maNvDp: 'NV003', // NV điều phối mặc định từ seed
-                maNd: 'ND004'    // Tài khoản NV điều phối
+                maNvDp: currentMaNv,
+                maNd: currentMaNd
             };
 
             const btn = document.getElementById('btnSubmitTrip');
@@ -1007,7 +1023,7 @@
                                 const assignRes = await UteApi.assignPackageToTrip({
                                     maChuyen: newestTripId,
                                     maKien: pkgCode,
-                                    maNd: 'ND004'
+                                    maNd: currentMaNd
                                 });
                                 if (assignRes && assignRes.success) {
                                     assignCount++;
@@ -1143,27 +1159,27 @@
                 document.getElementById('editGroupRoute').style.display = 'block';
                 document.getElementById('editGroupFromWarehouse').style.display = 'none';
                 const routeSel = document.getElementById('editTripRoute');
-                routeSel.innerHTML = allRoutes.map(r => 
+                routeSel.innerHTML = allRoutes.map(r =>
                     `<option value="${r.maTuyen}" ${r.maTuyen === trip.maTuyen ? 'selected' : ''}>${r.maTuyen}: ${r.maKhoDi} ➔ ${r.maKhoDen}</option>`
                 ).join('');
             } else {
                 document.getElementById('editGroupRoute').style.display = 'none';
                 document.getElementById('editGroupFromWarehouse').style.display = 'block';
                 const whSel = document.getElementById('editTripDepartureWarehouse');
-                whSel.innerHTML = allWarehouses.map(k => 
+                whSel.innerHTML = allWarehouses.map(k =>
                     `<option value="${k.maKho}" ${k.maKho === trip.maKhoXuatPhat ? 'selected' : ''}>${k.tenKho} (${k.maKho})</option>`
                 ).join('');
             }
 
             // Tài xế
             const drvSel = document.getElementById('editTripDriver');
-            drvSel.innerHTML = allDrivers.map(d => 
+            drvSel.innerHTML = allDrivers.map(d =>
                 `<option value="${d.maTx}" ${d.maTx === trip.maTx ? 'selected' : ''}>${d.hoTen} (${d.maTx})</option>`
             ).join('');
 
             // Phương tiện
             const vehSel = document.getElementById('editTripVehicle');
-            vehSel.innerHTML = allVehicles.map(v => 
+            vehSel.innerHTML = allVehicles.map(v =>
                 `<option value="${v.maPt}" data-capacity="${v.taiTrong}" ${v.maPt === trip.maPt ? 'selected' : ''}>${v.bienSo} (${v.loaiXe || 'Xe tải'} - Tải max ${v.taiTrong} kg)</option>`
             ).join('');
 

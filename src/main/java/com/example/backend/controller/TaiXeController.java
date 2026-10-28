@@ -82,9 +82,9 @@ public class TaiXeController {
     // ========================== NHẬN VÀ LẤY HÀNG (PICKUP) ==========================
 
     @GetMapping("/don-can-lay")
-    public ResponseEntity<ApiResponse<List<com.example.backend.entity.DonHang>>> getDonCanLay(
+    public ResponseEntity<ApiResponse<List<DonHangCanLayDTO>>> getDonCanLay(
             @RequestParam(required = false) String maTx) {
-        List<com.example.backend.entity.DonHang> list = taiXeService.getDonHangCanLayByTaiXe(maTx);
+        List<DonHangCanLayDTO> list = taiXeService.getDonHangCanLayByTaiXe(maTx);
         return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách đơn cần lấy của tài xế thành công"));
     }
 

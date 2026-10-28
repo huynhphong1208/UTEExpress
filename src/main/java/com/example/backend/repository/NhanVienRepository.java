@@ -11,6 +11,8 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, String> {
 
     Optional<NhanVien> findByNguoiDung_MaNd(String maNd);
 
+    Optional<NhanVien> findByNguoiDung_TenDangNhap(String tenDangNhap);
+
     boolean existsBySdt(String sdt);
 
     boolean existsByEmail(String email);
@@ -20,4 +22,6 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, String> {
     java.util.List<NhanVien> findByMaKho(String maKho);
 
     Optional<NhanVien> findFirstByMaKhoAndChucVu(String maKho, String chucVu);
+
+    Optional<NhanVien> findFirstByChucVu(String chucVu);
 }

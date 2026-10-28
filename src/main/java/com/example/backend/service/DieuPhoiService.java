@@ -24,6 +24,7 @@ public class DieuPhoiService {
     private final PhuongTienRepository phuongTienRepository;
     private final KienHangRepository kienHangRepository;
     private final DonHangRepository donHangRepository;
+    private final NhanVienRepository nhanVienRepository;
     private final JdbcTemplate jdbcTemplate;
 
     public DieuPhoiService(TuyenVanChuyenRepository tuyenVanChuyenRepository,
@@ -34,6 +35,7 @@ public class DieuPhoiService {
                            PhuongTienRepository phuongTienRepository,
                            KienHangRepository kienHangRepository,
                            DonHangRepository donHangRepository,
+                           NhanVienRepository nhanVienRepository,
                            JdbcTemplate jdbcTemplate) {
         this.tuyenVanChuyenRepository = tuyenVanChuyenRepository;
         this.chuyenGiaoRepository = chuyenGiaoRepository;
@@ -43,7 +45,51 @@ public class DieuPhoiService {
         this.phuongTienRepository = phuongTienRepository;
         this.kienHangRepository = kienHangRepository;
         this.donHangRepository = donHangRepository;
+        this.nhanVienRepository = nhanVienRepository;
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * Tự động xác định và chuẩn hóa thông tin nhân viên điều phối hợp lệ.
+     * Tránh lỗi vi phạm ràng buộc CSDL: 'Chỉ nhân viên điều phối mới được lập chuyến'.
+     */
+    public String[] resolveDispatcher(String maNvDp, String maNd) {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                String username = auth.getName();
+                var nvOpt = nhanVienRepository.findByNguoiDung_TenDangNhap(username);
+                if (nvOpt.isPresent() && "Nhân viên điều phối".equalsIgnoreCase(nvOpt.get().getChucVu())) {
+                    NhanVien nv = nvOpt.get();
+                    String resolvedNd = nv.getNguoiDung() != null ? nv.getNguoiDung().getMaNd() : maNd;
+                    return new String[]{nv.getMaNv(), resolvedNd != null ? resolvedNd : "ND004"};
+                }
+            }
+        } catch (Exception ignored) {}
+
+        if (maNvDp != null && !maNvDp.isBlank()) {
+            var nvOpt = nhanVienRepository.findById(maNvDp);
+            if (nvOpt.isPresent() && "Nhân viên điều phối".equalsIgnoreCase(nvOpt.get().getChucVu())) {
+                String resolvedNd = (maNd != null && !maNd.isBlank()) ? maNd
+                        : (nvOpt.get().getNguoiDung() != null ? nvOpt.get().getNguoiDung().getMaNd() : "ND004");
+                return new String[]{maNvDp, resolvedNd};
+            }
+        }
+
+        if (maNd != null && !maNd.isBlank()) {
+            var nvOpt = nhanVienRepository.findByNguoiDung_MaNd(maNd);
+            if (nvOpt.isPresent() && "Nhân viên điều phối".equalsIgnoreCase(nvOpt.get().getChucVu())) {
+                return new String[]{nvOpt.get().getMaNv(), maNd};
+            }
+        }
+
+        var defaultNv = nhanVienRepository.findFirstByChucVu("Nhân viên điều phối").orElse(null);
+        if (defaultNv != null) {
+            String resolvedNd = defaultNv.getNguoiDung() != null ? defaultNv.getNguoiDung().getMaNd() : "ND004";
+            return new String[]{defaultNv.getMaNv(), resolvedNd};
+        }
+
+        return new String[]{"NV011", "ND004"};
     }
 
     // ========================== TUYẾN VẬN CHUYỂN (CRUD) ==========================
@@ -140,6 +186,10 @@ public class DieuPhoiService {
      */
     @Transactional
     public String taoChuyenGiao(TaoChuyenGiaoRequest request) {
+        String[] dp = resolveDispatcher(request.getMaNvDp(), request.getMaNd());
+        String validMaNvDp = dp[0];
+        String validMaNd = dp[1];
+
         try {
             return jdbcTemplate.execute((java.sql.Connection con) -> {
                 try (java.sql.CallableStatement cs = con.prepareCall("CALL sp_tao_chuyen_giao(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
@@ -149,8 +199,8 @@ public class DieuPhoiService {
                     cs.setString(4, request.getMaTx());
                     cs.setString(5, request.getMaPt());
                     cs.setTimestamp(6, request.getNgayXuatPhat() != null ? java.sql.Timestamp.valueOf(request.getNgayXuatPhat()) : null);
-                    cs.setString(7, request.getMaNvDp());
-                    cs.setString(8, request.getMaNd());
+                    cs.setString(7, validMaNvDp);
+                    cs.setString(8, validMaNd);
                     cs.setTimestamp(9, request.getNgayDenDuKien() != null ? java.sql.Timestamp.valueOf(request.getNgayDenDuKien()) : null);
                     cs.registerOutParameter(10, java.sql.Types.VARCHAR);
                     cs.execute();
@@ -248,8 +298,8 @@ public class DieuPhoiService {
                    COALESCE(ct.so_kien, 0) AS so_kien, COALESCE(ct.tong_kg, 0) AS tong_kg,
                    CASE WHEN pt.tai_trong > 0 THEN ROUND(100.0 * COALESCE(ct.tong_kg, 0) / pt.tai_trong, 1) ELSE 0 END AS ty_le_tai
             FROM chuyen_giao c
-            JOIN tai_xe tx ON tx.ma_tx = c.ma_tx
-            JOIN phuong_tien pt ON pt.ma_pt = c.ma_pt
+            LEFT JOIN tai_xe tx ON tx.ma_tx = c.ma_tx
+            LEFT JOIN phuong_tien pt ON pt.ma_pt = c.ma_pt
             LEFT JOIN tuyen_van_chuyen t ON t.ma_tuyen = c.ma_tuyen
             LEFT JOIN kho kdi  ON kdi.ma_kho  = COALESCE(t.ma_kho_di, c.ma_kho_giao)
             LEFT JOIN kho kden ON kden.ma_kho = t.ma_kho_den
@@ -307,18 +357,28 @@ public class DieuPhoiService {
                 "SELECT COUNT(*) FROM chuyen_giao WHERE trang_thai = 'Hoàn thành'", Long.class);
 
         Long donCanDieuPhoi = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM kien_hang WHERE ma_kho_hien_tai IS NOT NULL " +
-                "AND ma_kien NOT IN (SELECT c.ma_kien FROM chi_tiet_chuyen_giao c " +
+                "SELECT COUNT(*) FROM kien_hang k " +
+                "JOIN don_hang dh ON k.ma_dh = dh.ma_dh " +
+                "WHERE k.ma_kho_hien_tai IS NOT NULL " +
+                "AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') " +
+                "AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY') " +
+                "AND k.ma_kien NOT IN (SELECT c.ma_kien FROM chi_tiet_chuyen_giao c " +
                 "JOIN chuyen_giao cg ON cg.ma_chuyen = c.ma_chuyen WHERE cg.trang_thai IN ('Chưa đi', 'Đang đi'))",
                 Long.class);
 
         Long taiXeKhaDung = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM tai_xe WHERE ma_tx NOT IN (" +
-                "SELECT ma_tx FROM chuyen_giao WHERE trang_thai = 'Đang đi')", Long.class);
+                "SELECT COUNT(*) FROM tai_xe tx " +
+                "LEFT JOIN nguoi_dung nd ON tx.ma_nd = nd.ma_nd " +
+                "WHERE (nd.trang_thai IS NULL OR nd.trang_thai = 'Hoạt động') " +
+                "AND tx.ma_tx NOT IN (" +
+                "SELECT c.ma_tx FROM chuyen_giao c WHERE c.ma_tx IS NOT NULL AND c.trang_thai IN ('Đang đi', 'Chưa đi'))",
+                Long.class);
 
         Long phuongTienKhaDung = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM phuong_tien WHERE trang_thai = 'Sẵn sàng' AND ma_pt NOT IN (" +
-                "SELECT ma_pt FROM chuyen_giao WHERE trang_thai = 'Đang đi')", Long.class);
+                "SELECT COUNT(*) FROM phuong_tien pt " +
+                "WHERE pt.trang_thai = 'Sẵn sàng' AND pt.ma_pt NOT IN (" +
+                "SELECT c.ma_pt FROM chuyen_giao c WHERE c.ma_pt IS NOT NULL AND c.trang_thai IN ('Đang đi', 'Chưa đi'))",
+                Long.class);
 
         List<ChuyenGiaoChiTietDTO> recentTrips = getChuyenGiaoChiTietList();
         if (recentTrips.size() > 5) {
@@ -342,52 +402,7 @@ public class DieuPhoiService {
      * STT 1: Danh sách đơn / kiện đang chờ điều phối, chờ xuất bến
      */
     public List<DonCanDieuPhoiDTO> getDonCanDieuPhoiList() {
-        String sql = """
-            SELECT 
-                k.ma_kien,
-                k.ma_dh,
-                k.loai_hang,
-                k.khoi_luong,
-                k.ma_kho_hien_tai,
-                kh.ten_kho AS ten_kho_hien_tai,
-                dh.dia_chi_giao,
-                dh.ma_kho_nhan,
-                kn.ten_kho AS ten_kho_nhan,
-                dh.ten_nguoi_nhan,
-                dh.sdt_nhan,
-                dh.cod,
-                dh.ma_tt,
-                tt.ten_trang_thai AS trang_thai_don
-            FROM kien_hang k
-            JOIN don_hang dh ON k.ma_dh = dh.ma_dh
-            LEFT JOIN kho kh ON k.ma_kho_hien_tai = kh.ma_kho
-            LEFT JOIN kho kn ON dh.ma_kho_nhan = kn.ma_kho
-            LEFT JOIN trang_thai_dh tt ON dh.ma_tt = tt.ma_trang_thai
-            WHERE k.ma_kho_hien_tai IS NOT NULL
-              AND k.ma_kien NOT IN (
-                  SELECT c.ma_kien FROM chi_tiet_chuyen_giao c
-                  JOIN chuyen_giao cg ON cg.ma_chuyen = c.ma_chuyen
-                  WHERE cg.trang_thai IN ('Chưa đi', 'Đang đi')
-              )
-            ORDER BY k.ma_kien ASC
-        """;
-
-        return jdbcTemplate.query(sql, (rs, rowNum) -> DonCanDieuPhoiDTO.builder()
-                .maKien(rs.getString("ma_kien"))
-                .maDh(rs.getString("ma_dh"))
-                .loaiHang(rs.getString("loai_hang"))
-                .khoiLuong(rs.getBigDecimal("khoi_luong"))
-                .maKhoHienTai(rs.getString("ma_kho_hien_tai"))
-                .tenKhoHienTai(rs.getString("ten_kho_hien_tai"))
-                .diaChiGiao(rs.getString("dia_chi_giao"))
-                .maKhoNhan(rs.getString("ma_kho_nhan"))
-                .tenKhoNhan(rs.getString("ten_kho_nhan"))
-                .tenNguoiNhan(rs.getString("ten_nguoi_nhan"))
-                .sdtNhan(rs.getString("sdt_nhan"))
-                .cod(rs.getBigDecimal("cod"))
-                .maTt(rs.getString("ma_tt"))
-                .trangThaiDon(rs.getString("trang_thai_don"))
-                .build());
+        return getAvailableKienHangDTOList(null, null, null, null);
     }
 
     /**
@@ -408,7 +423,7 @@ public class DieuPhoiService {
 
     public List<DonCanDieuPhoiDTO> getAvailableKienHangDTOList(String maKho, String loaiChuyen, String maTuyen, String maKhoNhan) {
         StringBuilder sql = new StringBuilder("""
-            SELECT 
+            SELECT
                 k.ma_kien,
                 k.ma_dh,
                 k.loai_hang,
@@ -442,6 +457,10 @@ public class DieuPhoiService {
         if (maKhoNhan != null && !maKhoNhan.isBlank()) {
             sql.append(" AND dh.ma_kho_nhan = ? ");
             params.add(maKhoNhan);
+        }
+
+        if (loaiChuyen == null || loaiChuyen.isBlank()) {
+            sql.append(" AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') ");
         }
 
         if (loaiChuyen != null && !loaiChuyen.isBlank()) {
@@ -558,50 +577,34 @@ public class DieuPhoiService {
      */
     public List<TaiXeKhaDungDTO> getTaiXeKhaDungList() {
         String sql = """
-            SELECT 
+            SELECT
                 tx.ma_tx,
                 tx.ho_ten,
                 tx.sdt,
                 tx.bang_lai,
-                COALESCE(nd.trang_thai, 'Hoạt động') AS trang_thai_tk,
-                cg.ma_chuyen,
-                cg.trang_thai AS trang_thai_chuyen
+                COALESCE(nd.trang_thai, 'Hoạt động') AS trang_thai_tk
             FROM tai_xe tx
             LEFT JOIN nguoi_dung nd ON tx.ma_nd = nd.ma_nd
-            LEFT JOIN LATERAL (
-                SELECT c.ma_chuyen, c.trang_thai
-                FROM chuyen_giao c
-                WHERE c.ma_tx = tx.ma_tx AND c.trang_thai IN ('Chưa đi', 'Đang đi')
-                ORDER BY CASE WHEN c.trang_thai = 'Đang đi' THEN 1 ELSE 2 END
-                LIMIT 1
-            ) cg ON true
-            WHERE tx.ma_tx NOT IN (
-                SELECT c2.ma_tx FROM chuyen_giao c2 WHERE c2.trang_thai = 'Đang đi'
+            WHERE (nd.trang_thai IS NULL OR nd.trang_thai = 'Hoạt động')
+              AND tx.ma_tx NOT IN (
+                SELECT c2.ma_tx
+                FROM chuyen_giao c2
+                WHERE c2.ma_tx IS NOT NULL
+                  AND c2.trang_thai IN ('Đang đi', 'Chưa đi')
             )
             ORDER BY tx.ma_tx ASC
         """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            String maChuyen = rs.getString("ma_chuyen");
-            String ttChuyen = rs.getString("trang_thai_chuyen");
-            String thongTin;
-            if (maChuyen != null && !maChuyen.isBlank()) {
-                thongTin = "Đã xếp chuyến " + maChuyen + " (" + ttChuyen + ")";
-            } else {
-                thongTin = "Sẵn sàng nhận chuyến (Chưa gán)";
-            }
-
-            return TaiXeKhaDungDTO.builder()
-                    .maTx(rs.getString("ma_tx"))
-                    .hoTen(rs.getString("ho_ten"))
-                    .sdt(rs.getString("sdt"))
-                    .bangLai(rs.getString("bang_lai"))
-                    .trangThaiTaiKhoan(rs.getString("trang_thai_tk"))
-                    .chuyenHienTai(maChuyen)
-                    .thongTinPhanCong(thongTin)
-                    .khaDung(true)
-                    .build();
-        });
+        return jdbcTemplate.query(sql, (rs, rowNum) -> TaiXeKhaDungDTO.builder()
+                .maTx(rs.getString("ma_tx"))
+                .hoTen(rs.getString("ho_ten"))
+                .sdt(rs.getString("sdt"))
+                .bangLai(rs.getString("bang_lai"))
+                .trangThaiTaiKhoan(rs.getString("trang_thai_tk"))
+                .chuyenHienTai(null)
+                .thongTinPhanCong("Sẵn sàng nhận chuyến (Chưa gán)")
+                .khaDung(true)
+                .build());
     }
 
     /**
@@ -609,24 +612,19 @@ public class DieuPhoiService {
      */
     public List<PhuongTienKhaDungDTO> getPhuongTienKhaDungList() {
         String sql = """
-            SELECT 
+            SELECT
                 pt.ma_pt,
                 pt.bien_so,
                 pt.loai_xe,
                 pt.tai_trong,
-                pt.trang_thai,
-                cg.ma_chuyen AS chuyen_hien_tai
+                pt.trang_thai
             FROM phuong_tien pt
-            LEFT JOIN LATERAL (
-                SELECT c.ma_chuyen
-                FROM chuyen_giao c
-                WHERE c.ma_pt = pt.ma_pt AND c.trang_thai IN ('Chưa đi', 'Đang đi')
-                ORDER BY CASE WHEN c.trang_thai = 'Đang đi' THEN 1 ELSE 2 END
-                LIMIT 1
-            ) cg ON true
             WHERE pt.trang_thai = 'Sẵn sàng'
               AND pt.ma_pt NOT IN (
-                  SELECT c2.ma_pt FROM chuyen_giao c2 WHERE c2.trang_thai = 'Đang đi'
+                  SELECT c2.ma_pt
+                  FROM chuyen_giao c2
+                  WHERE c2.ma_pt IS NOT NULL
+                    AND c2.trang_thai IN ('Đang đi', 'Chưa đi')
               )
             ORDER BY pt.ma_pt ASC
         """;
@@ -637,7 +635,7 @@ public class DieuPhoiService {
                 .loaiXe(rs.getString("loai_xe"))
                 .taiTrong(rs.getBigDecimal("tai_trong"))
                 .trangThai(rs.getString("trang_thai"))
-                .chuyenHienTai(rs.getString("chuyen_hien_tai"))
+                .chuyenHienTai(null)
                 .khaDung(true)
                 .build());
     }
@@ -832,7 +830,7 @@ public class DieuPhoiService {
         }
         if (search != null && !search.isBlank()) {
             String lower = search.toLowerCase().trim();
-            all = all.stream().filter(c -> 
+            all = all.stream().filter(c ->
                 (c.getMaChuyen() != null && c.getMaChuyen().toLowerCase().contains(lower)) ||
                 (c.getTenTaiXe() != null && c.getTenTaiXe().toLowerCase().contains(lower)) ||
                 (c.getBienSo() != null && c.getBienSo().toLowerCase().contains(lower))

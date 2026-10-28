@@ -125,8 +125,9 @@
                                     <div style="font-weight: 600; margin-top: 2px;" id="dispReceiver">---</div>
                                 </div>
                                 <div>
-                                    <span style="font-size: 12px; color: var(--text-muted);">Tiền thu COD</span>
-                                    <div style="font-weight: 700; color: var(--danger); margin-top: 2px;" id="dispCod">0 đ</div>
+                                    <span style="font-size: 12px; color: var(--text-muted);" id="dispPaymentTitle">Tiền cần thu khi giao</span>
+                                    <div style="font-weight: 700; color: var(--danger); font-size: 15px; margin-top: 2px;" id="dispCod">0 đ</div>
+                                    <div style="font-size: 11.5px; margin-top: 2px;" id="dispPaymentNote">---</div>
                                 </div>
                             </div>
                             <div style="margin-top: 10px; font-size: 13px; color: var(--text-muted);" id="dispAddress">
@@ -240,7 +241,7 @@
 
                 if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
                     const trips = res.data;
-                    select.innerHTML = trips.map(t => 
+                    select.innerHTML = trips.map(t =>
                         `<option value="${t.maChuyen}">${t.maChuyen} - ${t.loaiChuyen} (${t.trangThai})</option>`
                     ).join('');
 
@@ -320,7 +321,7 @@
                 banner.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong>🚚 Chuyến LIÊN KHO (${currentTripData.maChuyen} - ${currentTripData.trangThai}):</strong> 
+                            <strong>🚚 Chuyến LIÊN KHO (${currentTripData.maChuyen} - ${currentTripData.trangThai}):</strong>
                             Vận chuyển hàng giữa các kho bưu cục. Bạn có thể quét mã vạch các kiện lên xe.<br>
                             <small style="opacity: 0.9;">* Lưu ý: Nghiệp vụ giao hàng cho khách & thu COD chỉ áp dụng cho chuyến Giao cuối.</small>
                         </div>
@@ -337,7 +338,7 @@
                     banner.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <strong>⚠️ Chuyến GIAO CUỐI (${currentTripData.maChuyen}) CHƯA XUẤT PHÁT:</strong> 
+                                <strong>⚠️ Chuyến GIAO CUỐI (${currentTripData.maChuyen}) CHƯA XUẤT PHÁT:</strong>
                                 Backend quy định chuyến phải ở trạng thái "Đang đi" mới có thể giao hàng cho khách.
                             </div>
                             <button class="btn btn-warning btn-sm" onclick="quickStartCurrentTrip()" style="font-weight: 700;">
@@ -353,7 +354,7 @@
                     banner.style.color = '#065F46';
                     banner.innerHTML = `
                         <div>
-                            <strong>✓ Chuyến GIAO CUỐI (${currentTripData.maChuyen}) ĐANG ĐI:</strong> 
+                            <strong>✓ Chuyến GIAO CUỐI (${currentTripData.maChuyen}) ĐANG ĐI:</strong>
                             Sẵn sàng cập nhật kết quả giao hàng và thu COD cho khách hàng.
                         </div>
                     `;
@@ -417,9 +418,16 @@
 
             container.innerHTML = tripPackages.map(p => {
                 const badge = getStatusBadge(p.trangThai);
+                const isCk = p.phiDaThanhToan || (p.phuongThucThanhToan && p.phuongThucThanhToan.toLowerCase().includes('chuyển'));
+                const codVal = Number(p.cod || 0);
+                const phiVC = Number(p.phiVanChuyen || 0);
+                const thuText = isCk
+                    ? (codVal > 0 ? `Thu COD: ${codVal.toLocaleString('vi-VN')}đ` : 'Đã TT CK')
+                    : `Thu Cước+COD: ${(phiVC + codVal).toLocaleString('vi-VN')}đ`;
+
                 return `
-                    <button class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 12px;" onclick="selectAndScan('${p.maKien}')">
-                        📦 ${p.maKien} (${badge})
+                    <button class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 12px;" onclick="selectAndScan('${p.maKien}')" title="${thuText}">
+                        📦 ${p.maKien} (${badge}) - <span style="color: ${isCk ? '#059669' : '#DC2626'}; font-weight: 600;">${thuText}</span>
                     </button>
                 `;
             }).join('');
@@ -455,7 +463,42 @@
             document.getElementById('scanTimestamp').innerText = new Date().toLocaleString('vi-VN');
             document.getElementById('dispPkgAndOrder').innerText = `${pkg.maKien} / Đơn: ${pkg.maDh || '---'}`;
             document.getElementById('dispReceiver').innerText = `${pkg.tenNguoiNhan || 'Khách hàng'} (${pkg.sdtNhan || '---'})`;
-            document.getElementById('dispCod').innerText = (pkg.cod || 0).toLocaleString('vi-VN') + ' đ';
+
+            const isCk = pkg.phiDaThanhToan || (pkg.phuongThucThanhToan && pkg.phuongThucThanhToan.toLowerCase().includes('chuyển'));
+            const codVal = Number(pkg.cod || 0);
+            const phiVC = Number(pkg.phiVanChuyen || 0);
+            const dispCodEl = document.getElementById('dispCod');
+            const dispTitleEl = document.getElementById('dispPaymentTitle');
+            const dispNoteEl = document.getElementById('dispPaymentNote');
+            const driverNoteEl = document.getElementById('driverNote');
+
+            if (isCk) {
+                if (dispTitleEl) dispTitleEl.innerText = 'Tiền thu khi giao (Chỉ thu COD)';
+                if (dispCodEl) {
+                    dispCodEl.innerText = codVal > 0 ? (codVal.toLocaleString('vi-VN') + ' đ') : '0 đ (Không thu tiền)';
+                    dispCodEl.style.color = codVal > 0 ? 'var(--danger)' : 'var(--text-muted)';
+                }
+                if (dispNoteEl) {
+                    dispNoteEl.innerHTML = `<span style="color: var(--success); font-weight: 600;">✓ Khách đã thanh toán cước chuyển khoản</span>${codVal > 0 ? ' — Tài xế chỉ thu tiền COD' : ''}`;
+                }
+                if (driverNoteEl && !driverNoteEl.value.trim()) {
+                    driverNoteEl.placeholder = codVal > 0 ? 'Ví dụ: Đã giao tận tay, thu đủ COD...' : 'Ví dụ: Đã giao tận tay, cước đã thanh toán trực tuyến...';
+                }
+            } else {
+                const tongThu = (pkg.tongTienThu !== undefined && pkg.tongTienThu !== null) ? Number(pkg.tongTienThu) : (phiVC + codVal);
+                if (dispTitleEl) dispTitleEl.innerText = 'Tiền cần thu (Cước + COD)';
+                if (dispCodEl) {
+                    dispCodEl.innerText = tongThu.toLocaleString('vi-VN') + ' đ';
+                    dispCodEl.style.color = '#DC2626';
+                }
+                if (dispNoteEl) {
+                    dispNoteEl.innerHTML = `<span style="color: #D97706; font-weight: 600;">Tiền mặt:</span> Cước: <b>${phiVC.toLocaleString('vi-VN')} đ</b> + COD: <b>${codVal.toLocaleString('vi-VN')} đ</b>`;
+                }
+                if (driverNoteEl && !driverNoteEl.value.trim()) {
+                    driverNoteEl.placeholder = `Ví dụ: Đã giao tận tay, thu tiền mặt cả cước (${phiVC.toLocaleString('vi-VN')} đ) và COD (${codVal.toLocaleString('vi-VN')} đ)...`;
+                }
+            }
+
             document.getElementById('dispAddress').innerText = `Địa chỉ giao: ${pkg.diaChiGiao || '---'}`;
             document.getElementById('pkgScanStatusText').innerText = `[${pkg.trangThai}]`;
             document.getElementById('recipientCollectorName').value = pkg.tenNguoiNhan || '';
