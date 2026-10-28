@@ -369,6 +369,10 @@ public class DieuPhoiService {
      *     + Trạng thái đơn: TT02, TT04, TT08
      */
     public List<DonCanDieuPhoiDTO> getAvailableKienHangDTOList(String maKho, String loaiChuyen, String maTuyen) {
+        return getAvailableKienHangDTOList(maKho, loaiChuyen, maTuyen, null);
+    }
+
+    public List<DonCanDieuPhoiDTO> getAvailableKienHangDTOList(String maKho, String loaiChuyen, String maTuyen, String maKhoNhan) {
         StringBuilder sql = new StringBuilder("""
             SELECT 
                 k.ma_kien,
@@ -399,6 +403,11 @@ public class DieuPhoiService {
         """);
 
         List<Object> params = new java.util.ArrayList<>();
+
+        if (maKhoNhan != null && !maKhoNhan.isBlank()) {
+            sql.append(" AND dh.ma_kho_nhan = ? ");
+            params.add(maKhoNhan);
+        }
 
         if (loaiChuyen != null && !loaiChuyen.isBlank()) {
             if ("LIEN_KHO".equalsIgnoreCase(loaiChuyen)) {
@@ -801,7 +810,11 @@ public class DieuPhoiService {
      * Lấy danh sách kiện chờ điều phối có phân trang.
      */
     public PageResponse<DonCanDieuPhoiDTO> getDonCanDieuPhoiPaged(int page, int size, String maKho, String loaiChuyen, String maTuyen) {
-        List<DonCanDieuPhoiDTO> all = getAvailableKienHangDTOList(maKho, loaiChuyen, maTuyen);
+        return getDonCanDieuPhoiPaged(page, size, maKho, loaiChuyen, maTuyen, null);
+    }
+
+    public PageResponse<DonCanDieuPhoiDTO> getDonCanDieuPhoiPaged(int page, int size, String maKho, String loaiChuyen, String maTuyen, String maKhoNhan) {
+        List<DonCanDieuPhoiDTO> all = getAvailableKienHangDTOList(maKho, loaiChuyen, maTuyen, maKhoNhan);
         return PageResponse.of(all, page, size);
     }
 

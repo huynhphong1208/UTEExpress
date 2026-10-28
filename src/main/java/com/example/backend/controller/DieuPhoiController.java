@@ -36,12 +36,15 @@ public class DieuPhoiController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String maKho,
             @RequestParam(required = false) String loaiChuyen,
-            @RequestParam(required = false) String maTuyen) {
+            @RequestParam(required = false) String maTuyen,
+            @RequestParam(required = false) String maKhoNhan) {
         if (page != null && size != null) {
-            PageResponse<DonCanDieuPhoiDTO> paged = dieuPhoiService.getDonCanDieuPhoiPaged(page, size, maKho, loaiChuyen, maTuyen);
+            PageResponse<DonCanDieuPhoiDTO> paged = dieuPhoiService.getDonCanDieuPhoiPaged(page, size, maKho, loaiChuyen, maTuyen, maKhoNhan);
             return ResponseEntity.ok(ApiResponse.ok(paged, "Lấy danh sách đơn cần điều phối phân trang thành công"));
         }
-        List<DonCanDieuPhoiDTO> list = dieuPhoiService.getDonCanDieuPhoiList();
+        List<DonCanDieuPhoiDTO> list = (maKhoNhan != null && !maKhoNhan.isBlank()) 
+                ? dieuPhoiService.getAvailableKienHangDTOList(maKho, loaiChuyen, maTuyen, maKhoNhan)
+                : dieuPhoiService.getDonCanDieuPhoiList();
         return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách đơn cần điều phối thành công"));
     }
 

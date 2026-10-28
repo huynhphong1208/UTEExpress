@@ -14,4 +14,10 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, String> {
     boolean existsBySdt(String sdt);
 
     boolean existsByEmail(String email);
+
+    Optional<NhanVien> findBySdt(String sdt);
+
+    java.util.List<NhanVien> findByMaKho(String maKho);
+
+    Optional<NhanVien> findFirstByMaKhoAndChucVu(String maKho, String chucVu);
 }

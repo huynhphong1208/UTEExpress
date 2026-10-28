@@ -130,20 +130,26 @@
                                     <div class="grid-2" style="margin-bottom: 20px;">
                                         <div class="form-group" style="margin-bottom: 0;">
                                             <label class="form-label">Kho gửi <span style="color: red;">*</span></label>
-                                            <select class="form-select" id="maKhoGui">
-                                                <option value="KHO01">KHO01 - Bưu cục Thủ Đức</option>
-                                                <option value="KHO02">KHO02 - Bưu cục Cầu Giấy</option>
-                                                <option value="KHO03">KHO03 - Bưu cục Đà Nẵng</option>
-                                                <option value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                                            <select class="form-select" id="maKhoGui" name="maKhoGui">
+                                                <option th:each="kho : ${danhSachKho}" 
+                                                        th:value="${kho.maKho}" 
+                                                        th:text="|${kho.maKho} - ${kho.tenKho} (${kho.diaChi})|"
+                                                        th:selected="${kho.maKho == 'KHO01'}">KHO01 - Bưu cục Thủ Đức</option>
+                                                <!-- Fallback if not rendered with Thymeleaf model -->
+                                                <option th:if="${danhSachKho == null || #lists.isEmpty(danhSachKho)}" value="KHO01">KHO01 - Bưu cục Thủ Đức</option>
+                                                <option th:if="${danhSachKho == null || #lists.isEmpty(danhSachKho)}" value="KHO02">KHO02 - Bưu cục Cầu Giấy</option>
                                             </select>
                                         </div>
                                         <div class="form-group" style="margin-bottom: 0;">
                                             <label class="form-label">Kho nhận <span style="color: red;">*</span></label>
-                                            <select class="form-select" id="maKhoNhan">
-                                                <option value="KHO01">KHO01 - Bưu cục Thủ Đức</option>
-                                                <option value="KHO03" selected>KHO03 - Bưu cục Đà Nẵng</option>
-                                                <option value="KHO02">KHO02 - Bưu cục Cầu Giấy</option>
-                                                <option value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                                            <select class="form-select" id="maKhoNhan" name="maKhoNhan">
+                                                <option th:each="kho : ${danhSachKho}" 
+                                                        th:value="${kho.maKho}" 
+                                                        th:text="|${kho.maKho} - ${kho.tenKho} (${kho.diaChi})|"
+                                                        th:selected="${kho.maKho == 'KHO02'}">KHO02 - Bưu cục Cầu Giấy</option>
+                                                <!-- Fallback if not rendered with Thymeleaf model -->
+                                                <option th:if="${danhSachKho == null || #lists.isEmpty(danhSachKho)}" value="KHO02">KHO02 - Bưu cục Cầu Giấy</option>
+                                                <option th:if="${danhSachKho == null || #lists.isEmpty(danhSachKho)}" value="KHO01">KHO01 - Bưu cục Thủ Đức</option>
                                             </select>
                                         </div>
                                     </div>

@@ -144,6 +144,15 @@ public class PostOfficeService {
                             + donHang.getMaKhoGui() + ")");
         }
 
+        if (request.getMaNV() != null && !request.getMaNV().isBlank()) {
+            NhanVien nv = nhanVienRepository.findById(request.getMaNV()).orElse(null);
+            if (nv != null && nv.getMaKho() != null && !nv.getMaKho().equals(donHang.getMaKhoGui())) {
+                throw new IllegalArgumentException(
+                        "Nhân viên " + nv.getHoTen() + " thuộc bưu cục " + nv.getMaKho() +
+                                ", chỉ có nhân viên bưu cục tại " + donHang.getMaKhoGui() + " mới được tiếp nhận đơn hàng này!");
+            }
+        }
+
         // Kiểm tra phương thức thanh toán: nếu chuyển khoản mà chưa thanh toán thì KHÔNG THỂ tiếp nhận
         List<ThanhToan> existingPayments = thanhToanRepository.findByDonHang_MaDhOrderByThoiGianDesc(donHang.getMaDh());
         ThanhToan phiPayment = existingPayments.stream()

@@ -59,19 +59,28 @@ function showToast(title, message, type = 'info') {
     }, 3500);
 }
 
-// 3. TÍNH CƯỚC PHÍ VẬN CHUYỂN TỰ ĐỘNG
+// 3. TÍNH CƯỚC PHÍ VẬN CHUYỂN TỰ ĐỘNG (CHUẨN LOGISTICS UTE EXPRESS)
 function calculateShippingFee(weightKg, lengthCm = 10, widthCm = 10, heightCm = 10, distanceKm = 10) {
-    const volWeight = (lengthCm * widthCm * heightCm) / 5000;
-    const chargeWeight = Math.max(parseFloat(weightKg) || 0, volWeight);
+    const volWeight = (parseFloat(lengthCm || 10) * parseFloat(widthCm || 10) * parseFloat(heightCm || 10)) / 5000;
+    const chargeWeight = Math.max(parseFloat(weightKg) || 0.5, volWeight);
+    const dist = parseFloat(distanceKm) || 0;
     
+    // Cước cơ bản theo khoảng cách:
+    // - Cùng bưu cục / nội thành (<= 25km): 15.000 đ
+    // - Liên tỉnh gần (<= 300km): 22.000 đ
+    // - Liên tỉnh xa / Bắc - Nam (> 300km): 30.000 đ
     let basePrice = 15000;
-    if (chargeWeight > 1) {
-        basePrice += Math.ceil(chargeWeight - 1) * 5000;
+    if (dist > 300) {
+        basePrice = 30000;
+    } else if (dist > 25) {
+        basePrice = 22000;
     }
-    if (distanceKm > 10) {
-        basePrice += Math.ceil(distanceKm - 10) * 1000;
+    
+    // Phụ phí vượt khối lượng (> 1kg): +5.000 đ / mỗi kg vượt
+    if (chargeWeight > 1.0) {
+        basePrice += Math.ceil(chargeWeight - 1.0) * 5000;
     }
-    return basePrice;
+    return Math.round(basePrice);
 }
 
 // 4. RENDER STATUS BADGE HELPER

@@ -282,12 +282,21 @@
                     <!-- PANE 1: ĐƠN CẦN ĐIỀU PHỐI (STT 1) -->
                     <div class="tab-pane active" id="tabPane1">
                         <div
-                            style="padding: 12px 20px; background: #FEF2F2; border-bottom: 1px solid #FEE2E2; font-size: 13.5px; color: #991B1B; display: flex; align-items: center; justify-content: space-between;">
+                            style="padding: 12px 20px; background: #FEF2F2; border-bottom: 1px solid #FEE2E2; font-size: 13.5px; color: #991B1B; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
                             <div>
                                 📌 <strong>Tổng số đơn/kiện đang chờ điều phối, chờ xuất bến:</strong> Nhân viên kiểm
                                 tra và gán vào các chuyến liên kho hoặc giao cuối phù hợp.
                             </div>
-
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label for="filterKhoNhanTab1" style="font-weight: 600; color: #7F1D1D; margin: 0; white-space: nowrap; font-size: 13px;">
+                                    🏢 Lọc theo kho nhận:
+                                </label>
+                                <select id="filterKhoNhanTab1" class="form-select form-select-sm"
+                                    style="min-width: 240px; font-size: 13px; font-weight: 500; border: 1.5px solid #F87171; border-radius: 6px; padding: 5px 10px; background-color: #FFFFFF; color: #1E293B; cursor: pointer;"
+                                    onchange="onKhoNhanFilterChange(this.value)">
+                                    <option value="">-- Tất cả kho nhận --</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table">
@@ -452,8 +461,8 @@
         </div>
     </div>
 
-    <script src="../../static/js/api-client.js"></script>
-    <script src="../../static/js/components.js"></script>
+    <script th:src="@{/js/api-client.js}" src="../../static/js/api-client.js"></script>
+    <script th:src="@{/js/components.js}" src="../../static/js/components.js"></script>
     <script>
         // State storage
         // State storage
@@ -501,7 +510,9 @@
             const tbody = document.getElementById('tbodyPendingPackages');
             tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 24px;">Đang tải danh sách đơn cần điều phối...</td></tr>`;
             try {
-                const res = await UteApi.getPendingDispatches({ page, size });
+                const selectKhoNhan = document.getElementById('filterKhoNhanTab1');
+                const maKhoNhan = selectKhoNhan ? selectKhoNhan.value : '';
+                const res = await UteApi.getPendingDispatches({ page, size, maKhoNhan });
                 if (res && res.success && res.data) {
                     const paged = res.data;
                     paginationTab1.setServerPageInfo(paged);
@@ -515,6 +526,30 @@
             } catch (err) {
                 console.error('Lỗi tải tab 1:', err);
                 tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--danger); padding: 24px;">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
+            }
+        }
+
+        function onKhoNhanFilterChange(khoValue) {
+            paginationTab1.currentPage = 1;
+            loadTab1(1, paginationTab1.pageSize);
+        }
+
+        async function loadKhoNhanDropdown() {
+            const select = document.getElementById('filterKhoNhanTab1');
+            if (!select) return;
+            try {
+                const res = await UteApi.getWarehouses();
+                if (res && res.success && res.data) {
+                    const cur = select.value;
+                    let html = '<option value="">-- Tất cả kho nhận --</option>';
+                    res.data.forEach(k => {
+                        html += `<option value="${k.maKho}">${k.maKho} - ${k.tenKho}</option>`;
+                    });
+                    select.innerHTML = html;
+                    if (cur) select.value = cur;
+                }
+            } catch (e) {
+                console.warn('Lỗi tải danh mục kho nhận:', e);
             }
         }
 
@@ -597,7 +632,8 @@
                     document.getElementById('statXeKhaDung').innerText = d.phuongTienKhaDung ?? 0;
                 }
 
-                // 2. Tải song song 4 Tab theo cấu hình Server-side ban đầu
+                // 2. Tải danh mục kho nhận và song song 4 Tab theo cấu hình Server-side ban đầu
+                await loadKhoNhanDropdown();
                 await Promise.allSettled([
                     loadTab1(1, paginationTab1.pageSize),
                     loadTab2(1, paginationTab2.pageSize),

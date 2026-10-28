@@ -28,6 +28,8 @@ public interface DonHangRepository extends JpaRepository<DonHang, String> {
      */
     List<DonHang> findByMaKhoGuiAndTrangThai_MaTrangThai(String maKhoGui, String maTrangThai);
 
+    List<DonHang> findByMaKhoGuiOrderByNgayTaoDesc(String maKhoGui);
+
     /**
      * Đếm số đơn theo mã trạng thái
      */

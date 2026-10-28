@@ -30,6 +30,10 @@ public interface KienHangRepository extends JpaRepository<KienHang, String> {
            countQuery = "SELECT COUNT(k) FROM KienHang k")
     Page<KienHang> findAllWithDonHangAndKho(Pageable pageable);
 
+    @Query(value = "SELECT k FROM KienHang k LEFT JOIN FETCH k.donHang LEFT JOIN FETCH k.khoHienTai WHERE k.khoHienTai.maKho = :maKho",
+           countQuery = "SELECT COUNT(k) FROM KienHang k WHERE k.khoHienTai.maKho = :maKho")
+    Page<KienHang> findByKhoHienTaiWithDonHangAndKho(@Param("maKho") String maKho, Pageable pageable);
+
     @org.springframework.data.jpa.repository.Modifying
     @Query("UPDATE KienHang k SET k.khoHienTai = :kho WHERE k.maKien = :maKien")
     int updateKhoHienTai(@Param("maKien") String maKien, @Param("kho") com.example.backend.entity.Kho kho);

@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>17 – Cập nhật kết quả giao hàng - UTE Express</title>
-    <link rel="stylesheet" href="../../static/css/design-system.css">
-    <link rel="stylesheet" href="../../static/css/components.css">
-    <link rel="stylesheet" href="../../static/css/layout.css">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="../../static/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="../../static/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="../../static/css/layout.css">
 </head>
 <body>
     <div class="app-layout">
@@ -605,5 +605,6 @@
 
         document.addEventListener('DOMContentLoaded', initPage);
     </script>
+    <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
 </body>
 </html>

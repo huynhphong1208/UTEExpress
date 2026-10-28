@@ -201,6 +201,88 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công!"));
     }
 
+    // ---- Cập nhật thông tin tài khoản (Họ tên, SĐT, Email, Địa chỉ) cho mọi Role ----
+    @Operation(summary = "Cập nhật hồ sơ tài khoản", description = "Cho phép mọi role cập nhật họ tên, SĐT, Email")
+    @PostMapping("/profile")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> updateProfile(
+            @Valid @RequestBody UpdateProfileRequest request,
+            Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            throw new BusinessException("Bạn chưa đăng nhập", 401);
+        }
+        String username = authentication.getName();
+        NguoiDung nd = nguoiDungRepository.findByTenDangNhap(username)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", 404));
+
+        String role = nd.getVaiTro() != null ? nd.getVaiTro().getMaVaiTro() : "";
+        String hoTen = request.getHoTen().trim();
+        String sdt = request.getSdt().trim();
+        String email = request.getEmail() != null ? request.getEmail().trim() : null;
+
+        if ("KHACH_HANG".equals(role)) {
+            KhachHang kh = khachHangRepository.findByNguoiDung_MaNd(nd.getMaNd())
+                    .or(() -> khachHangRepository.findBySdt(nd.getTenDangNhap()))
+                    .orElse(null);
+            if (kh != null) {
+                if (!sdt.equals(kh.getSdt()) && khachHangRepository.existsBySdt(sdt)) {
+                    throw new BusinessException("Số điện thoại này đã được sử dụng bởi tài khoản khác");
+                }
+                kh.setHoTen(hoTen);
+                kh.setSdt(sdt);
+                if (email != null && !email.isBlank()) {
+                    kh.setEmail(email);
+                }
+                if (request.getDiaChi() != null && !request.getDiaChi().isBlank()) {
+                    kh.setDiaChiMacDinh(request.getDiaChi().trim());
+                }
+                khachHangRepository.save(kh);
+            }
+        } else if ("TAI_XE".equals(role)) {
+            TaiXe tx = taiXeRepository.findByNguoiDung_MaNd(nd.getMaNd()).orElse(null);
+            if (tx != null) {
+                if (!sdt.equals(tx.getSdt()) && taiXeRepository.existsBySdt(sdt)) {
+                    throw new BusinessException("Số điện thoại này đã được sử dụng bởi tài xế khác");
+                }
+                tx.setHoTen(hoTen);
+                tx.setSdt(sdt);
+                taiXeRepository.save(tx);
+            }
+        } else { // NVBC, NVDP, ADMIN
+            NhanVien nv = nhanVienRepository.findByNguoiDung_MaNd(nd.getMaNd()).orElse(null);
+            if (nv != null) {
+                if (!sdt.equals(nv.getSdt()) && nhanVienRepository.existsBySdt(sdt)) {
+                    throw new BusinessException("Số điện thoại này đã được sử dụng bởi nhân viên khác");
+                }
+                nv.setHoTen(hoTen);
+                nv.setSdt(sdt);
+                if (email != null && !email.isBlank()) {
+                    nv.setEmail(email);
+                }
+                nhanVienRepository.save(nv);
+            } else if ("ADMIN".equals(role)) {
+                String maNv = "NV000";
+                NhanVien adminNv = nhanVienRepository.findById(maNv).orElse(null);
+                if (adminNv == null) {
+                    adminNv = NhanVien.builder()
+                            .maNv(maNv)
+                            .hoTen(hoTen)
+                            .chucVu("Nhân viên điều phối")
+                            .sdt(sdt)
+                            .email(email)
+                            .nguoiDung(nd)
+                            .build();
+                } else {
+                    adminNv.setHoTen(hoTen);
+                    adminNv.setSdt(sdt);
+                    adminNv.setEmail(email);
+                }
+                nhanVienRepository.save(adminNv);
+            }
+        }
+
+        return getCurrentUser(authentication);
+    }
+
     // ---- Lấy thông tin tài khoản hiện tại (Xem chi tiết hồ sơ tài khoản) ----
     @Operation(summary = "Lấy thông tin người dùng hiện tại")
     @GetMapping("/me")

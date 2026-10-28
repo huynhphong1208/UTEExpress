@@ -49,6 +49,7 @@ const UteApi = (function() {
 
         // 1. Dashboard
         getDispatcherDashboard: () => request('/api/dieu-phoi/dashboard'),
+        getWarehouses: () => request('/api/dieu-phoi/kho'),
         getPendingDispatches: (options = {}) => {
             if (typeof options !== 'object' || options === null) options = {};
             const params = new URLSearchParams();
@@ -57,6 +58,7 @@ const UteApi = (function() {
             if (options.maKho) params.append('maKho', options.maKho);
             if (options.loaiChuyen) params.append('loaiChuyen', options.loaiChuyen);
             if (options.maTuyen) params.append('maTuyen', options.maTuyen);
+            if (options.maKhoNhan) params.append('maKhoNhan', options.maKhoNhan);
             const query = params.toString() ? `?${params.toString()}` : '';
             return request(`/api/dieu-phoi/don-can-dieu-phoi${query}`);
         },

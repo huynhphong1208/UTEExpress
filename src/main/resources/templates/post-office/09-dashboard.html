@@ -253,12 +253,15 @@
     <script th:src="@{/js/components.js}" src="/js/components.js"></script>
     <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
     <script th:inline="javascript">
+        const el = document.getElementById('userNameDisplay');
+        const currentName = el ? el.innerText.trim() : '';
         const hoTen = localStorage.getItem('hoTen');
-        const tenDangNhap = localStorage.getItem('tenDangNhap') || '';
-        if (hoTen && hoTen !== 'undefined' && hoTen.trim() && !/^[0-9+]+$/.test(hoTen.trim())) {
-            const el = document.getElementById('userNameDisplay');
-            if (el) el.innerText = hoTen;
-            const initials = hoTen.trim().split(' ').map(w => w[0]).join('').slice(-2).toUpperCase();
+        if (el && (!currentName || currentName === 'Nhân viên bưu cục') && hoTen && hoTen !== 'undefined' && hoTen.trim()) {
+            el.innerText = hoTen;
+        }
+        const effectiveName = (el && el.innerText.trim()) ? el.innerText.trim() : (hoTen || '');
+        if (effectiveName && !/^[0-9+]+$/.test(effectiveName)) {
+            const initials = effectiveName.split(' ').map(w => w[0]).join('').slice(-2).toUpperCase();
             const av = document.getElementById('userAvatar');
             if (av && initials && !localStorage.getItem('userAvatarUrl')) av.innerText = initials;
         }
@@ -266,7 +269,7 @@
         function logout() {
             localStorage.clear();
             document.cookie = "accessToken=; path=/; max-age=0; SameSite=Lax";
-            window.location.href = '/login';
+            window.location.href = '/login?logout=true';
         }
 
         // Khởi tạo phân trang cho danh sách đơn chờ tiếp nhận (5, 10, 20 dòng/trang)

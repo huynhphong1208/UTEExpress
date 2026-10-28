@@ -123,8 +123,8 @@
 
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label class="form-label">Tên đăng nhập (Số điện thoại)</label>
-                    <input type="text" class="form-control" id="loginUsername" placeholder="Nhập số điện thoại..." required>
+                    <label class="form-label">Tên đăng nhập (hoặc Số điện thoại)</label>
+                    <input type="text" class="form-control" id="loginUsername" placeholder="Nhập tên đăng nhập hoặc số điện thoại..." required>
                 </div>
 
                 <div class="form-group">
@@ -218,6 +218,11 @@
     </div>
 
     <script>
+        // Xóa sạch dữ liệu phiên đăng nhập cũ trong localStorage nếu đã đăng xuất
+        if (new URLSearchParams(window.location.search).get('logout') === 'true' || !document.cookie.includes('accessToken=')) {
+            ['accessToken', 'token', 'maNd', 'tenDangNhap', 'hoTen', 'vaiTro', 'tenVaiTro', 'maDoiTuong', 'userAvatarUrl', 'ute_current_driver'].forEach(k => localStorage.removeItem(k));
+        }
+
         async function handleLogin(e) {
             e.preventDefault();
             const alertBox = document.getElementById('loginAlert');

@@ -19,4 +19,6 @@ public interface TaiXeRepository extends JpaRepository<TaiXe, String> {
     Optional<TaiXe> findByMaNd(@Param("maNd") String maNd);
 
     boolean existsBySdt(String sdt);
+    
+    Optional<TaiXe> findBySdt(String sdt);
 }
