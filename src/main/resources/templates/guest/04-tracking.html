@@ -107,6 +107,84 @@
         .stepper-step.active::before {
             background-color: var(--brand-red) !important;
         }
+
+        /* WebSocket Toast & Indicator */
+        .ws-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: #ffffff;
+            border-left: 5px solid #10B981;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            padding: 16px 20px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            z-index: 99999;
+            transform: translateX(120%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 400px;
+            pointer-events: auto;
+        }
+        .ws-toast.show {
+            transform: translateX(0);
+        }
+        .ws-toast-icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+        .ws-toast-body strong {
+            display: block;
+            font-size: 14px;
+            color: var(--brand-navy);
+            margin-bottom: 4px;
+        }
+        .ws-toast-body p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        .ws-toast-body small {
+            display: block;
+            margin-top: 4px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+        .ws-toast-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        .ws-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+        }
+        .ws-status-indicator.ws-connected {
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .ws-status-indicator.ws-connecting {
+            background: rgba(245, 158, 11, 0.12);
+            color: #D97706;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        .ws-status-indicator.ws-disconnected {
+            background: rgba(239, 68, 68, 0.12);
+            color: #DC2626;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
     </style>
 </head>
 <body style="background-color: var(--bg-main); min-height: 100vh; display: flex; flex-direction: column;">
@@ -225,6 +303,7 @@
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
+                        <span id="wsStatusIndicator" class="ws-status-indicator" style="display: none;"></span>
                         <span id="resBadge"></span>
                         <button class="btn btn-secondary btn-sm" onclick="window.print()" style="font-size: 12.5px;">🖨 In hành trình</button>
                     </div>
@@ -456,11 +535,18 @@
                     // Cuộn nhẹ tới kết quả
                     resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+                    // Kết nối WebSocket real-time cho đơn hàng này
+                    if (typeof connectWebSocket === 'function') {
+                        connectWebSocket(dh.maDh);
+                    }
+
                 } else {
+                    if (typeof disconnectWebSocket === 'function') disconnectWebSocket();
                     notFoundBox.style.display = 'block';
                     document.getElementById('notFoundMsg').innerText = data.message || 'Không tìm thấy thông tin đơn hàng!';
                 }
             } catch (err) {
+                if (typeof disconnectWebSocket === 'function') disconnectWebSocket();
                 loadingBox.style.display = 'none';
                 notFoundBox.style.display = 'block';
                 document.getElementById('notFoundMsg').innerText = 'Lỗi kết nối máy chủ! Vui lòng thử lại sau.';
@@ -535,5 +621,10 @@
             }
         });
     </script>
+
+    <!-- WebSocket (STOMP + SockJS) cho Real-time Tracking -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script th:src="@{/js/ws-tracking.js}" src="/js/ws-tracking.js"></script>
 </body>
 </html>

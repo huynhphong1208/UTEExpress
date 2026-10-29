@@ -78,6 +78,12 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+        <!-- WebSocket (STOMP + SockJS) cho Real-time Tracking -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- Swagger / OpenAPI (Giống hệt dự án chạy tốt cả 2 bên) -->
         <dependency>
             <groupId>org.springdoc</groupId>

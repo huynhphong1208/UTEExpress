@@ -67,6 +67,7 @@ public class ViewController implements WebMvcConfigurer {
     private final AdminReportService adminReportService;
     private final DonHangService donHangService;
     private final NhanVienRepository nhanVienRepository;
+    private final PhuongTienRepository phuongTienRepository;
 
     private KhachHang getCurrentKhachHang() {
         org.springframework.security.core.Authentication auth =
@@ -155,12 +156,54 @@ public class ViewController implements WebMvcConfigurer {
     }
 
     @GetMapping({"/admin/dashboard", "/admin/18-dashboard.html"})
-    public String adminDashboard() {
+    public String adminDashboard(Model model) {
+        log.info("Tải Admin Dashboard từ cơ sở dữ liệu");
+        try {
+            AdminOverviewReportResponse overview = adminReportService.getOverviewReport();
+            model.addAttribute("overview", overview);
+        } catch (Exception e) {
+            log.warn("Lỗi tải overview report: {}", e.getMessage());
+        }
+        try {
+            var slaReport = adminReportService.getSlaPerformanceReport();
+            model.addAttribute("slaReport", slaReport);
+        } catch (Exception e) {
+            log.warn("Lỗi tải SLA report: {}", e.getMessage());
+        }
+        long tongNguoiDung = nguoiDungRepository.count();
+        long tongKhachHang = khachHangRepository.count();
+        long tongNhanVien = nhanVienRepository.count();
+        long tongPhuongTien = phuongTienRepository.count();
+        model.addAttribute("tongNguoiDung", tongNguoiDung);
+        model.addAttribute("tongKhachHang", tongKhachHang);
+        model.addAttribute("tongNhanVien", tongNhanVien);
+        model.addAttribute("tongPhuongTien", tongPhuongTien);
         return "admin/18-dashboard";
     }
 
     @GetMapping({"/admin/orders", "/admin/27-orders.html"})
-    public String adminOrders() {
+    public String adminOrders(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "maTrangThai", required = false) String maTrangThai,
+            @RequestParam(value = "maKho", required = false) String maKho,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "15") int size,
+            Model model) {
+        log.info("Tải trang Giám sát đơn hàng Admin từ DB");
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        Page<DonHang> pagedOrders = donHangRepository.findAllByOrderByNgayTaoDesc(pageable);
+        List<com.example.backend.entity.TrangThaiDH> danhSachTrangThai = trangThaiDHRepository.findAll();
+        List<com.example.backend.entity.Kho> danhSachKho = khoRepository.findAll();
+        model.addAttribute("danhSachDonHang", pagedOrders.getContent());
+        model.addAttribute("currentPage", pagedOrders.getNumber());
+        model.addAttribute("pageSize", pagedOrders.getSize());
+        model.addAttribute("totalPages", pagedOrders.getTotalPages());
+        model.addAttribute("totalElements", pagedOrders.getTotalElements());
+        model.addAttribute("danhSachTrangThai", danhSachTrangThai);
+        model.addAttribute("danhSachKho", danhSachKho);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedMaTrangThai", maTrangThai);
+        model.addAttribute("selectedMaKho", maKho);
         return "admin/27-orders";
     }
 
@@ -170,12 +213,18 @@ public class ViewController implements WebMvcConfigurer {
     }
 
     @GetMapping({"/admin/warehouses", "/admin/24-warehouses.html"})
-    public String adminWarehouses() {
+    public String adminWarehouses(Model model) {
+        log.info("Tải trang Quản lý Kho từ DB");
+        List<com.example.backend.entity.Kho> danhSachKho = khoRepository.findAll();
+        model.addAttribute("danhSachKho", danhSachKho);
         return "admin/24-warehouses";
     }
 
     @GetMapping({"/admin/vehicles", "/admin/25-vehicles.html"})
-    public String adminVehicles() {
+    public String adminVehicles(Model model) {
+        log.info("Tải trang Quản lý Phương tiện từ DB");
+        List<com.example.backend.entity.PhuongTien> danhSachPhuongTien = phuongTienRepository.findAll();
+        model.addAttribute("danhSachPhuongTien", danhSachPhuongTien);
         return "admin/25-vehicles";
     }
 

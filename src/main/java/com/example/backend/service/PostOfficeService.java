@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.dto.postoffice.*;
+import com.example.backend.dto.websocket.OrderStatusUpdateMessage;
 import com.example.backend.entity.*;
 import com.example.backend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,7 @@ public class PostOfficeService {
     private final NguoiDungRepository nguoiDungRepository;
     private final NhanVienRepository nhanVienRepository;
     private final ThanhToanRepository thanhToanRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // Bộ quy tắc chuyển đổi trạng thái hợp lệ
     private static final Map<String, Set<String>> VALID_TRANSITIONS = new HashMap<>();
@@ -219,6 +222,14 @@ public class PostOfficeService {
                 .build();
         lichSuTrangThaiRepository.save(lichSu);
 
+        // === WebSocket: Broadcast cập nhật trạng thái real-time (UC08 - Tiếp nhận) ===
+        broadcastOrderStatusUpdate(
+                donHang.getMaDh(), donHang.getTenNguoiNhan(),
+                "TT01", "Mới tạo",
+                tt02.getMaTrangThai(), tt02.getTenTrangThai(),
+                lichSu.getGhiChu(), request.getMaNV(),
+                kho.getMaKho(), kho.getTenKho());
+
         return ReceiveOrderResponse.builder()
                 .maDh(donHang.getMaDh())
                 .maKien(maKien)
@@ -262,6 +273,16 @@ public class PostOfficeService {
                             + (request.getGhiChu() != null ? ". " + request.getGhiChu() : ""))
                     .build();
             lichSuTrangThaiRepository.save(lichSu);
+
+            // === WebSocket: Broadcast chuyển kho real-time (UC09) ===
+            String currentTtCode = kien.getDonHang().getTrangThai().getMaTrangThai();
+            String currentTtName = kien.getDonHang().getTrangThai().getTenTrangThai();
+            broadcastOrderStatusUpdate(
+                    kien.getDonHang().getMaDh(), kien.getDonHang().getTenNguoiNhan(),
+                    currentTtCode, currentTtName,
+                    currentTtCode, currentTtName,
+                    lichSu.getGhiChu(), request.getMaND(),
+                    khoMoi.getMaKho(), khoMoi.getTenKho());
         }
 
         return TransferWarehouseResponse.builder()
@@ -326,6 +347,14 @@ public class PostOfficeService {
                 .build();
         lichSuTrangThaiRepository.save(lichSu);
 
+        // === WebSocket: Broadcast cập nhật trạng thái real-time (UC10) ===
+        broadcastOrderStatusUpdate(
+                maDH, donHang.getTenNguoiNhan(),
+                maTrangThaiCu, tenTrangThaiCu,
+                targetCode, trangThaiMoi.getTenTrangThai(),
+                lichSu.getGhiChu(), request.getMaND(),
+                null, null);
+
         return UpdateOrderStatusResponse.builder()
                 .maDh(maDH)
                 .maTrangThaiCu(maTrangThaiCu)
@@ -356,6 +385,38 @@ public class PostOfficeService {
                 .cao(k.getCao())
                 .loaiHang(k.getLoaiHang())
                 .build());
+    }
+
+    /**
+     * Gửi thông báo WebSocket real-time tới tất cả client đang theo dõi đơn hàng.
+     * Channel: /topic/orders/{maDh}
+     */
+    private void broadcastOrderStatusUpdate(
+            String maDh, String tenNguoiNhan,
+            String maTrangThaiCu, String tenTrangThaiCu,
+            String maTrangThaiMoi, String tenTrangThaiMoi,
+            String ghiChu, String nguoiCapNhat,
+            String maKhoHienTai, String tenKhoHienTai) {
+        try {
+            OrderStatusUpdateMessage wsMsg = OrderStatusUpdateMessage.builder()
+                    .maDh(maDh)
+                    .tenNguoiNhan(tenNguoiNhan)
+                    .maTrangThaiCu(maTrangThaiCu)
+                    .tenTrangThaiCu(tenTrangThaiCu)
+                    .maTrangThaiMoi(maTrangThaiMoi)
+                    .tenTrangThaiMoi(tenTrangThaiMoi)
+                    .thoiGian(LocalDateTime.now().toString())
+                    .ghiChu(ghiChu)
+                    .nguoiCapNhat(nguoiCapNhat)
+                    .maKhoHienTai(maKhoHienTai)
+                    .tenKhoHienTai(tenKhoHienTai)
+                    .build();
+
+            messagingTemplate.convertAndSend("/topic/orders/" + maDh, wsMsg);
+            log.info("📡 WebSocket: Đã gửi cập nhật đơn {} → {} ({})", maDh, maTrangThaiMoi, tenTrangThaiMoi);
+        } catch (Exception e) {
+            log.warn("⚠️ WebSocket: Không thể gửi cập nhật cho đơn {}: {}", maDh, e.getMessage());
+        }
     }
 
     /**

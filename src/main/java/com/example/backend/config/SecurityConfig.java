@@ -67,6 +67,9 @@ public class SecurityConfig {
                 // Public Web Views
                 .requestMatchers("/", "/login", "/register", "/tracking", "/logout", "/design-system").permitAll()
 
+                // WebSocket endpoint cho real-time tracking (public, guest cũng truy cập được)
+                .requestMatchers("/ws-uteexpress/**").permitAll()
+
                 // Public REST APIs
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tra-cuu/**").permitAll()

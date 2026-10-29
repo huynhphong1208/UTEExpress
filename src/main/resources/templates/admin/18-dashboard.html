@@ -1,98 +1,65 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>18 – Admin Dashboard - UTE Express</title>
-    <link rel="stylesheet" href="../../static/css/design-system.css">
-    <link rel="stylesheet" href="../../static/css/components.css">
-    <link rel="stylesheet" href="../../static/css/layout.css">
-    <style>
-        .chart-mock {
-            background: var(--bg-alt);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            height: 220px;
-        }
-        .bar-container {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-around;
-            height: 160px;
-            gap: 12px;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 4px;
-        }
-        .bar-col {
-            flex: 1;
-            background: var(--primary-blue);
-            border-radius: 4px 4px 0 0;
-            position: relative;
-            transition: var(--transition);
-        }
-        .bar-col:hover {
-            background: var(--light-blue);
-        }
-        .bar-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-align: center;
-            margin-top: 8px;
-        }
-    </style>
+    <title>Admin Dashboard - UTE Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
 </head>
 <body>
     <div class="app-layout">
         <!-- SIDEBAR ADMIN -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <a href="../guest/03-index.html" class="sidebar-logo">
-                    <img src="../../static/images/logo-ute-express.png" alt="UTE Express Logo">
+                <a th:href="@{/}" href="/" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
                 </a>
                 <span class="sidebar-role-tag" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Admin</span>
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-section-title">Trung tâm điều hành</div>
-                <a href="18-dashboard.html" class="nav-item active">
+                <a th:href="@{/admin/dashboard}" href="/admin/dashboard" class="nav-item active">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     <span>Admin Dashboard</span>
                 </a>
-                <a href="27-orders.html" class="nav-item">
+                <a th:href="@{/admin/orders}" href="/admin/orders" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     <span>Giám sát đơn hàng</span>
                 </a>
 
                 <div class="nav-section-title">Quản lý thực thể</div>
-                <a href="19-users.html" class="nav-item">
+                <a th:href="@{/admin/users}" href="/admin/users" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    <span>Người dùng & Phân quyền</span>
+                    <span>Người dùng &amp; Phân quyền</span>
                 </a>
-                <a href="24-warehouses.html" class="nav-item">
+                <a th:href="@{/admin/warehouses}" href="/admin/warehouses" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    <span>Quản lý Kho & Bưu cục</span>
+                    <span>Quản lý Kho &amp; Bưu cục</span>
                 </a>
-                <a href="25-vehicles.html" class="nav-item">
+                <a th:href="@{/admin/vehicles}" href="/admin/vehicles" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                     <span>Quản lý Phương tiện</span>
                 </a>
 
-                <div class="nav-section-title">Tài chính & Thống kê</div>
-                <a href="28-payments.html" class="nav-item">
+                <div class="nav-section-title">Tài chính &amp; Thống kê</div>
+                <a th:href="@{/admin/payments}" href="/admin/payments" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Doanh thu & COD</span>
+                    <span>Doanh thu &amp; COD</span>
                 </a>
-                <a href="29-reports.html" class="nav-item">
+                <a th:href="@{/admin/reports}" href="/admin/reports" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     <span>Báo cáo thống kê</span>
                 </a>
-                <a href="30-settings.html" class="nav-item">
+                <a th:href="@{/admin/settings}" href="/admin/settings" class="nav-item">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
-                    <span>Cấu hình & Sao lưu</span>
+                    <span>Cấu hình &amp; Sao lưu</span>
                 </a>
-                <a href="/logout" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: auto;">
+                <a th:href="@{/logout}" href="/logout" class="nav-item" style="color: #F87171; margin-top: auto;">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Đăng xuất</span>
                 </a>
@@ -109,141 +76,139 @@
         <main class="main-wrapper">
             <header class="top-header">
                 <div class="header-search">
-                    <div class="search-input-wrapper">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <input type="text" class="form-control" placeholder="Tìm kiếm toàn hệ thống...">
+                    <div class="breadcrumbs">
+                        <span>Hệ thống</span> <span>/</span> <span>Admin</span> <span>/</span> <span>Tổng quan</span>
                     </div>
                 </div>
                 <div class="header-actions">
-                    <a href="27-orders.html" class="btn btn-secondary btn-sm">Giám sát đơn</a>
-                    <a href="30-settings.html" class="btn btn-primary btn-sm">⚙ Cấu hình hệ thống</a>
+                    <a th:href="@{/admin/orders}" href="/admin/orders" class="btn btn-secondary btn-sm">Giám sát đơn</a>
+                    <a th:href="@{/admin/settings}" href="/admin/settings" class="btn btn-primary btn-sm">⚙ Cấu hình hệ thống</a>
                 </div>
             </header>
 
             <div class="page-container">
                 <div class="page-header">
                     <div>
-                        <div class="breadcrumbs">
-                            <a href="#">Hệ thống</a> <span>/</span> <span>Admin</span> <span>/</span> <span>Tổng quan</span>
-                        </div>
                         <h1 class="page-title">Admin Dashboard - Tổng quan Hệ thống Logistics</h1>
                         <p class="page-subtitle">Giám sát tổng thể hoạt động chuỗi cung ứng, tài nguyên nhân sự, đơn hàng và dòng tiền</p>
                     </div>
                 </div>
 
-                <!-- 10 Dashboard Statistics chuẩn Admin -->
-                <div class="grid-12" style="margin-bottom: 24px;">
-                    <div class="col-12" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Tổng người dùng</span>
-                                <span class="stat-value">1,250</span>
-                                <span class="stat-change up">↑ +45 tháng này</span>
-                            </div>
-                            <div class="stat-icon">👥</div>
+                <!-- ROW 1: Nhân sự & Kho -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng người dùng</span>
+                            <span class="stat-value" th:text="${tongNguoiDung != null ? tongNguoiDung : 0}">0</span>
+                            <span class="stat-change">Tài khoản toàn hệ thống</span>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Tổng khách hàng</span>
-                                <span class="stat-value">1,180</span>
-                                <span class="stat-change up">94.4% tài khoản</span>
-                            </div>
-                            <div class="stat-icon" style="background: var(--primary-light); color: var(--primary-blue);">👤</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Tổng nhân viên</span>
-                                <span class="stat-value">42</span>
-                                <span class="stat-change">Bưu cục & Điều phối</span>
-                            </div>
-                            <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">👔</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Tổng tài xế</span>
-                                <span class="stat-value">28</span>
-                                <span class="stat-change up">Đủ tiêu chuẩn</span>
-                            </div>
-                            <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">🚛</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Tổng đơn hàng</span>
-                                <span class="stat-value" style="color: var(--primary-blue);">5,420</span>
-                                <span class="stat-change up">Toàn hệ thống</span>
-                            </div>
-                            <div class="stat-icon" style="background: var(--primary-light); color: var(--primary-blue);">📦</div>
-                        </div>
+                        <div class="stat-icon">👥</div>
                     </div>
-
-                    <div class="col-12" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 16px;">
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Đang vận chuyển</span>
-                                <span class="stat-value" style="color: var(--info);">128</span>
-                                <span class="stat-change">Liên kho & giao cuối</span>
-                            </div>
-                            <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">⏳</div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng khách hàng</span>
+                            <span class="stat-value" th:text="${tongKhachHang != null ? tongKhachHang : 0}">0</span>
+                            <span class="stat-change">Khách đã đăng ký</span>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Đơn giao thành công</span>
-                                <span class="stat-value" style="color: var(--success);">5,140</span>
-                                <span class="stat-change up">Tỷ lệ 98.2%</span>
-                            </div>
-                            <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">✓</div>
+                        <div class="stat-icon" style="background: var(--primary-light); color: var(--primary-blue);">👤</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng nhân viên</span>
+                            <span class="stat-value" th:text="${tongNhanVien != null ? tongNhanVien : 0}">0</span>
+                            <span class="stat-change">Bưu cục &amp; Điều phối</span>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Đơn hủy / trả</span>
-                                <span class="stat-value" style="color: var(--danger);">42</span>
-                                <span class="stat-change down">Chiếm 0.8%</span>
-                            </div>
-                            <div class="stat-icon" style="background: var(--danger-bg); color: var(--danger);">✕</div>
+                        <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">👔</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Phương tiện</span>
+                            <span class="stat-value" th:text="${tongPhuongTien != null ? tongPhuongTien : 0}">0</span>
+                            <span class="stat-change">Xe vận tải</span>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Tổng doanh thu cước</span>
-                                <span class="stat-value" style="font-size: 22px;">185.4M</span>
-                                <span class="stat-change up">↑ +14.8%</span>
-                            </div>
-                            <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">💰</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <span class="stat-label">Tổng tiền COD</span>
-                                <span class="stat-value" style="font-size: 22px;">2.85 Tỷ</span>
-                                <span class="stat-change">Đã đối soát 92%</span>
-                            </div>
-                            <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">💳</div>
-                        </div>
+                        <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">🚛</div>
                     </div>
                 </div>
 
-                <!-- Charts Section -->
+                <!-- ROW 2: Đơn hàng -->
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng đơn hàng</span>
+                            <span class="stat-value" style="color: var(--primary-blue);"
+                                  th:text="${overview != null ? overview.tongSoDonHang : 0}">0</span>
+                            <span class="stat-change">Toàn hệ thống</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--primary-light); color: var(--primary-blue);">📦</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đang vận chuyển</span>
+                            <span class="stat-value" style="color: var(--info);"
+                                  th:text="${overview != null ? overview.soDonDangVanChuyen : 0}">0</span>
+                            <span class="stat-change">Liên kho &amp; giao cuối</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">⏳</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đơn hoàn thành</span>
+                            <span class="stat-value" style="color: var(--success);"
+                                  th:text="${overview != null ? overview.soDonHoanThanh : 0}">0</span>
+                            <span class="stat-change up">Giao thành công</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">✓</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đơn hủy / trả</span>
+                            <span class="stat-value" style="color: var(--danger);"
+                                  th:text="${overview != null ? overview.soDonHuyTra : 0}">0</span>
+                            <span class="stat-change down">Hủy hoặc hoàn hàng</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--danger-bg); color: var(--danger);">✕</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Kiện hàng</span>
+                            <span class="stat-value"
+                                  th:text="${overview != null ? overview.tongKienHang : 0}">0</span>
+                            <span class="stat-change">Trong hệ thống</span>
+                        </div>
+                        <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">🗃</div>
+                    </div>
+                </div>
+
+                <!-- ROW 3: Tài chính + Tỷ lệ trạng thái -->
                 <div class="grid-2" style="margin-bottom: 24px;">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Đơn hàng luân chuyển theo tháng (2026)</h3>
+                            <h3 class="card-title">Tổng hợp Tài chính</h3>
                         </div>
-                        <div class="card-body">
-                            <div class="chart-mock">
-                                <div class="bar-container">
-                                    <div class="bar-col" style="height: 45%;"></div>
-                                    <div class="bar-col" style="height: 60%;"></div>
-                                    <div class="bar-col" style="height: 75%;"></div>
-                                    <div class="bar-col" style="height: 65%;"></div>
-                                    <div class="bar-col" style="height: 90%;"></div>
-                                    <div class="bar-col" style="height: 95%;"></div>
+                        <div class="card-body" style="display: flex; flex-direction: column; gap: 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--success-bg); border-radius: var(--radius-md);">
+                                <div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Doanh thu cước vận chuyển</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: var(--success);"
+                                         th:text="${overview != null and overview.tongDoanhThuCuoc != null ? #numbers.formatDecimal(overview.tongDoanhThuCuoc, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</div>
                                 </div>
-                                <div style="display: flex; justify-content: space-around;">
-                                    <span class="bar-label">Tháng 4</span>
-                                    <span class="bar-label">Tháng 5</span>
-                                    <span class="bar-label">Tháng 6</span>
-                                    <span class="bar-label">Tháng 7</span>
-                                    <span class="bar-label">Tháng 8</span>
-                                    <span class="bar-label">Tháng 9</span>
+                                <span style="font-size: 28px;">💰</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--warning-bg); border-radius: var(--radius-md);">
+                                <div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Tổng tiền COD phát sinh</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: var(--warning);"
+                                         th:text="${overview != null and overview.tongTienCod != null ? #numbers.formatDecimal(overview.tongTienCod, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</div>
                                 </div>
+                                <span style="font-size: 28px;">💳</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--info-bg); border-radius: var(--radius-md);">
+                                <div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">COD đã thu thành công</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: var(--info);"
+                                         th:text="${overview != null and overview.tongCodDaThu != null ? #numbers.formatDecimal(overview.tongCodDaThu, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</div>
+                                </div>
+                                <span style="font-size: 28px;">✅</span>
                             </div>
                         </div>
                     </div>
@@ -252,71 +217,85 @@
                         <div class="card-header">
                             <h3 class="card-title">Tỷ lệ trạng thái đơn hàng toàn hệ thống</h3>
                         </div>
-                        <div class="card-body" style="display: flex; flex-direction: column; justify-content: center; gap: 14px;">
-                            <div>
+                        <div class="card-body" style="display: flex; flex-direction: column; gap: 14px;">
+                            <div th:each="st : ${overview != null ? overview.thongKeTheoTrangThai : {}}"
+                                 th:with="total=${overview.tongSoDonHang > 0 ? overview.tongSoDonHang : 1},
+                                          pct=${overview.tongSoDonHang > 0 ? #numbers.formatDecimal(st.soLuong * 100.0 / overview.tongSoDonHang, 1, 'POINT', 1, 'POINT') : 0}">
                                 <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-                                    <span>Giao thành công (5,140 đơn)</span>
-                                    <strong>94.8%</strong>
+                                    <span th:text="${st.tenTrangThai + ' (' + st.soLuong + ')'}">Trạng thái</span>
+                                    <strong th:text="${pct + '%'}">0%</strong>
                                 </div>
                                 <div style="height: 8px; background: var(--bg-alt); border-radius: 4px; overflow: hidden;">
-                                    <div style="width: 94.8%; height: 100%; background: var(--success);"></div>
+                                    <div th:style="'width: ' + pct + '%; height: 100%; background: var(--primary-blue);'"></div>
                                 </div>
                             </div>
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-                                    <span>Đang vận chuyển / Giao (128 đơn)</span>
-                                    <strong>2.4%</strong>
-                                </div>
-                                <div style="height: 8px; background: var(--bg-alt); border-radius: 4px; overflow: hidden;">
-                                    <div style="width: 2.4%; height: 100%; background: var(--info);"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-                                    <span>Tiếp nhận tại kho (110 đơn)</span>
-                                    <strong>2.0%</strong>
-                                </div>
-                                <div style="height: 8px; background: var(--bg-alt); border-radius: 4px; overflow: hidden;">
-                                    <div style="width: 2%; height: 100%; background: var(--warning);"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-                                    <span>Hủy / Hoàn trả (42 đơn)</span>
-                                    <strong>0.8%</strong>
-                                </div>
-                                <div style="height: 8px; background: var(--bg-alt); border-radius: 4px; overflow: hidden;">
-                                    <div style="width: 0.8%; height: 100%; background: var(--danger);"></div>
-                                </div>
+                            <div th:if="${overview == null or #lists.isEmpty(overview.thongKeTheoTrangThai)}"
+                                 style="text-align: center; color: var(--text-muted); padding: 20px;">
+                                Chưa có dữ liệu thống kê
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Phím tắt quản lý danh mục nhanh -->
+                <!-- SLA Performance -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h3 class="card-title">Hiệu suất bưu cục (SLA)</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã kho</th>
+                                    <th>Tên bưu cục</th>
+                                    <th>Đơn tiếp nhận</th>
+                                    <th>Giao thành công</th>
+                                    <th>Tỷ lệ</th>
+                                    <th>Kiện tồn kho</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${slaReport == null or #lists.isEmpty(slaReport.topPostOffices)}">
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Không có dữ liệu bưu cục.</td>
+                                </tr>
+                                <tr th:each="bc : ${slaReport != null ? slaReport.topPostOffices : {}}">
+                                    <td><strong style="color: var(--primary-blue);" th:text="${bc.maKho}">KHO01</strong></td>
+                                    <td th:text="${bc.tenKho}">Bưu cục Thủ Đức</td>
+                                    <td th:text="${bc.soDonTiepNhan}">0</td>
+                                    <td th:text="${bc.soDonGiaoThanhCong}">0</td>
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${bc.tyLeThanhCong >= 95 ? 'badge-success' : (bc.tyLeThanhCong >= 80 ? 'badge-warning' : 'badge-danger')}"
+                                              th:text="${bc.tyLeThanhCong + '%'}">100%</span>
+                                    </td>
+                                    <td th:text="${bc.soKienTonKho}">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Phím tắt quản lý -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Truy cập nhanh các phân hệ Quản trị</h3>
                     </div>
                     <div class="card-body">
                         <div class="grid-4">
-                            <a href="19-users.html" class="btn btn-secondary btn-block">👥 Quản lý người dùng</a>
-                            <a href="24-warehouses.html" class="btn btn-secondary btn-block">🏢 Quản lý kho / bưu cục</a>
-                            <a href="25-vehicles.html" class="btn btn-secondary btn-block">🚚 Quản lý phương tiện</a>
-                            <a href="27-orders.html" class="btn btn-secondary btn-block">📦 Giám sát đơn hàng</a>
-                            <a href="28-payments.html" class="btn btn-secondary btn-block">💳 Doanh thu & COD</a>
-                            <a href="29-reports.html" class="btn btn-secondary btn-block">📊 Báo cáo thống kê</a>
-                            <a href="30-settings.html" class="btn btn-secondary btn-block">⚙ Cấu hình & Sao lưu</a>
-                            <a href="../dispatcher/13-routes.html" class="btn btn-secondary btn-block">🗺 Tuyến vận chuyển</a>
+                            <a th:href="@{/admin/users}" href="/admin/users" class="btn btn-secondary btn-block">👥 Quản lý người dùng</a>
+                            <a th:href="@{/admin/warehouses}" href="/admin/warehouses" class="btn btn-secondary btn-block">🏢 Quản lý kho / bưu cục</a>
+                            <a th:href="@{/admin/vehicles}" href="/admin/vehicles" class="btn btn-secondary btn-block">🚚 Quản lý phương tiện</a>
+                            <a th:href="@{/admin/orders}" href="/admin/orders" class="btn btn-secondary btn-block">📦 Giám sát đơn hàng</a>
+                            <a th:href="@{/admin/payments}" href="/admin/payments" class="btn btn-secondary btn-block">💳 Doanh thu &amp; COD</a>
+                            <a th:href="@{/admin/reports}" href="/admin/reports" class="btn btn-secondary btn-block">📊 Báo cáo thống kê</a>
+                            <a th:href="@{/admin/settings}" href="/admin/settings" class="btn btn-secondary btn-block">⚙ Cấu hình &amp; Sao lưu</a>
+                            <a th:href="@{/post-office/dashboard}" href="/post-office/dashboard" class="btn btn-secondary btn-block">📮 Trang bưu cục</a>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-
-    <script src="../../static/js/mock-data.js"></script>
-    <script src="../../static/js/components.js"></script>
-    <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
+    <script th:src="@{/js/components.js}" src="/js/components.js"></script>
 </body>
 </html>
