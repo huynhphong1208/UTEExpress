@@ -35,6 +35,27 @@ public class TraCuuDonHangResponse {
     @Schema(description = "Số kiện hàng", example = "2")
     private Long soKien;
 
+    @Schema(description = "Mã trạng thái", example = "TT03")
+    private String maTt;
+
+    @Schema(description = "Mã bưu cục gửi", example = "KHO01")
+    private String maKhoGui;
+
+    @Schema(description = "Tên bưu cục gửi", example = "Bưu cục Thủ Đức")
+    private String tenKhoGui;
+
+    @Schema(description = "Mã bưu cục nhận", example = "KHO02")
+    private String maKhoNhan;
+
+    @Schema(description = "Tên bưu cục nhận", example = "Bưu cục Cầu Giấy")
+    private String tenKhoNhan;
+
+    @Schema(description = "Mã kho hiện tại của kiện hàng", example = "KHO01")
+    private String maKhoHienTai;
+
+    @Schema(description = "Tên kho hiện tại", example = "Bưu cục Thủ Đức")
+    private String tenKhoHienTai;
+
     @Schema(description = "Lịch sử vận chuyển")
     private List<LichSuTrangThai> lichSu;
 

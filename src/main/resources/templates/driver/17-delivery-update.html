@@ -85,10 +85,14 @@
                         <h3 class="card-title">1. Quét mã vạch hoặc Nhập mã kiện thủ công</h3>
                     </div>
                     <div class="card-body">
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="text" class="form-control" id="scanPkgInput" placeholder="Nhập mã kiện (ví dụ: KI0000001)..." style="font-size: 15px; padding: 10px;" onkeypress="if(event.key === 'Enter') handleScanOrFind()">
+                        <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <input type="text" class="form-control" id="scanPkgInput" placeholder="Nhập hoặc quét mã kiện (KI...) / mã đơn (DH...)" style="font-size: 15px; padding: 10px; flex: 1; min-width: 200px;" onkeypress="if(event.key === 'Enter') handleScanOrFind()">
+                            <button type="button" class="btn btn-secondary" onclick="openDriverCameraScanner()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--brand-blue); border-color: var(--brand-blue); background: rgba(13, 44, 84, 0.05); cursor: pointer;">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3" stroke-width="2"/></svg>
+                                <span>📷 Quét Camera</span>
+                            </button>
                             <button class="btn btn-primary" onclick="handleScanOrFind()">🔍 Quét lên xe</button>
-                            <button class="btn btn-secondary" onclick="simulateBarcodeScan()">📷 Mô phỏng quét Barcode</button>
+                            <button class="btn btn-secondary btn-sm" onclick="simulateBarcodeScan()" title="Thử nghiệm nhanh không cần camera">🎲 Mô phỏng</button>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
                             <label style="font-size: 12.5px; color: var(--text-muted); white-space: nowrap;">Ghi chú khi quét:</label>
@@ -666,5 +670,172 @@
         document.addEventListener('DOMContentLoaded', initPage);
     </script>
     <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
+    <!-- Modal Quét Barcode / QR Code dành cho Tài xế -->
+    <div id="driverCameraModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(13, 44, 84, 0.7); backdrop-filter: blur(4px); z-index: 999999; align-items: center; justify-content: center; padding: 16px;">
+        <div style="background: #fff; border-radius: 16px; width: 100%; max-width: 520px; overflow: hidden; box-shadow: 0 20px 45px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--brand-navy); color: #fff; padding: 14px 20px;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3" stroke-width="2"/></svg>
+                    <span>Camera Quét Kiện Hàng & Vận Đơn</span>
+                </div>
+                <button type="button" onclick="closeDriverCameraScanner()" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div style="padding: 18px 20px; text-align: center;">
+                <div id="driverCameraScannerBox" style="width: 100%; min-height: 260px; border-radius: 12px; overflow: hidden; background: #000; position: relative;">
+                    <div id="driver-qr-reader" style="width: 100%;"></div>
+                </div>
+                <div id="driverScanStatusAlert" style="display: none; margin-top: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600;"></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding: 10px 14px; background: var(--bg-alt); border-radius: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer; margin: 0;">
+                        <input type="checkbox" id="chkBatchScan" style="width: 16px; height: 16px;">
+                        <span>Quét liên tục hàng loạt (Batch Scanning)</span>
+                    </label>
+                    <span id="batchCountBadge" style="font-size: 12px; color: var(--brand-blue); font-weight: 700;"></span>
+                </div>
+            </div>
+            <div style="padding: 12px 20px; background: var(--bg-alt); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color);">
+                <span style="font-size: 12px; color: var(--text-muted);">Nhận diện Barcode Code128 & QR Code</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeDriverCameraScanner()">Đóng Camera</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Thư viện HTML5-QRCode quét Camera -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        let driverQrScannerInstance = null;
+        let lastScannedCode = null;
+        let lastScannedTime = 0;
+        let batchScannedCount = 0;
+
+        function playDriverBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1046, ctx.currentTime); // C6 note
+                gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            } catch (e) {}
+        }
+
+        function openDriverCameraScanner() {
+            const modal = document.getElementById('driverCameraModal');
+            modal.style.display = 'flex';
+            const alertBox = document.getElementById('driverScanStatusAlert');
+            alertBox.style.display = 'none';
+            batchScannedCount = 0;
+            updateBatchCount();
+
+            if (driverQrScannerInstance) {
+                try { driverQrScannerInstance.stop().catch(() => {}); } catch(e) {}
+            }
+
+            driverQrScannerInstance = new Html5Qrcode("driver-qr-reader");
+            const config = {
+                fps: 10,
+                qrbox: { width: 260, height: 160 },
+                aspectRatio: 1.333
+            };
+
+            driverQrScannerInstance.start(
+                { facingMode: "environment" },
+                config,
+                onDriverScanSuccess,
+                onDriverScanFailure
+            ).catch(err => {
+                Html5Qrcode.getCameras().then(cameras => {
+                    if (cameras && cameras.length > 0) {
+                        driverQrScannerInstance.start(cameras[0].id, config, onDriverScanSuccess, onDriverScanFailure)
+                            .catch(e => showDriverCameraError(e));
+                    } else {
+                        showDriverCameraError("Không tìm thấy camera trên thiết bị!");
+                    }
+                }).catch(e => showDriverCameraError(e));
+            });
+        }
+
+        function updateBatchCount() {
+            const el = document.getElementById('batchCountBadge');
+            if (el) {
+                el.innerText = batchScannedCount > 0 ? `Đã quét: ${batchScannedCount} kiện` : '';
+            }
+        }
+
+        function onDriverScanSuccess(decodedText, decodedResult) {
+            const now = Date.now();
+            let raw = decodedText.trim().toUpperCase();
+
+            // Tìm mã KIxxxxxx hoặc DHxxxxxx
+            let matchedCode = raw;
+            const matchKi = raw.match(/KI\d{6,8}/i);
+            const matchDh = raw.match(/DH\d{6,8}/i);
+            if (matchKi) matchedCode = matchKi[0].toUpperCase();
+            else if (matchDh) matchedCode = matchDh[0].toUpperCase();
+
+            // Chống quét trùng lặp trong vòng 1.5 giây
+            if (matchedCode === lastScannedCode && (now - lastScannedTime) < 1500) {
+                return;
+            }
+            lastScannedCode = matchedCode;
+            lastScannedTime = now;
+
+            playDriverBeep();
+            if (navigator.vibrate) navigator.vibrate(100);
+
+            const isBatch = document.getElementById('chkBatchScan').checked;
+            batchScannedCount++;
+            updateBatchCount();
+
+            const alertBox = document.getElementById('driverScanStatusAlert');
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#ECFDF5';
+            alertBox.style.color = '#059669';
+            alertBox.style.border = '1px solid #A7F3D0';
+            alertBox.innerText = `✓ Đã quét: ${matchedCode}`;
+
+            document.getElementById('scanPkgInput').value = matchedCode;
+
+            // Xử lý quét tự động
+            handleScanOrFind();
+
+            if (!isBatch) {
+                setTimeout(() => {
+                    closeDriverCameraScanner();
+                }, 500);
+            }
+        }
+
+        function onDriverScanFailure(error) {
+            // Liên tục quét
+        }
+
+        function showDriverCameraError(err) {
+            const alertBox = document.getElementById('driverScanStatusAlert');
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#FEF2F2';
+            alertBox.style.color = '#DC2626';
+            alertBox.style.border = '1px solid #FECACA';
+            alertBox.innerText = 'Lỗi truy cập Camera: ' + (err.message || err);
+        }
+
+        function closeDriverCameraScanner() {
+            if (driverQrScannerInstance) {
+                driverQrScannerInstance.stop().then(() => {
+                    driverQrScannerInstance.clear();
+                }).catch(() => {
+                    try { driverQrScannerInstance.clear(); } catch(e) {}
+                });
+            }
+            document.getElementById('driverCameraModal').style.display = 'none';
+        }
+    </script>
+
 </body>
 </html>

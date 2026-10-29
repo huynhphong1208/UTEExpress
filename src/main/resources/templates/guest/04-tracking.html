@@ -7,6 +7,8 @@
     <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
     <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
     <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <style>
         .copy-btn {
             background: none;
@@ -106,6 +108,86 @@
         }
         .stepper-step.active::before {
             background-color: var(--brand-red) !important;
+        }
+
+        
+        /* Leaflet & Camera Scanner Styling */
+        #trackingMap {
+            height: 380px;
+            width: 100%;
+            z-index: 10;
+        }
+        .map-marker-pin {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 2px solid #fff;
+            transition: transform 0.2s;
+        }
+        .map-marker-pin:hover {
+            transform: scale(1.15);
+        }
+        .marker-origin {
+            background: linear-gradient(135deg, #0D2C54 0%, #1E40AF 100%);
+            color: #fff;
+        }
+        .marker-dest {
+            background: linear-gradient(135deg, #DC2626 0%, #E31B23 100%);
+            color: #fff;
+        }
+        .marker-moving {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: #fff;
+            box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.35);
+            animation: pulse-ring 1.8s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.1); }
+            100% { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.5); }
+        }
+        .pulse-dot {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+        .modal-camera-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(13, 44, 84, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .camera-card {
+            background: #fff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 520px;
+            overflow: hidden;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.3);
+            animation: modalFadeIn 0.25s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.94) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        #qr-reader {
+            border: none !important;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        #qr-reader video {
+            border-radius: 12px;
+            object-fit: cover;
         }
 
         /* WebSocket Toast & Indicator */
@@ -247,18 +329,29 @@
                     Nhập mã vận đơn (VD: DH000001, DH000002) để theo dõi trạng thái lộ trình giao hàng trực tuyến 24/7
                 </p>
 
-                <div style="display: flex; gap: 10px; max-width: 540px; margin: 0 auto;">
-                    <div style="position: relative; flex: 1;">
+                <div style="display: flex; gap: 8px; max-width: 600px; margin: 0 auto; flex-wrap: wrap;">
+                    <div style="position: relative; flex: 1; min-width: 220px;">
                         <input type="text" id="trackInput" class="form-control" 
-                               style="font-size: 15px; padding: 12px 16px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;" 
+                               style="font-size: 15px; padding: 12px 16px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; height: 48px;" 
                                placeholder="Nhập mã vận đơn DHxxxxxx..." 
-                               th:value="${maDh}">
+                               th:value="${maDh}"
+                               onkeypress="if(event.key === 'Enter') searchTracking()">
                     </div>
-                    <button class="btn btn-primary btn-lg" onclick="searchTracking()" style="display: flex; align-items: center; gap: 6px; padding: 0 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="openCameraScanner()" 
+                            title="Quét Barcode / QR Code bằng Camera Web" 
+                            style="display: flex; align-items: center; gap: 6px; padding: 0 16px; font-weight: 600; height: 48px; border-color: var(--brand-blue); color: var(--brand-blue); background: rgba(13, 44, 84, 0.05); cursor: pointer;">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            <circle cx="12" cy="13" r="3" stroke-width="2"/>
+                        </svg>
+                        <span>Quét Camera</span>
+                    </button>
+                    <button class="btn btn-primary btn-lg" onclick="searchTracking()" style="display: flex; align-items: center; gap: 6px; padding: 0 24px; height: 48px;">
                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <span>Tra cứu</span>
                     </button>
                 </div>
+
                 
                 <div style="margin-top: 14px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <span>Mã vận đơn mẫu kiểm tra:</span>
@@ -368,6 +461,48 @@
                     <div style="margin-top: 16px; padding: 10px 14px; background: rgba(13, 44, 84, 0.04); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
                         <span>🔒</span>
                         <span>Vì lý do bảo mật thông tin cá nhân của khách hàng, một phần số điện thoại và thông tin riêng tư được mã hóa trên cổng tra cứu mở.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3.5. Bản đồ số Lộ trình & Ước tính Tuyến đường (Leaflet + OpenStreetMap) -->
+            <div class="card" style="margin-bottom: 20px; box-shadow: var(--shadow-sm); overflow: hidden; border: 1px solid var(--border-color);">
+                <div style="background: linear-gradient(135deg, rgba(13, 44, 84, 0.04) 0%, rgba(227, 27, 35, 0.04) 100%); padding: 14px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px;">🗺️</span>
+                        <strong style="font-size: 14.5px; color: var(--brand-navy);">Bản đồ số Lộ trình & Vị trí kiện hàng</strong>
+                    </div>
+                    <div id="mapRouteStatusBadge" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; background: rgba(13, 44, 84, 0.08); padding: 4px 12px; border-radius: 12px; color: var(--brand-navy);">
+                        <span class="pulse-dot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+                        <span id="mapRouteStatusText">Đang định vị tuyến vận chuyển...</span>
+                    </div>
+                </div>
+
+                <!-- Leaflet Container -->
+                <div id="trackingMap"></div>
+
+                <!-- Lộ trình tóm tắt chân bản đồ -->
+                <div style="padding: 14px 20px; background: #FAFBFD; border-top: 1px solid var(--border-color); font-size: 13px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(13, 44, 84, 0.1); color: var(--brand-blue); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;">🏢</div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Bưu cục gửi (Khởi tạo)</div>
+                            <div id="mapOriginKho" style="font-weight: 700; color: var(--brand-blue); margin-top: 2px;">---</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;">🚚</div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Vị trí hiện tại</div>
+                            <div id="mapCurrentKho" style="font-weight: 700; color: #D97706; margin-top: 2px;">---</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(220, 38, 38, 0.1); color: var(--brand-red); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;">🎯</div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Bưu cục phát (Điểm đến)</div>
+                            <div id="mapDestKho" style="font-weight: 700; color: var(--brand-red); margin-top: 2px;">---</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -494,6 +629,7 @@
                 if (res.ok && data.success && data.data) {
                     resultBox.style.display = 'block';
                     const dh = data.data;
+                    window.lastTrackedDh = dh;
 
                     // Header & Badges
                     document.getElementById('resCode').innerText = dh.maDh;
@@ -531,6 +667,9 @@
                             </div>
                         `;
                     }
+
+                    // Khởi tạo / Cập nhật Bản đồ Lộ trình & Kiện hàng
+                    initOrUpdateTrackingMap(dh);
 
                     // Cuộn nhẹ tới kết quả
                     resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -626,5 +765,334 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <script th:src="@{/js/ws-tracking.js}" src="/js/ws-tracking.js"></script>
+    <!-- Modal Quét Barcode / QR Code bằng Camera Web (Webcam HTML5) -->
+    <div id="cameraModal" class="modal-camera-backdrop" style="display: none;">
+        <div class="camera-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--brand-navy); color: #fff; padding: 14px 20px;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3" stroke-width="2"/></svg>
+                    <span>Quét Barcode / QR Vận đơn</span>
+                </div>
+                <button type="button" onclick="closeCameraScanner()" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0 4px;">&times;</button>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+                <div id="cameraScannerBox" style="width: 100%; min-height: 260px; border-radius: 12px; overflow: hidden; background: #000; position: relative;">
+                    <div id="qr-reader" style="width: 100%;"></div>
+                </div>
+                <div id="scanStatusAlert" style="display: none; margin-top: 12px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;"></div>
+                <p style="margin: 12px 0 0; font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+                    💡 Đưa mã Barcode hoặc mã QR trên phiếu gửi hàng vào khung camera. Hệ thống sẽ tự nhận diện và tự động tra cứu.
+                </p>
+            </div>
+            <div style="padding: 12px 20px; background: var(--bg-alt); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color);">
+                <span style="font-size: 12px; color: var(--text-muted);">Tự động nhận diện nhanh</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeCameraScanner()">Hủy & Đóng</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Leaflet JS & HTML5-QRCode Scanner -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <script>
+        // =========================================================
+        // 1. Tọa độ GPS & Dữ liệu 10 Bưu cục UTE Express
+        // =========================================================
+        const KHO_DATA = {
+            'KHO01': { name: 'Bưu cục Thủ Đức (TP.HCM)', lat: 10.8505, lng: 106.7719, city: 'TP. Hồ Chí Minh' },
+            'KHO02': { name: 'Bưu cục Cầu Giấy (Hà Nội)', lat: 21.0313, lng: 105.7891, city: 'Hà Nội' },
+            'KHO03': { name: 'Bưu cục Đà Nẵng (Đà Nẵng)', lat: 16.0601, lng: 108.2144, city: 'Đà Nẵng' },
+            'KHO04': { name: 'Bưu cục Cần Thơ (Cần Thơ)', lat: 10.0342, lng: 105.7876, city: 'Cần Thơ' },
+            'KHO05': { name: 'Bưu cục Quận 1 (TP.HCM)', lat: 10.7797, lng: 106.6990, city: 'TP. Hồ Chí Minh' },
+            'KHO06': { name: 'Bưu cục Đống Đa (Hà Nội)', lat: 21.0149, lng: 105.8344, city: 'Hà Nội' },
+            'KHO07': { name: 'Bưu cục Hải Phòng (Hải Phòng)', lat: 20.8503, lng: 106.6896, city: 'Hải Phòng' },
+            'KHO08': { name: 'Bưu cục Biên Hòa (Đồng Nai)', lat: 10.9634, lng: 106.8286, city: 'Đồng Nai' },
+            'KHO09': { name: 'Bưu cục Nha Trang (Khánh Hòa)', lat: 12.2388, lng: 109.1967, city: 'Khánh Hòa' },
+            'KHO10': { name: 'Bưu cục Buôn Ma Thuột (Đắk Lắk)', lat: 12.6863, lng: 108.0543, city: 'Đắk Lắk' }
+        };
+
+        // Tính khoảng cách Haversine (km) giữa 2 tọa độ
+        function calcDistanceKm(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Bán kính Trái Đất (km)
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return Math.round(R * c);
+        }
+
+        let trackingMapInstance = null;
+        let routePolyline = null;
+        let mapMarkersLayer = null;
+        let truckAnimationInterval = null;
+
+        function onWsOrderUpdated(wsData) {
+            if (window.lastTrackedDh) {
+                window.lastTrackedDh.maTt = wsData.maTrangThaiMoi;
+                window.lastTrackedDh.trangThai = wsData.tenTrangThaiMoi;
+                initOrUpdateTrackingMap(window.lastTrackedDh);
+            }
+        }
+
+        function initOrUpdateTrackingMap(dh) {
+            const mapEl = document.getElementById('trackingMap');
+            if (!mapEl) return;
+
+            // Xác định kho gửi & kho nhận
+            let originKho = KHO_DATA[dh.maKhoGui] || KHO_DATA['KHO01'];
+            let destKho = KHO_DATA[dh.maKhoNhan] || KHO_DATA['KHO02'];
+            
+            // Tên hiển thị
+            const tenKhoGui = dh.tenKhoGui || originKho.name;
+            const tenKhoNhan = dh.tenKhoNhan || destKho.name;
+            const tenKhoHienTai = dh.tenKhoHienTai || (dh.maKhoHienTai && KHO_DATA[dh.maKhoHienTai] ? KHO_DATA[dh.maKhoHienTai].name : tenKhoGui);
+
+            document.getElementById('mapOriginKho').innerText = tenKhoGui;
+            document.getElementById('mapDestKho').innerText = tenKhoNhan;
+            document.getElementById('mapCurrentKho').innerText = tenKhoHienTai;
+
+            const distanceKm = calcDistanceKm(originKho.lat, originKho.lng, destKho.lat, destKho.lng);
+            const statusBadgeText = document.getElementById('mapRouteStatusText');
+            if (statusBadgeText) {
+                statusBadgeText.innerText = `Tuyến: ${originKho.city} ➔ ${destKho.city} (~${distanceKm} km)`;
+            }
+
+            // Khởi tạo Leaflet Map nếu chưa có
+            if (!trackingMapInstance) {
+                trackingMapInstance = L.map('trackingMap', {
+                    zoomControl: true,
+                    scrollWheelZoom: false
+                }).setView([originKho.lat, originKho.lng], 6);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 18,
+                    attribution: '© OpenStreetMap UTEExpress'
+                }).addTo(trackingMapInstance);
+
+                mapMarkersLayer = L.layerGroup().addTo(trackingMapInstance);
+            } else {
+                mapMarkersLayer.clearLayers();
+                if (truckAnimationInterval) {
+                    clearInterval(truckAnimationInterval);
+                    truckAnimationInterval = null;
+                }
+            }
+
+            // Custom Icons
+            const createHtmlIcon = (emoji, className, size = 36) => L.divIcon({
+                className: 'custom-leaflet-icon',
+                html: `<div class="map-marker-pin ${className}" style="width: ${size}px; height: ${size}px;">${emoji}</div>`,
+                iconSize: [size, size],
+                iconAnchor: [size / 2, size / 2],
+                popupAnchor: [0, -size / 2]
+            });
+
+            const originIcon = createHtmlIcon('🏢', 'marker-origin', 38);
+            const destIcon = createHtmlIcon('🎯', 'marker-dest', 38);
+
+            // Marker Bưu cục gửi
+            const originMarker = L.marker([originKho.lat, originKho.lng], { icon: originIcon })
+                .bindPopup(`<strong>Bưu cục gửi:</strong><br>${tenKhoGui}`)
+                .addTo(mapMarkersLayer);
+
+            // Marker Bưu cục nhận
+            const destMarker = L.marker([destKho.lat, destKho.lng], { icon: destIcon })
+                .bindPopup(`<strong>Bưu cục nhận:</strong><br>${tenKhoNhan}`)
+                .addTo(mapMarkersLayer);
+
+            // Đường vẽ lộ trình Polyline
+            const latlngs = [
+                [originKho.lat, originKho.lng],
+                [destKho.lat, destKho.lng]
+            ];
+
+            routePolyline = L.polyline(latlngs, {
+                color: '#0D2C54',
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '8, 8',
+                lineCap: 'round'
+            }).addTo(mapMarkersLayer);
+
+            // Fit bounds để thấy cả 2 điểm
+            trackingMapInstance.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
+
+            // Marker Kiện hàng / Xe tải theo trạng thái
+            const st = dh.maTt || 'TT01';
+            let movingMarker = null;
+
+            if (st === 'TT01' || st === 'TT02') {
+                // Đang ở kho gửi
+                const pkgIcon = createHtmlIcon('📦', 'marker-moving', 36);
+                movingMarker = L.marker([originKho.lat, originKho.lng], { icon: pkgIcon })
+                    .bindPopup(`<strong>Kiện hàng tại Bưu cục gửi</strong><br>Đang chờ xuất chuyến luân chuyển`)
+                    .addTo(mapMarkersLayer);
+                movingMarker.openPopup();
+            } else if (st === 'TT03') {
+                // Đang vận chuyển luân chuyển liên kho: Animation xe tải di chuyển dọc tuyến!
+                const truckIcon = createHtmlIcon('🚚', 'marker-moving', 40);
+                let progress = 0.3; // Bắt đầu ở khoảng 30% tuyến
+                let forward = true;
+
+                const curLat = originKho.lat + (destKho.lat - originKho.lat) * progress;
+                const curLng = originKho.lng + (destKho.lng - originKho.lng) * progress;
+                movingMarker = L.marker([curLat, curLng], { icon: truckIcon })
+                    .bindPopup(`<strong>Đang vận chuyển liên kho 🚚</strong><br>Tuyến ${originKho.city} ➔ ${destKho.city}`)
+                    .addTo(mapMarkersLayer);
+                movingMarker.openPopup();
+
+                // Animation chuyển động nhẹ nhàng dọc tuyến
+                truckAnimationInterval = setInterval(() => {
+                    if (forward) {
+                        progress += 0.015;
+                        if (progress >= 0.85) forward = false;
+                    } else {
+                        progress -= 0.015;
+                        if (progress <= 0.15) forward = true;
+                    }
+                    const nLat = originKho.lat + (destKho.lat - originKho.lat) * progress;
+                    const nLng = originKho.lng + (destKho.lng - originKho.lng) * progress;
+                    if (movingMarker) movingMarker.setLatLng([nLat, nLng]);
+                }, 400);
+
+            } else if (st === 'TT04' || st === 'TT05') {
+                // Đang giao chặng cuối
+                const deliveryIcon = createHtmlIcon('🛵', 'marker-moving', 38);
+                movingMarker = L.marker([destKho.lat, destKho.lng], { icon: deliveryIcon })
+                    .bindPopup(`<strong>Shipper đang giao hàng 🛵</strong><br>Khu vực ${destKho.city}`)
+                    .addTo(mapMarkersLayer);
+                movingMarker.openPopup();
+            } else if (st === 'TT06') {
+                // Đã giao thành công
+                const successIcon = createHtmlIcon('🏁', 'marker-dest', 38);
+                movingMarker = L.marker([destKho.lat, destKho.lng], { icon: successIcon })
+                    .bindPopup(`<strong>Đã giao hàng thành công! 🏁</strong><br>Điểm đến: ${tenKhoNhan}`)
+                    .addTo(mapMarkersLayer);
+                movingMarker.openPopup();
+            }
+
+            // Invalidate size sau khi hiển thị để Leaflet tính kích thước chuẩn
+            setTimeout(() => {
+                if (trackingMapInstance) trackingMapInstance.invalidateSize();
+            }, 300);
+        }
+
+        // =========================================================
+        // 2. Quét Barcode / QR Code trực tiếp bằng Camera Web
+        // =========================================================
+        let html5QrScannerInstance = null;
+
+        function playScanBeepSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(920, ctx.currentTime);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.18);
+            } catch (e) {
+                // Bỏ qua nếu trình duyệt chặn autoplay AudioContext
+            }
+        }
+
+        function openCameraScanner() {
+            const modal = document.getElementById('cameraModal');
+            modal.style.display = 'flex';
+            const statusAlert = document.getElementById('scanStatusAlert');
+            statusAlert.style.display = 'none';
+
+            if (html5QrScannerInstance) {
+                try {
+                    html5QrScannerInstance.stop().catch(() => {});
+                } catch(e) {}
+            }
+
+            html5QrScannerInstance = new Html5Qrcode("qr-reader");
+            const config = {
+                fps: 10,
+                qrbox: { width: 260, height: 180 },
+                aspectRatio: 1.333
+            };
+
+            // Thử camera sau (môi trường ngoài) trước
+            html5QrScannerInstance.start(
+                { facingMode: "environment" },
+                config,
+                onTrackingScanSuccess,
+                onTrackingScanFailure
+            ).catch(err => {
+                console.warn("Không mở được camera environment, đang chuyển sang camera mặc định...", err);
+                Html5Qrcode.getCameras().then(cameras => {
+                    if (cameras && cameras.length > 0) {
+                        html5QrScannerInstance.start(cameras[0].id, config, onTrackingScanSuccess, onTrackingScanFailure)
+                            .catch(e => showTrackingCameraError(e));
+                    } else {
+                        showTrackingCameraError("Không tìm thấy camera khả dụng trên thiết bị!");
+                    }
+                }).catch(e => showTrackingCameraError(e));
+            });
+        }
+
+        function onTrackingScanSuccess(decodedText, decodedResult) {
+            playScanBeepSound();
+            if (navigator.vibrate) navigator.vibrate(100);
+
+            // Trích xuất mã vận đơn DHxxxxxx nếu trong chuỗi quét hoặc URL
+            let matchedCode = '';
+            const match = decodedText.match(/DH\d{6,8}/i);
+            if (match) {
+                matchedCode = match[0].toUpperCase();
+            } else {
+                matchedCode = decodedText.trim().toUpperCase();
+            }
+
+            const statusAlert = document.getElementById('scanStatusAlert');
+            statusAlert.style.display = 'block';
+            statusAlert.style.background = '#ECFDF5';
+            statusAlert.style.color = '#059669';
+            statusAlert.style.border = '1px solid #A7F3D0';
+            statusAlert.innerText = `✓ Đã quét thành công mã: ${matchedCode}`;
+
+            setTimeout(() => {
+                closeCameraScanner();
+                document.getElementById('trackInput').value = matchedCode;
+                searchTracking();
+            }, 450);
+        }
+
+        function onTrackingScanFailure(error) {
+            // Callback quét liên tục, không cần log lỗi quét từng frame
+        }
+
+        function showTrackingCameraError(err) {
+            const statusAlert = document.getElementById('scanStatusAlert');
+            statusAlert.style.display = 'block';
+            statusAlert.style.background = '#FEF2F2';
+            statusAlert.style.color = '#DC2626';
+            statusAlert.style.border = '1px solid #FECACA';
+            statusAlert.innerText = 'Lỗi truy cập Camera: ' + (err.message || err);
+        }
+
+        function closeCameraScanner() {
+            if (html5QrScannerInstance) {
+                html5QrScannerInstance.stop().then(() => {
+                    html5QrScannerInstance.clear();
+                }).catch(() => {
+                    try { html5QrScannerInstance.clear(); } catch(e) {}
+                });
+            }
+            document.getElementById('cameraModal').style.display = 'none';
+        }
+    </script>
+
 </body>
 </html>

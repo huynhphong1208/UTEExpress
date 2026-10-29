@@ -128,6 +128,11 @@ function onMessageReceived(message) {
         // 5. Hiển thị toast thông báo trạng thái vừa thay đổi
         showTrackingToast(data);
 
+        // 6. Cập nhật bản đồ số lộ trình real-time nếu có handler
+        if (typeof onWsOrderUpdated === 'function') {
+            onWsOrderUpdated(data);
+        }
+
     } catch (e) {
         console.error('❌ WebSocket: Lỗi xử lý message:', e);
     }

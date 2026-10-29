@@ -156,13 +156,27 @@ public class DonHangService {
     // =========================================================
     @SuppressWarnings("unchecked")
     public TraCuuDonHangResponse traCuuCongKhai(String maDh) {
-        // Query view tra cứu
+        // Query thông tin đơn hàng cùng kho gửi, kho nhận và vị trí kho hiện tại của kiện hàng
         List<Object[]> rows = entityManager.createNativeQuery(
                 """
-                SELECT ma_dh, ngay_tao, ten_trang_thai, cap_nhat_luc, sdt_nhan_che, so_kien
-                FROM v_tra_cuu_cong_khai
-                WHERE ma_dh = :maDh
-                """)
+                SELECT d.ma_dh, d.ngay_tao, tt.ten_trang_thai,
+                       (SELECT MAX(thoi_gian) FROM lich_su_trang_thai l WHERE l.ma_dh = d.ma_dh) AS cap_nhat_luc,
+                       fn_mask_sdt(d.sdt_nhan) AS sdt_nhan_che,
+                       (SELECT COUNT(*) FROM kien_hang k WHERE k.ma_dh = d.ma_dh) AS so_kien,
+                       d.ma_tt,
+                       d.ma_kho_gui,
+                       kgui.ten_kho AS ten_kho_gui,
+                       d.ma_kho_nhan,
+                       knhan.ten_kho AS ten_kho_nhan,
+                       (SELECT k.ma_kho_hien_tai FROM kien_hang k WHERE k.ma_dh = d.ma_dh ORDER BY k.ma_kien LIMIT 1) AS ma_kho_hien_tai,
+                       (SELECT kh.ten_kho FROM kien_hang k JOIN kho kh ON kh.ma_kho = k.ma_kho_hien_tai WHERE k.ma_dh = d.ma_dh ORDER BY k.ma_kien LIMIT 1) AS ten_kho_hien_tai
+                FROM don_hang d
+                JOIN trang_thai_dh tt ON tt.ma_trang_thai = d.ma_tt
+                LEFT JOIN kho kgui ON kgui.ma_kho = d.ma_kho_gui
+                LEFT JOIN kho knhan ON knhan.ma_kho = d.ma_kho_nhan
+                WHERE d.ma_dh = :maDh
+                """
+                )
                 .setParameter("maDh", maDh)
                 .getResultList();
 
@@ -179,7 +193,8 @@ public class DonHangService {
                 FROM v_lich_su_van_chuyen
                 WHERE ma_dh = :maDh
                 ORDER BY thoi_gian DESC
-                """)
+                """
+                )
                 .setParameter("maDh", maDh)
                 .getResultList();
 
@@ -199,6 +214,13 @@ public class DonHangService {
                 .capNhatLuc(toLocalDateTime(row[3]))
                 .sdtNhanChe((String) row[4])
                 .soKien(toLong(row[5]))
+                .maTt((String) row[6])
+                .maKhoGui((String) row[7])
+                .tenKhoGui((String) row[8])
+                .maKhoNhan((String) row[9])
+                .tenKhoNhan((String) row[10])
+                .maKhoHienTai((String) row[11])
+                .tenKhoHienTai((String) row[12])
                 .lichSu(lichSu)
                 .build();
     }

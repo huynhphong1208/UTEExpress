@@ -189,13 +189,22 @@ LEFT JOIN LATERAL (SELECT bool_or(loai_khoan = 'PHI_VC' AND trang_thai = 'Đã t
                           bool_or(loai_khoan = 'COD'    AND trang_thai = 'Đã thanh toán') AS cod_da_tt
                    FROM thanh_toan WHERE ma_dh = d.ma_dh) p ON TRUE;
 
--- Guest tra cứu: chỉ trạng thái tổng quát, che SĐT, không có địa chỉ
+-- Guest tra cứu: chỉ trạng thái tổng quát, che SĐT, kèm thông tin bưu cục lộ trình
 CREATE OR REPLACE VIEW v_tra_cuu_cong_khai AS
-SELECT d.ma_dh, d.ngay_tao, tt.ten_trang_thai,
+SELECT d.ma_dh, d.ngay_tao, d.ma_tt, tt.ten_trang_thai,
        (SELECT MAX(thoi_gian) FROM lich_su_trang_thai l WHERE l.ma_dh = d.ma_dh) AS cap_nhat_luc,
        fn_mask_sdt(d.sdt_nhan) AS sdt_nhan_che,
-       (SELECT COUNT(*) FROM kien_hang k WHERE k.ma_dh = d.ma_dh) AS so_kien
-FROM don_hang d JOIN trang_thai_dh tt ON tt.ma_trang_thai = d.ma_tt;
+       (SELECT COUNT(*) FROM kien_hang k WHERE k.ma_dh = d.ma_dh) AS so_kien,
+       d.ma_kho_gui,
+       kgui.ten_kho AS ten_kho_gui,
+       d.ma_kho_nhan,
+       knhan.ten_kho AS ten_kho_nhan,
+       (SELECT k.ma_kho_hien_tai FROM kien_hang k WHERE k.ma_dh = d.ma_dh ORDER BY k.ma_kien LIMIT 1) AS ma_kho_hien_tai,
+       (SELECT kh.ten_kho FROM kien_hang k JOIN kho kh ON kh.ma_kho = k.ma_kho_hien_tai WHERE k.ma_dh = d.ma_dh ORDER BY k.ma_kien LIMIT 1) AS ten_kho_hien_tai
+FROM don_hang d
+JOIN trang_thai_dh tt ON tt.ma_trang_thai = d.ma_tt
+LEFT JOIN kho kgui ON kgui.ma_kho = d.ma_kho_gui
+LEFT JOIN kho knhan ON knhan.ma_kho = d.ma_kho_nhan;
 
 CREATE OR REPLACE VIEW v_lich_su_van_chuyen AS
 SELECT l.ma_ls, l.ma_dh, l.ma_tt, tt.ten_trang_thai, l.thoi_gian,
