@@ -226,10 +226,10 @@ public class DonHangService {
     }
 
     // =========================================================
-    // UC05: Đơn hàng của tôi (Customer - phân trang, lọc trạng thái)
+    // UC05: Đơn hàng của tôi (Customer - phân trang, lọc trạng thái, tìm mã đơn / SĐT / người nhận)
     // =========================================================
     @SuppressWarnings("unchecked")
-    public Page<DonHangChiTietResponse> layDonHangCuaToi(String maNd, String maTt,
+    public Page<DonHangChiTietResponse> layDonHangCuaToi(String maNd, String maTt, String keyword,
                                                           int page, int size) {
         KhachHang kh = khachHangRepository.findByNguoiDung_MaNd(maNd)
                 .or(() -> khachHangRepository.findBySdt(maNd))
@@ -237,32 +237,45 @@ public class DonHangService {
                         .flatMap(nd -> khachHangRepository.findByNguoiDung_MaNd(nd.getMaNd()))
                         .orElseThrow(() -> new BusinessException("Không tìm thấy hồ sơ khách hàng", 404)));
 
-        String baseQuery = """
+        StringBuilder baseQuery = new StringBuilder("""
                 SELECT ma_dh, ngay_tao, ten_nguoi_nhan, sdt_nhan, dia_chi_lay, dia_chi_giao,
                        ten_kho_gui, ten_kho_nhan, ma_tt, ten_trang_thai,
                        so_kien, tong_kg, phi_van_chuyen, cod, tong_thu
                 FROM v_don_hang_chi_tiet
                 WHERE ma_kh_gui = :maKh
-                """;
+                """);
 
-        String filterQuery = maTt != null && !maTt.isBlank()
-                ? baseQuery + " AND ma_tt = :maTt ORDER BY ngay_tao DESC"
-                : baseQuery + " ORDER BY ngay_tao DESC";
+        StringBuilder countQuery = new StringBuilder("SELECT COUNT(*) FROM v_don_hang_chi_tiet WHERE ma_kh_gui = :maKh");
 
-        String countQuery = "SELECT COUNT(*) FROM v_don_hang_chi_tiet WHERE ma_kh_gui = :maKh"
-                + (maTt != null && !maTt.isBlank() ? " AND ma_tt = :maTt" : "");
+        if (maTt != null && !maTt.isBlank()) {
+            baseQuery.append(" AND ma_tt = :maTt");
+            countQuery.append(" AND ma_tt = :maTt");
+        }
 
-        var dataQuery = entityManager.createNativeQuery(filterQuery)
+        if (keyword != null && !keyword.isBlank()) {
+            baseQuery.append(" AND (LOWER(ma_dh) LIKE LOWER(:keyword) OR LOWER(ten_nguoi_nhan) LIKE LOWER(:keyword) OR sdt_nhan LIKE :keyword)");
+            countQuery.append(" AND (LOWER(ma_dh) LIKE LOWER(:keyword) OR LOWER(ten_nguoi_nhan) LIKE LOWER(:keyword) OR sdt_nhan LIKE :keyword)");
+        }
+
+        baseQuery.append(" ORDER BY ngay_tao DESC");
+
+        var dataQuery = entityManager.createNativeQuery(baseQuery.toString())
                 .setParameter("maKh", kh.getMaKh())
                 .setFirstResult(page * size)
                 .setMaxResults(size);
 
-        var cntQuery = entityManager.createNativeQuery(countQuery)
+        var cntQuery = entityManager.createNativeQuery(countQuery.toString())
                 .setParameter("maKh", kh.getMaKh());
 
         if (maTt != null && !maTt.isBlank()) {
             dataQuery.setParameter("maTt", maTt);
             cntQuery.setParameter("maTt", maTt);
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            String kwParam = "%" + keyword.trim() + "%";
+            dataQuery.setParameter("keyword", kwParam);
+            cntQuery.setParameter("keyword", kwParam);
         }
 
         List<Object[]> rows = dataQuery.getResultList();

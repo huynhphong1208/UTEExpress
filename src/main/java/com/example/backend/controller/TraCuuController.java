@@ -66,13 +66,27 @@ public class TraCuuController {
         java.math.BigDecimal thoiGianGio = java.math.BigDecimal.valueOf(2.0);
 
         if (!cungKho) {
+            // Ưu tiên tra cứu khoảng cách trực tiếp từ DB fn_khoang_cach_don
+            try {
+                java.math.BigDecimal dbDist = jdbcTemplate.queryForObject(
+                        "SELECT fn_khoang_cach_don(?, ?)",
+                        java.math.BigDecimal.class,
+                        maKhoGui, maKhoNhan);
+                if (dbDist != null && dbDist.compareTo(java.math.BigDecimal.ZERO) >= 0) {
+                    khoangCach = dbDist;
+                }
+            } catch (Exception ignored) {
+            }
+
             var routeOpt = tuyenVanChuyenRepository.findByMaKhoDiAndMaKhoDen(maKhoGui, maKhoNhan)
                     .or(() -> tuyenVanChuyenRepository.findByMaKhoDiAndMaKhoDen(maKhoNhan, maKhoGui));
             if (routeOpt.isPresent()) {
                 var route = routeOpt.get();
-                khoangCach = route.getKhoangCach();
-                thoiGianGio = route.getThoiGianDuKienGio();
-            } else {
+                if (khoangCach.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                    khoangCach = route.getKhoangCach() != null ? route.getKhoangCach() : java.math.BigDecimal.valueOf(15.0);
+                }
+                thoiGianGio = route.getThoiGianDuKienGio() != null ? route.getThoiGianDuKienGio() : java.math.BigDecimal.valueOf(24.0);
+            } else if (khoangCach.compareTo(java.math.BigDecimal.ZERO) <= 0) {
                 khoangCach = java.math.BigDecimal.valueOf(300.0);
                 thoiGianGio = java.math.BigDecimal.valueOf(24.0);
             }

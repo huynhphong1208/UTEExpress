@@ -129,14 +129,25 @@
 
                 <!-- DANH SÁCH ĐƠN HÀNG CHỜ TIẾP NHẬN TẠI BƯU CỤC (UC08) -->
                 <div class="card" style="margin-bottom: 28px;">
-                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div>
                             <h3 class="card-title">Đơn hàng chờ tiếp nhận tại bưu cục (Trạng thái TT01)</h3>
                             <p style="font-size: 13px; color: var(--text-muted); margin: 2px 0 0 0;">
                                 Bưu cục hiện tại: <strong th:text="${currentKho != null ? currentKho.tenKho : selectedMaKho}">Bưu cục Thủ Đức</strong>
                             </p>
                         </div>
-                        <span class="badge badge-yellow" th:text="${#lists.size(pendingOrders) + ' đơn chờ xử lý'}">0 đơn chờ xử lý</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="position: relative; width: 220px;">
+                                <input type="text" id="postOfficeOrderSearch" class="form-control"
+                                       placeholder="Tìm nhanh theo mã đơn..."
+                                       style="padding: 6px 30px 6px 12px; font-size: 13px; height: 34px;"
+                                       oninput="filterPendingOrdersTable(this.value)">
+                                <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </span>
+                            </div>
+                            <span class="badge badge-yellow" th:text="${#lists.size(pendingOrders) + ' đơn chờ xử lý'}">0 đơn chờ xử lý</span>
+                        </div>
                     </div>
 
                     <div class="table-responsive">
@@ -154,7 +165,7 @@
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="pendingOrdersTbody">
                                 <tr th:if="${#lists.isEmpty(pendingOrders)}">
                                     <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">Hiện không có đơn hàng nào chờ tiếp nhận tại bưu cục này.</td>
                                 </tr>
@@ -292,6 +303,19 @@
             size: ssrPendingSize,
             totalItems: ssrPendingTotal
         });
+
+        function filterPendingOrdersTable(keyword) {
+            const term = (keyword || '').trim().toLowerCase();
+            const rows = document.querySelectorAll('#pendingOrdersTbody tr');
+            rows.forEach(r => {
+                const text = r.innerText.toLowerCase();
+                if (!term || text.includes(term)) {
+                    r.style.display = '';
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+        }
 
         function moHopThoaiTiepNhan(maDh, phi, khoiLuong, dai, rong, cao, loaiHang, phiDaThanhToan, tinhTrang, phuongThuc) {
             document.getElementById('modalMaDh').value = maDh;

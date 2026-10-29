@@ -45,7 +45,7 @@
                 </a>
             </nav>
 
-            <div class="sidebar-footer">
+            <div class="sidebar-footer" th:data-makh="${khachHang != null ? khachHang.maKh : ''}">
                 <div class="user-avatar" id="userAvatar" onclick="openAccountSettingsModal()" style="cursor: pointer;" title="Cài đặt tài khoản" th:text="${khachHang != null and khachHang.hoTen != null and #strings.length(khachHang.hoTen) >= 2 ? #strings.substring(khachHang.hoTen, 0, 2).toUpperCase() : 'KH'}">KH</div>
                 <div class="user-info" onclick="openAccountSettingsModal()" style="cursor: pointer;" title="Cài đặt tài khoản">
                     <div class="user-name" id="userNameDisplay" th:text="${khachHang != null and khachHang.hoTen != null ? khachHang.hoTen : 'Khách hàng'}">Khách hàng</div>
@@ -60,11 +60,53 @@
         <!-- MAIN WRAPPER -->
         <main class="main-wrapper">
             <header class="top-header">
-                <div class="header-search">
+                <div class="header-search" style="display: flex; align-items: center; gap: 12px;">
                     <h3 style="font-size: 18px; font-weight: 700; color: var(--brand-blue); margin: 0;">Khách hàng Dashboard</h3>
+                    <!-- WebSocket Real-time Status Badge -->
+                    <span id="customerWsIndicator" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #94A3B8;" title="Đang kết nối Real-time..."></span>
                 </div>
 
-                <div class="header-actions">
+                <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
+                    <!-- Notification Bell with Dropdown Popover -->
+                    <div class="notif-bell-wrapper" style="position: relative;" id="notifBellWrapper">
+                        <button type="button" class="btn btn-outline-secondary" id="notifBellBtn" 
+                                onclick="toggleNotificationDropdown(event)"
+                                style="border-radius: 50%; width: 38px; height: 38px; padding: 0; display: flex; align-items: center; justify-content: center; position: relative; background: #ffffff;"
+                                title="Thông báo đơn hàng">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            <span id="notifBellBadge" style="display: none; position: absolute; top: -4px; right: -4px; background: #EF4444; color: #ffffff; font-size: 11px; font-weight: 700; border-radius: 10px; min-width: 18px; height: 18px; padding: 0 4px; align-items: center; justify-content: center; border: 2px solid #ffffff;">0</span>
+                        </button>
+
+                        <!-- Notification Dropdown Popover (Tối đa 5 thông báo trước khi cuộn scroll) -->
+                        <div id="notifDropdown" style="display: none; position: absolute; right: 0; top: 48px; width: 370px; background: #ffffff; border-radius: 12px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; z-index: 9999; overflow: hidden; animation: fadeInPopover 0.2s ease;">
+                            <!-- Header Popover -->
+                            <div style="padding: 12px 16px; border-bottom: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <strong style="font-size: 14px; color: #0F172A;">Thông báo đơn hàng</strong>
+                                    <span id="notifTotalBadge" style="font-size: 11px; background: #E0E7FF; color: var(--primary-blue, #0033A0); padding: 2px 7px; border-radius: 10px; font-weight: 600;">0</span>
+                                </div>
+                                <button type="button" onclick="markAllNotificationsAsRead(event)" style="background: none; border: none; font-size: 12px; color: var(--primary-blue, #0033A0); cursor: pointer; font-weight: 600; padding: 0;">Đã đọc tất cả</button>
+                            </div>
+
+                            <!-- List Notifications: Chứa tối đa 5 items, nhiều hơn tự động cuộn scroll -->
+                            <div id="notifListContainer" style="max-height: 330px; overflow-y: auto; scrollbar-width: thin;">
+                                <div id="notifEmptyState" style="padding: 36px 16px; text-align: center; color: #94A3B8; font-size: 13px;">
+                                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 8px; opacity: 0.5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                    Chưa có thông báo đơn hàng nào.
+                                </div>
+                            </div>
+
+                            <!-- Footer Popover -->
+                            <div style="padding: 10px 16px; border-top: 1px solid #F1F5F9; text-align: center; background: #FAFAFA;">
+                                <a th:href="@{/customer/dashboard}" href="/customer/dashboard" style="font-size: 12px; color: #64748B; text-decoration: none; font-weight: 500;">
+                                    Tự động cập nhật thời gian thực (Real-time)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <a th:href="@{/customer/create-order}" href="/customer/create-order" class="btn btn-primary btn-sm">+ Tạo đơn mới</a>
                 </div>
             </header>
@@ -116,8 +158,20 @@
                 <div class="card" id="orders-table">
                     <div class="card-header">
                         <h3 class="card-title">Danh sách đơn hàng của tôi</h3>
-                        <div style="display: flex; gap: 8px;">
-                            <select id="statusFilter" class="form-select" style="width: 180px; padding: 6px 12px; font-size: 13px;" onchange="loadMyOrders()">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <!-- Ô tìm kiếm theo mã đơn hàng -->
+                            <div style="position: relative; width: 220px;">
+                                <input type="text" id="orderSearchInput" class="form-control" 
+                                       placeholder="Tìm theo mã đơn..." 
+                                       style="padding: 6px 30px 6px 12px; font-size: 13px; height: 36px;"
+                                       onkeydown="if(event.key==='Enter'){ handleFilterChange(); }">
+                                <span onclick="handleFilterChange()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted);" title="Tìm kiếm">
+                                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </span>
+                            </div>
+
+                            <!-- Dropdown lọc theo trạng thái -->
+                            <select id="statusFilter" class="form-select" style="width: 180px; padding: 6px 12px; font-size: 13px; height: 36px;" onchange="handleFilterChange()">
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="TT01">TT01 - Mới tạo</option>
                                 <option value="TT02">TT02 - Đã tiếp nhận</option>
@@ -173,8 +227,13 @@
         </main>
     </div>
 
+    <!-- STOMP & SockJS for WebSocket Real-time -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
     <script th:src="@{/js/components.js}" src="/js/components.js"></script>
     <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
+    <script th:src="@{/js/ws-customer.js}" src="/js/ws-customer.js"></script>
     <script th:inline="javascript">
         const token = localStorage.getItem('accessToken');
         const userPhone = localStorage.getItem('tenDangNhap') || '';
@@ -241,13 +300,15 @@
 
         async function loadMyOrders(page = orderPagination.currentPage, size = orderPagination.pageSize) {
             const status = document.getElementById('statusFilter').value;
+            const keyword = (document.getElementById('orderSearchInput')?.value || '').trim();
             const tbody = document.getElementById('ordersTbody');
 
             if (!token) return;
 
             try {
                 let url = `/api/khach-hang/don-hang?page=${page - 1}&size=${size}`;
-                if (status) url += `&maTt=${status}`;
+                if (status) url += `&maTt=${encodeURIComponent(status)}`;
+                if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
 
                 const res = await fetch(url, {
                     headers: { 'Authorization': 'Bearer ' + token }

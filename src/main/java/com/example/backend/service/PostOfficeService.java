@@ -486,7 +486,18 @@ public class PostOfficeService {
                     .build();
 
             messagingTemplate.convertAndSend("/topic/orders/" + maDh, wsMsg);
-            log.info("📡 WebSocket: Đã gửi cập nhật đơn {} → {} ({})", maDh, maTrangThaiMoi, tenTrangThaiMoi);
+
+            // Gửi tới channel riêng của khách hàng gửi và nhận
+            donHangRepository.findById(maDh).ifPresent(dh -> {
+                if (dh.getMaKhGui() != null && !dh.getMaKhGui().isBlank()) {
+                    messagingTemplate.convertAndSend("/topic/customer/" + dh.getMaKhGui(), wsMsg);
+                }
+                if (dh.getMaKhNhan() != null && !dh.getMaKhNhan().isBlank()) {
+                    messagingTemplate.convertAndSend("/topic/customer/" + dh.getMaKhNhan(), wsMsg);
+                }
+            });
+
+            log.info("📡 WebSocket: Đã gửi cập nhật đơn {} → {} ({}) tới /topic/orders/{} và /topic/customer/*", maDh, maTrangThaiMoi, tenTrangThaiMoi, maDh);
         } catch (Exception e) {
             log.warn("⚠️ WebSocket: Không thể gửi cập nhật cho đơn {}: {}", maDh, e.getMessage());
         }

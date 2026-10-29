@@ -162,6 +162,7 @@ public class ViewController implements WebMvcConfigurer {
     public String adminDashboard(Model model) {
         log.info("Tải dữ liệu Admin Dashboard từ cơ sở dữ liệu");
         AdminOverviewReportResponse overview = adminReportService.getOverviewReport();
+        SlaPerformanceReportResponse slaReport = adminReportService.getSlaPerformanceReport();
         long tongNguoiDung = nguoiDungRepository.count();
         long tongKhachHang = khachHangRepository.count();
         long tongNhanVien = nhanVienRepository.count();
@@ -171,6 +172,7 @@ public class ViewController implements WebMvcConfigurer {
         List<DonHang> donHangMoiNhat = donHangRepository.findAllByOrderByNgayTaoDesc(PageRequest.of(0, 6)).getContent();
 
         model.addAttribute("overview", overview);
+        model.addAttribute("slaReport", slaReport);
         model.addAttribute("tongNguoiDung", tongNguoiDung);
         model.addAttribute("tongKhachHang", tongKhachHang);
         model.addAttribute("tongNhanVien", tongNhanVien);

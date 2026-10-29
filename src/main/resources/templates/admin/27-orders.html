@@ -233,9 +233,9 @@
                                     <td
                                         th:text="${dh.ngayTao != null ? #temporals.format(dh.ngayTao, 'dd/MM/yyyy HH:mm') : '-'}">
                                         10/10/2026</td>
-                                    <td class="cell-actions">
+                                    <td>
                                         <a th:href="@{/customer/order-detail(maDh=${dh.maDh})}"
-                                            class="btn btn-secondary btn-sm">Chi tiết</a>
+                                            class="btn btn-secondary btn-sm" style="white-space: nowrap;">Chi tiết</a>
                                     </td>
                                 </tr>
                             </tbody>

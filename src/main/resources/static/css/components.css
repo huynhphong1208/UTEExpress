@@ -390,9 +390,10 @@
     border-bottom: none;
 }
 .table .cell-actions {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
+    height: 100%;
 }
 
 /* Pagination */
