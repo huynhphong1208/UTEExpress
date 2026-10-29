@@ -1,5 +1,7 @@
+SET client_encoding = 'UTF8';
+
 -- =========================================================
--- UTEEXPRESS - SCHEMA v2 (PostgreSQL 12+) - chạy trên DB trống
+-- UTEEXPRESS - SCHEMA v2 (PostgreSQL 12+) - chạy trên DB trống Tạo trước database ute_express
 -- =========================================================
 CREATE EXTENSION IF NOT EXISTS btree_gist;   -- cho ràng buộc EXCLUDE chống trùng lịch
 

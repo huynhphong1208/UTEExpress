@@ -1,3 +1,5 @@
+SET client_encoding = 'UTF8';
+
 -- ====================================================================
 -- UTEEXPRESS - TOÀN BỘ DỮ LIỆU MẪU & TEST TỔNG HỢP (SEED_AND_TEST.SQL)
 -- Bao gồm:
@@ -12,6 +14,8 @@
 -- =========================================================
 -- PHẦN 1. DANH MỤC CƠ SỞ & MASTER DATA
 -- =========================================================
+
+BEGIN;
 
 -- 1. VAI TRÒ HỆ THỐNG
 INSERT INTO vai_tro (ma_vai_tro, ten_vai_tro, mo_ta) VALUES
@@ -172,6 +176,8 @@ SET bien_so = EXCLUDED.bien_so, tai_trong = EXCLUDED.tai_trong, trang_thai = EXC
 
 
 -- =========================================================
+COMMIT;
+
 -- PHẦN 2. SCRIPT KIỂM THỬ PL/PGSQL (38 CA TEST TỔNG HỢP)
 -- Dọn dẹp dữ liệu giao dịch cũ (nếu chạy lại nhiều lần) để không bị trùng lịch tài xế / trùng mã
 TRUNCATE TABLE chi_tiet_chuyen_giao, chuyen_giao, thanh_toan, lich_su_trang_thai, kien_hang, don_hang RESTART IDENTITY CASCADE;

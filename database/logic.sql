@@ -1,3 +1,5 @@
+SET client_encoding = 'UTF8';
+
 -- =========================================================
 -- UTEEXPRESS - FUNCTION / VIEW / TRIGGER / PROCEDURE
 -- Chạy SAU schema.sql.
