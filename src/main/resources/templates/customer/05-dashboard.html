@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Khách hàng - UTE Express</title>
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR KHÁCH HÀNG -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/}" href="/" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag">Khách hàng</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ giao nhận</div>
+                <a th:href="@{/customer/dashboard}" href="/customer/dashboard" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Tổng quan &amp; Đơn hàng</span>
+                </a>
+                <a th:href="@{/customer/create-order}" href="/customer/create-order" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>Tạo đơn hàng mới</span>
+                </a>
+                <a th:href="@{/customer/order-detail}" href="/customer/order-detail" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Chi tiết đơn hàng</span>
+                </a>
+
+                <div class="nav-section-title">Tài chính &amp; Cá nhân</div>
+                <a th:href="@{/customer/payment}" href="/customer/payment" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    <span>Thanh toán &amp; COD</span>
+                </a>
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: 30px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer" th:data-makh="${khachHang != null ? khachHang.maKh : ''}">
+                <div class="user-avatar" id="userAvatar" onclick="openAccountSettingsModal()" style="cursor: pointer;" title="Cài đặt tài khoản" th:text="${khachHang != null and khachHang.hoTen != null and #strings.length(khachHang.hoTen) >= 2 ? #strings.substring(khachHang.hoTen, 0, 2).toUpperCase() : 'KH'}">KH</div>
+                <div class="user-info" onclick="openAccountSettingsModal()" style="cursor: pointer;" title="Cài đặt tài khoản">
+                    <div class="user-name" id="userNameDisplay" th:text="${khachHang != null and khachHang.hoTen != null ? khachHang.hoTen : 'Khách hàng'}">Khách hàng</div>
+                    <div class="user-sub" id="userSubDisplay" th:text="${khachHang != null and khachHang.sdt != null ? 'SĐT: ' + khachHang.sdt : 'Tài khoản Khách hàng'}">Tài khoản Khách hàng</div>
+                </div>
+                <button type="button" class="sidebar-settings-btn" onclick="openAccountSettingsModal()" title="Cài đặt tài khoản" aria-label="Cài đặt tài khoản">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="header-search" style="display: flex; align-items: center; gap: 12px;">
+                    <h3 style="font-size: 18px; font-weight: 700; color: var(--brand-blue); margin: 0;">Khách hàng Dashboard</h3>
+                    <!-- WebSocket Real-time Status Badge -->
+                    <span id="customerWsIndicator" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #94A3B8;" title="Đang kết nối Real-time..."></span>
+                </div>
+
+                <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
+                    <!-- Notification Bell with Dropdown Popover -->
+                    <div class="notif-bell-wrapper" style="position: relative;" id="notifBellWrapper">
+                        <button type="button" class="btn btn-outline-secondary" id="notifBellBtn" 
+                                onclick="toggleNotificationDropdown(event)"
+                                style="border-radius: 50%; width: 38px; height: 38px; padding: 0; display: flex; align-items: center; justify-content: center; position: relative; background: #ffffff;"
+                                title="Thông báo đơn hàng">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            <span id="notifBellBadge" style="display: none; position: absolute; top: -4px; right: -4px; background: #EF4444; color: #ffffff; font-size: 11px; font-weight: 700; border-radius: 10px; min-width: 18px; height: 18px; padding: 0 4px; align-items: center; justify-content: center; border: 2px solid #ffffff;">0</span>
+                        </button>
+
+                        <!-- Notification Dropdown Popover (Tối đa 5 thông báo trước khi cuộn scroll) -->
+                        <div id="notifDropdown" style="display: none; position: absolute; right: 0; top: 48px; width: 370px; background: #ffffff; border-radius: 12px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; z-index: 9999; overflow: hidden; animation: fadeInPopover 0.2s ease;">
+                            <!-- Header Popover -->
+                            <div style="padding: 12px 16px; border-bottom: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <strong style="font-size: 14px; color: #0F172A;">Thông báo đơn hàng</strong>
+                                    <span id="notifTotalBadge" style="font-size: 11px; background: #E0E7FF; color: var(--primary-blue, #0033A0); padding: 2px 7px; border-radius: 10px; font-weight: 600;">0</span>
+                                </div>
+                                <button type="button" onclick="markAllNotificationsAsRead(event)" style="background: none; border: none; font-size: 12px; color: var(--primary-blue, #0033A0); cursor: pointer; font-weight: 600; padding: 0;">Đã đọc tất cả</button>
+                            </div>
+
+                            <!-- List Notifications: Chứa tối đa 5 items, nhiều hơn tự động cuộn scroll -->
+                            <div id="notifListContainer" style="max-height: 330px; overflow-y: auto; scrollbar-width: thin;">
+                                <div id="notifEmptyState" style="padding: 36px 16px; text-align: center; color: #94A3B8; font-size: 13px;">
+                                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 8px; opacity: 0.5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                    Chưa có thông báo đơn hàng nào.
+                                </div>
+                            </div>
+
+                            <!-- Footer Popover -->
+                            <div style="padding: 10px 16px; border-top: 1px solid #F1F5F9; text-align: center; background: #FAFAFA;">
+                                <a th:href="@{/customer/dashboard}" href="/customer/dashboard" style="font-size: 12px; color: #64748B; text-decoration: none; font-weight: 500;">
+                                    Tự động cập nhật thời gian thực (Real-time)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a th:href="@{/customer/create-order}" href="/customer/create-order" class="btn btn-primary btn-sm">+ Tạo đơn mới</a>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <div class="breadcrumbs">
+                            <a th:href="@{/}" href="/">Trang chủ</a> <span>/</span> <span>Khách hàng</span> <span>/</span> <span>Tổng quan</span>
+                        </div>
+                        <h1 class="page-title">Bảng điều khiển Khách hàng</h1>
+                        <p class="page-subtitle">Theo dõi danh sách đơn hàng và trạng thái vận chuyển (UC05)</p>
+                    </div>
+                </div>
+
+                <!-- Thống kê tổng quan -->
+                <div class="grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng đơn hàng</span>
+                            <span class="stat-value" id="statTotalOrders" th:text="${totalOrders != null ? totalOrders : (danhSachDonHang != null ? #lists.size(danhSachDonHang) : 0)}">0</span>
+                            <span class="stat-change" style="color: var(--primary-blue);">Đơn gửi của bạn</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đang vận chuyển</span>
+                            <span class="stat-value" id="statShipping" style="color: var(--brand-blue);" th:text="${countShipping != null ? countShipping : 0}">0</span>
+                            <span class="stat-change" style="color: var(--brand-blue);">Đang giao / trung chuyển</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Giao thành công</span>
+                            <span class="stat-value" id="statDelivered" style="color: var(--success);" th:text="${countDelivered != null ? countDelivered : 0}">0</span>
+                            <span class="stat-change" style="color: var(--success);">Hoàn tất giao nhận</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Chờ tiếp nhận</span>
+                            <span class="stat-value" id="statPending" style="color: var(--warning);" th:text="${countPending != null ? countPending : 0}">0</span>
+                            <span class="stat-change" style="color: var(--warning);">Mới tạo / Bưu cục xử lý</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danh sách đơn hàng -->
+                <div class="card" id="orders-table">
+                    <div class="card-header">
+                        <h3 class="card-title">Danh sách đơn hàng của tôi</h3>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <!-- Ô tìm kiếm theo mã đơn hàng -->
+                            <div style="position: relative; width: 220px;">
+                                <input type="text" id="orderSearchInput" class="form-control" 
+                                       placeholder="Tìm theo mã đơn..." 
+                                       style="padding: 6px 30px 6px 12px; font-size: 13px; height: 36px;"
+                                       onkeydown="if(event.key==='Enter'){ handleFilterChange(); }">
+                                <span onclick="handleFilterChange()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted);" title="Tìm kiếm">
+                                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </span>
+                            </div>
+
+                            <!-- Dropdown lọc theo trạng thái -->
+                            <select id="statusFilter" class="form-select" style="width: 180px; padding: 6px 12px; font-size: 13px; height: 36px;" onchange="handleFilterChange()">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="TT01">TT01 - Mới tạo</option>
+                                <option value="TT02">TT02 - Đã tiếp nhận</option>
+                                <option value="TT03">TT03 - Đang vận chuyển</option>
+                                <option value="TT06">TT06 - Đang giao hàng</option>
+                                <option value="TT07">TT07 - Giao thành công</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Người gửi</th>
+                                    <th>Người nhận</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Cước phí</th>
+                                    <th>Tiền COD</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTbody">
+                                <tr th:if="${danhSachDonHang == null or #lists.isEmpty(danhSachDonHang)}" id="noOrdersRow">
+                                    <td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                                        Chưa có đơn hàng nào.
+                                    </td>
+                                </tr>
+                                <tr th:each="dh : ${danhSachDonHang}">
+                                    <td><strong style="color: var(--primary-blue);" th:text="${dh.maDh}">DH000001</strong></td>
+                                    <td th:text="${khachHang != null ? khachHang.hoTen : 'Khách hàng'}">Khách hàng</td>
+                                    <td>
+                                        <span th:text="${dh.tenNguoiNhan}">Người nhận</span><br>
+                                        <small style="color: var(--text-muted);" th:text="${dh.diaChiGiao}">Địa chỉ</small>
+                                    </td>
+                                    <td th:text="${dh.ngayTao != null ? #temporals.format(dh.ngayTao, 'dd/MM/yyyy HH:mm') : '---'}">---</td>
+                                    <td th:text="${dh.phiVanChuyen != null ? #numbers.formatDecimal(dh.phiVanChuyen, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</td>
+                                    <td th:text="${dh.cod != null ? #numbers.formatDecimal(dh.cod, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</td>
+                                    <td><span class="badge badge-info"><span class="badge-dot"></span><span th:text="${dh.trangThai != null ? dh.trangThai.tenTrangThai : dh.maTt}">Mới tạo</span></span></td>
+                                    <td>
+                                        <a th:href="@{/customer/order-detail(maDh=${dh.maDh})}" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 12px;">Xem</a>
+                                        <a th:href="@{/customer/payment(maDh=${dh.maDh})}" class="btn btn-outline-primary btn-sm" style="padding: 2px 8px; font-size: 12px;">Thanh toán</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="customerOrdersPagination" style="padding: 12px 16px; border-top: 1px solid var(--border-color);"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- STOMP & SockJS for WebSocket Real-time -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <script th:src="@{/js/components.js}" src="/js/components.js"></script>
+    <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
+    <script th:src="@{/js/ws-customer.js}" src="/js/ws-customer.js"></script>
+    <script th:inline="javascript">
+        const token = localStorage.getItem('accessToken');
+        const userPhone = localStorage.getItem('tenDangNhap') || '';
+        const userFullName = localStorage.getItem('hoTen') || '';
+
+        const ssrTotal = /*[[${totalElements != null ? totalElements : 0}]]*/ 0;
+        const ssrPage = /*[[${currentPage != null ? currentPage + 1 : 1}]]*/ 1;
+        const ssrSize = /*[[${pageSize != null ? pageSize : 10}]]*/ 10;
+
+        // Đồng bộ token từ localStorage vào Cookie để các trang SSR nhận diện đúng tài khoản
+        if (token && !document.cookie.includes('accessToken=')) {
+            document.cookie = `accessToken=${token}; path=/; max-age=86400; SameSite=Lax`;
+        }
+
+        if (userFullName && userFullName !== 'undefined' && userFullName.trim() && !/^[0-9+]+$/.test(userFullName.trim())) {
+            const el = document.getElementById('userNameDisplay');
+            if (el) el.innerText = userFullName;
+            const initials = userFullName.trim().split(' ').map(w => w[0]).join('').slice(-2).toUpperCase();
+            const av = document.getElementById('userAvatar');
+            if (av && initials && !localStorage.getItem('userAvatarUrl')) av.innerText = initials;
+        }
+        if (userPhone) {
+            const sub = document.getElementById('userSubDisplay');
+            if (sub) sub.innerText = 'SĐT: ' + userPhone;
+        }
+
+        function logout() {
+            localStorage.clear();
+            document.cookie = "accessToken=; path=/; max-age=0; SameSite=Lax";
+            window.location.href = '/login';
+        }
+
+        // Khởi tạo bộ điều khiển phân trang TablePagination (5, 10, 20 dòng/trang)
+        const orderPagination = new TablePagination({
+            containerId: 'customerOrdersPagination',
+            defaultPageSize: ssrSize,
+            pageSizeOptions: [5, 10, 20],
+            onChange: (page, size) => {
+                if (token) {
+                    loadMyOrders(page, size);
+                } else {
+                    window.location.href = `/customer/dashboard?page=${page - 1}&size=${size}`;
+                }
+            }
+        });
+
+        // Thiết lập trạng thái phân trang mặc định ban đầu từ SSR
+        orderPagination.setServerPageInfo({
+            page: ssrPage,
+            size: ssrSize,
+            totalItems: ssrTotal
+        });
+
+        function handleFilterChange() {
+            orderPagination.reset();
+            loadMyOrders(1, orderPagination.pageSize);
+        }
+
+        // Gán vào onchange của dropdown lọc trạng thái
+        const filterSelect = document.getElementById('statusFilter');
+        if (filterSelect) {
+            filterSelect.onchange = handleFilterChange;
+        }
+
+        async function loadMyOrders(page = orderPagination.currentPage, size = orderPagination.pageSize) {
+            const status = document.getElementById('statusFilter').value;
+            const keyword = (document.getElementById('orderSearchInput')?.value || '').trim();
+            const tbody = document.getElementById('ordersTbody');
+
+            if (!token) return;
+
+            try {
+                let url = `/api/khach-hang/don-hang?page=${page - 1}&size=${size}`;
+                if (status) url += `&maTt=${encodeURIComponent(status)}`;
+                if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+
+                const res = await fetch(url, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    console.warn('Phiên làm việc API chưa xác thực hoặc hết hạn.');
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (res.ok && data.success && data.data && data.data.content) {
+                    const list = data.data.content;
+                    const totalElements = data.data.totalElements !== undefined ? data.data.totalElements : list.length;
+                    const pageNumber = (data.data.number !== undefined ? data.data.number : page - 1) + 1;
+                    const pageSize = data.data.size || size;
+
+                    orderPagination.setServerPageInfo({
+                        page: pageNumber,
+                        size: pageSize,
+                        totalItems: totalElements
+                    });
+
+                    if (list.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">Chưa có đơn hàng nào phù hợp.</td></tr>`;
+                        return;
+                    }
+
+                    // Cập nhật thẻ thống kê nếu không lọc theo trạng thái
+                    if (!status) {
+                        const totalEl = document.getElementById('statTotalOrders');
+                        const shippingEl = document.getElementById('statShipping');
+                        const deliveredEl = document.getElementById('statDelivered');
+                        const pendingEl = document.getElementById('statPending');
+
+                        if (totalEl) totalEl.innerText = totalElements;
+                        if (shippingEl) shippingEl.innerText = list.filter(d => ['TT03','TT04','TT05','TT06'].includes(d.maTt)).length;
+                        if (deliveredEl) deliveredEl.innerText = list.filter(d => d.maTt === 'TT07').length;
+                        if (pendingEl) pendingEl.innerText = list.filter(d => ['TT01','TT02'].includes(d.maTt)).length;
+                    }
+
+                    tbody.innerHTML = list.map(dh => {
+                        const cuoc = dh.phiVanChuyen != null ? dh.phiVanChuyen : (dh.tongCuoc != null ? dh.tongCuoc : 0);
+                        const cod = dh.cod != null ? dh.cod : 0;
+                        return `
+                        <tr>
+                            <td><strong style="color: var(--primary-blue);">${dh.maDh}</strong></td>
+                            <td>${dh.tenNguoiGui || userFullName || 'Khách hàng'}</td>
+                            <td>${dh.tenNguoiNhan || ''}<br><small style="color: var(--text-muted);">${dh.diaChiGiao || ''}</small></td>
+                            <td>${dh.ngayTao ? new Date(dh.ngayTao).toLocaleString('vi-VN') : '---'}</td>
+                            <td>${cuoc.toLocaleString('vi-VN')} đ</td>
+                            <td>${cod.toLocaleString('vi-VN')} đ</td>
+                            <td><span class="badge badge-info"><span class="badge-dot"></span>${dh.tenTrangThai || dh.maTt}</span></td>
+                            <td>
+                                <a href="/customer/order-detail?maDh=${dh.maDh}" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 12px;">Xem</a>
+                                <a href="/customer/payment?maDh=${dh.maDh}" class="btn btn-outline-primary btn-sm" style="padding: 2px 8px; font-size: 12px;">Thanh toán</a>
+                            </td>
+                        </tr>
+                    `}).join('');
+                }
+            } catch (err) {
+                console.error('Lỗi tải dữ liệu đơn hàng qua API:', err);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadMyOrders(1, orderPagination.pageSize);
+        });
+    </script>
+</body>
+</html>

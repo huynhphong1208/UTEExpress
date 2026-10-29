@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo đơn hàng mới - UTE Express</title>
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR KHÁCH HÀNG -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/}" href="/" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag">Khách hàng</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ giao nhận</div>
+                <a th:href="@{/customer/dashboard}" href="/customer/dashboard" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Tổng quan & Đơn hàng</span>
+                </a>
+                <a th:href="@{/customer/create-order}" href="/customer/create-order" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>Tạo đơn hàng mới</span>
+                </a>
+                <a th:href="@{/customer/order-detail}" href="/customer/order-detail" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Chi tiết đơn hàng</span>
+                </a>
+
+                <div class="nav-section-title">Tài chính &amp; Cá nhân</div>
+                <a th:href="@{/customer/payment}" href="/customer/payment" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 03 3z"/></svg>
+                    <span>Thanh toán &amp; COD</span>
+                </a>
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: 30px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar" id="userAvatar" onclick="openAccountSettingsModal()" style="cursor: pointer;" title="Cài đặt tài khoản" th:text="${khachHang != null and khachHang.hoTen != null and #strings.length(khachHang.hoTen) >= 2 ? #strings.substring(khachHang.hoTen, 0, 2).toUpperCase() : 'KH'}">KH</div>
+                <div class="user-info" onclick="openAccountSettingsModal()" style="cursor: pointer;" title="Cài đặt tài khoản">
+                    <div class="user-name" id="userNameDisplay" th:text="${khachHang != null and khachHang.hoTen != null ? khachHang.hoTen : 'Khách hàng'}">Khách hàng</div>
+                    <div class="user-sub" id="userSubDisplay" th:text="${khachHang != null and khachHang.sdt != null ? 'SĐT: ' + khachHang.sdt : 'Tài khoản Khách hàng'}">Tài khoản Khách hàng</div>
+                </div>
+                <button type="button" class="sidebar-settings-btn" onclick="openAccountSettingsModal()" title="Cài đặt tài khoản" aria-label="Cài đặt tài khoản">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a th:href="@{/customer/dashboard}" href="/customer/dashboard">Dashboard</a> <span>/</span> <span>Tạo đơn hàng mới</span>
+                </div>
+                <div class="header-actions">
+                </div>
+            </header>
+
+            <div class="page-container" style="max-width: 980px;">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Tạo đơn gửi hàng mới (UC04)</h1>
+                        <p class="page-subtitle">Nhập thông tin người nhận và kiện hàng để gửi đơn hàng</p>
+                    </div>
+                </div>
+
+                <div id="errorAlert" style="display: none; padding: 12px 16px; background-color: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); color: var(--danger); font-size: 13px; margin-bottom: 20px;"></div>
+
+                <form id="createOrderForm" onsubmit="handleCreateOrder(event)">
+                    <div class="grid-12">
+                        <!-- Left Column -->
+                        <div class="col-8">
+                            <!-- SECTION A: THÔNG TIN LẤY HÀNG -->
+                            <div class="card" style="margin-bottom: 20px;">
+                                <div class="card-header" style="background-color: var(--bg-alt);">
+                                    <h3 class="card-title">A. Thông tin lấy hàng (Người gửi)</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label">Địa chỉ lấy hàng chi tiết <span style="color: red;">*</span></label>
+                                        <input type="text" class="form-control" id="senderAddress" placeholder="Ví dụ: 12 Võ Văn Ngân, Thủ Đức, TP.HCM" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION B: THÔNG TIN NGƯỜI NHẬN -->
+                            <div class="card" style="margin-bottom: 20px;">
+                                <div class="card-header" style="background-color: var(--bg-alt);">
+                                    <h3 class="card-title">B. Thông tin người nhận & điểm giao</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="grid-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Họ tên người nhận <span style="color: red;">*</span></label>
+                                            <input type="text" class="form-control" id="receiverName" placeholder="Họ và tên người nhận" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Số điện thoại người nhận <span style="color: red;">*</span></label>
+                                            <input type="tel" class="form-control" id="receiverPhone" placeholder="Số điện thoại (10 chữ số)" pattern="[0-9]{10}" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label class="form-label">Địa chỉ giao hàng chi tiết <span style="color: red;">*</span></label>
+                                        <input type="text" class="form-control" id="receiverAddress" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION C: KIỆN HÀNG -->
+                            <div class="card">
+                                <div class="card-header" style="background-color: var(--bg-alt); display: flex; justify-content: space-between; align-items: center;">
+                                    <h3 class="card-title">C. Thông tin kiện hàng gửi</h3>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPackageItem()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 6px 12px;">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        + Thêm kiện hàng
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Gemini AI Banner -->
+                                    <div style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(14, 165, 233, 0.08)); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px;">
+                                        <div style="font-size: 26px; line-height: 1;">🤖</div>
+                                        <div style="font-size: 13px; line-height: 1.45;">
+                                            <strong style="color: var(--primary-blue); font-size: 13.5px;">Tự động phân bổ bưu cục với Gemini AI:</strong><br>
+                                            <span style="color: var(--text-secondary);">Bạn không cần chọn bưu cục thủ công. Hệ thống AI sẽ tự động phân tích địa chỉ lấy hàng và địa chỉ giao hàng để phân bổ bưu cục gần nhất xử lý đơn hàng.</span>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom: 12px; font-weight: 600; font-size: 13.5px; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between;">
+                                        <span>Danh sách kiện hàng thuộc đơn:</span>
+                                        <span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">(Tối thiểu 1 kiện)</span>
+                                    </div>
+
+                                    <!-- Container chứa các kiện hàng động -->
+                                    <div id="packagesContainer" style="display: flex; flex-direction: column; gap: 16px;">
+                                        <!-- Kiện hàng đầu tiên mặc định sẽ được render tại đây -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-4">
+                            <div class="card" style="position: sticky; top: 88px;">
+                                <div class="card-header" style="background-color: var(--primary-light);">
+                                    <h3 class="card-title" style="color: var(--primary-blue);">D. Thu hộ &amp; Xác nhận</h3>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Tóm tắt số lượng & khối lượng kiện -->
+                                    <div style="padding: 12px 14px; background: var(--bg-alt); border-radius: var(--radius-md); margin-bottom: 16px; border: 1px solid var(--border-color);">
+                                        <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Tóm tắt hàng gửi</div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                                            <span style="color: var(--text-secondary);">Số lượng kiện:</span>
+                                            <span id="summaryTotalPkgs" style="font-weight: 700; color: var(--primary-blue);">1 kiện</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                                            <span style="color: var(--text-secondary);">Tổng KL thực:</span>
+                                            <span id="summaryTotalWeight" style="font-weight: 700; color: var(--text-primary);">0 kg</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                                            <span style="color: var(--text-secondary);">Tổng KL quy đổi:</span>
+                                            <span id="summaryTotalVolWeight" style="font-weight: 700; color: var(--text-primary);">0 kg</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Phương thức thanh toán cước</label>
+                                        <select class="form-select" id="paymentMethod">
+                                            <option value="TIEN_MAT" selected>Tiền mặt khi giao/lấy hàng</option>
+                                            <option value="CHUYEN_KHOAN">Chuyển khoản trực tuyến</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Tiền thu hộ COD (đ)</label>
+                                        <input type="number" step="1000" min="0" class="form-control" id="codAmount" placeholder="0 nếu không thu hộ" value="0">
+                                    </div>
+
+                                    <button type="submit" id="btnSubmit" class="btn btn-primary btn-block btn-lg" style="margin-top: 20px;">
+                                        ✓ Tạo đơn hàng mới
+                                    </button>
+
+                                    <a th:href="@{/customer/dashboard}" href="/customer/dashboard" class="btn btn-ghost btn-block" style="margin-top: 10px;">
+                                        Hủy thao tác
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+        <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
+    <script>
+        const token = localStorage.getItem('accessToken');
+        const hoTen = localStorage.getItem('hoTen');
+        const tenDangNhap = localStorage.getItem('tenDangNhap') || '';
+        if (hoTen && hoTen !== 'undefined' && hoTen.trim() && !/^[0-9+]+$/.test(hoTen.trim())) {
+            const el = document.getElementById('userNameDisplay');
+            if (el) el.innerText = hoTen;
+            const initials = hoTen.trim().split(' ').map(w => w[0]).join('').slice(-2).toUpperCase();
+            const av = document.getElementById('userAvatar');
+            if (av && initials && !localStorage.getItem('userAvatarUrl')) av.innerText = initials;
+        }
+        if (tenDangNhap) {
+            const sub = document.getElementById('userSubDisplay');
+            if (sub) sub.innerText = 'SĐT: ' + tenDangNhap;
+        }
+
+        if (!token) {
+            alert('Bạn chưa đăng nhập! Vui lòng đăng nhập tài khoản Khách hàng.');
+            window.location.href = '/login';
+        } else if (!document.cookie.includes('accessToken=')) {
+            document.cookie = `accessToken=${token}; path=/; max-age=86400; SameSite=Lax`;
+            window.location.reload();
+        }
+
+        function logout() {
+            localStorage.clear();
+            document.cookie = "accessToken=; path=/; max-age=0; SameSite=Lax";
+            window.location.href = '/login';
+        }
+
+        // ================= Quản lý kiện hàng động =================
+        let pkgCounter = 0;
+
+        function addPackageItem(initialData = null) {
+            pkgCounter++;
+            const container = document.getElementById('packagesContainer');
+            const pkgDiv = document.createElement('div');
+            pkgDiv.className = 'package-item';
+            pkgDiv.id = `package-row-${pkgCounter}`;
+            pkgDiv.style.cssText = 'background: var(--bg-alt); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 16px; position: relative;';
+
+            const defaultWeight = initialData ? initialData.khoiLuong : '';
+            const defaultType = initialData ? initialData.loaiHang : '';
+            const defaultLength = initialData ? initialData.dai : '';
+            const defaultWidth = initialData ? initialData.rong : '';
+            const defaultHeight = initialData ? initialData.cao : '';
+
+            pkgDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <div style="font-weight: 700; font-size: 13.5px; color: var(--primary-blue); display: flex; align-items: center; gap: 6px;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        <span class="package-title">Kiện hàng</span>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-pkg-btn" onclick="removePackageItem('${pkgDiv.id}')" style="padding: 2px 8px; font-size: 12px; color: #EF4444; border-color: #FCA5A5;" title="Xóa kiện hàng này">
+                        ✕ Xóa kiện
+                    </button>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Khối lượng (kg) <span style="color: red;">*</span></label>
+                        <input type="number" step="0.1" min="0.1" class="form-control pkg-weight" placeholder="Ví dụ: 1.5" value="${defaultWeight}" required oninput="calculateSummary()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Loại hàng hóa <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control pkg-type" placeholder="Ví dụ: Quần áo, tài liệu, linh kiện..." value="${defaultType}" required>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Kích thước 3 chiều (Dài x Rộng x Cao cm) <span style="color: red;">*</span></label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                        <input type="number" step="1" min="1" class="form-control pkg-length" placeholder="Dài (cm)" value="${defaultLength}" required oninput="calculateSummary()">
+                        <input type="number" step="1" min="1" class="form-control pkg-width" placeholder="Rộng (cm)" value="${defaultWidth}" required oninput="calculateSummary()">
+                        <input type="number" step="1" min="1" class="form-control pkg-height" placeholder="Cao (cm)" value="${defaultHeight}" required oninput="calculateSummary()">
+                    </div>
+                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 5px;">
+                        Khối lượng quy đổi: <span class="pkg-vol-display" style="font-weight: 600; color: var(--text-secondary);">0.0</span> kg (chuẩn D×R×C/5000)
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(pkgDiv);
+            updatePackageTitles();
+            calculateSummary();
+        }
+
+        function removePackageItem(rowId) {
+            const container = document.getElementById('packagesContainer');
+            const items = container.querySelectorAll('.package-item');
+            if (items.length <= 1) {
+                alert('Đơn hàng phải có ít nhất 1 kiện hàng!');
+                return;
+            }
+            const el = document.getElementById(rowId);
+            if (el) {
+                el.remove();
+                updatePackageTitles();
+                calculateSummary();
+            }
+        }
+
+        function updatePackageTitles() {
+            const container = document.getElementById('packagesContainer');
+            const items = container.querySelectorAll('.package-item');
+            items.forEach((item, idx) => {
+                const titleSpan = item.querySelector('.package-title');
+                if (titleSpan) titleSpan.innerText = `Kiện hàng #${idx + 1}`;
+                const removeBtn = item.querySelector('.remove-pkg-btn');
+                if (removeBtn) {
+                    removeBtn.style.display = items.length > 1 ? 'inline-block' : 'none';
+                }
+            });
+            const summaryTotal = document.getElementById('summaryTotalPkgs');
+            if (summaryTotal) summaryTotal.innerText = `${items.length} kiện`;
+        }
+
+        function calculateSummary() {
+            const container = document.getElementById('packagesContainer');
+            const items = container.querySelectorAll('.package-item');
+            let totalWeight = 0;
+            let totalVolWeight = 0;
+
+            items.forEach(item => {
+                const w = parseFloat(item.querySelector('.pkg-weight')?.value) || 0;
+                const l = parseFloat(item.querySelector('.pkg-length')?.value) || 0;
+                const wi = parseFloat(item.querySelector('.pkg-width')?.value) || 0;
+                const h = parseFloat(item.querySelector('.pkg-height')?.value) || 0;
+
+                const volWeight = (l > 0 && wi > 0 && h > 0) ? (l * wi * h) / 5000 : 0;
+                const volSpan = item.querySelector('.pkg-vol-display');
+                if (volSpan) volSpan.innerText = volWeight.toFixed(2);
+
+                totalWeight += w;
+                totalVolWeight += volWeight;
+            });
+
+            const totalWEl = document.getElementById('summaryTotalWeight');
+            if (totalWEl) totalWEl.innerText = `${totalWeight.toFixed(1)} kg`;
+
+            const totalVolWEl = document.getElementById('summaryTotalVolWeight');
+            if (totalVolWEl) totalVolWEl.innerText = `${totalVolWeight.toFixed(2)} kg`;
+        }
+
+        // Khởi tạo kiện hàng mặc định đầu tiên khi tải trang
+        window.addEventListener('DOMContentLoaded', () => {
+            addPackageItem({
+                khoiLuong: 1.5,
+                loaiHang: 'Hàng tiêu chuẩn',
+                dai: 20,
+                rong: 15,
+                cao: 10
+            });
+        });
+
+        async function handleCreateOrder(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('errorAlert');
+            const btn = document.getElementById('btnSubmit');
+
+            alertBox.style.display = 'none';
+
+            const container = document.getElementById('packagesContainer');
+            const pkgItems = container.querySelectorAll('.package-item');
+
+            if (pkgItems.length === 0) {
+                alertBox.style.display = 'block';
+                alertBox.innerText = 'Vui lòng thêm ít nhất một kiện hàng!';
+                return;
+            }
+
+            const danhSachKien = [];
+            for (let i = 0; i < pkgItems.length; i++) {
+                const item = pkgItems[i];
+                const weight = parseFloat(item.querySelector('.pkg-weight').value);
+                const length = parseFloat(item.querySelector('.pkg-length').value);
+                const width = parseFloat(item.querySelector('.pkg-width').value);
+                const height = parseFloat(item.querySelector('.pkg-height').value);
+                const type = item.querySelector('.pkg-type').value.trim();
+
+                if (isNaN(weight) || weight <= 0) {
+                    alertBox.style.display = 'block';
+                    alertBox.innerText = `Kiện hàng #${i + 1}: Vui lòng nhập khối lượng hợp lệ (> 0 kg)!`;
+                    return;
+                }
+                if (isNaN(length) || length <= 0 || isNaN(width) || width <= 0 || isNaN(height) || height <= 0) {
+                    alertBox.style.display = 'block';
+                    alertBox.innerText = `Kiện hàng #${i + 1}: Vui lòng nhập đầy đủ kích thước Dài, Rộng, Cao (> 0 cm)!`;
+                    return;
+                }
+
+                danhSachKien.push({
+                    khoiLuong: weight,
+                    dai: length,
+                    rong: width,
+                    cao: height,
+                    loaiHang: type || 'Hàng tiêu chuẩn'
+                });
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Đang khởi tạo đơn hàng...';
+
+            const requestData = {
+                tenNguoiNhan: document.getElementById('receiverName').value.trim(),
+                sdtNhan: document.getElementById('receiverPhone').value.trim(),
+                diaChiLay: document.getElementById('senderAddress').value.trim(),
+                diaChiGiao: document.getElementById('receiverAddress').value.trim(),
+                cod: parseFloat(document.getElementById('codAmount').value) || 0,
+                phuongThucThanhToan: document.getElementById('paymentMethod')?.value || 'TIEN_MAT',
+                danhSachKien: danhSachKien
+            };
+
+            try {
+                const res = await fetch('/api/don-hang', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    const orderCode = data.data?.maDh || data.data;
+                    const feeText = data.data?.phiVanChuyen ? Number(data.data.phiVanChuyen).toLocaleString('vi-VN') + ' đ' : '';
+                    alert(`✓ Tạo đơn hàng thành công!\n- Mã vận đơn: ${orderCode}\n- Số kiện hàng: ${danhSachKien.length} kiện${feeText ? '\n- Cước phí dự kiến: ' + feeText : ''}`);
+                    if (requestData.phuongThucThanhToan === 'CHUYEN_KHOAN') {
+                        window.location.href = '/customer/payment?maDh=' + orderCode;
+                    } else {
+                        window.location.href = '/customer/dashboard';
+                    }
+                } else {
+                    alertBox.style.display = 'block';
+                    alertBox.innerText = data.message || 'Lỗi khi tạo đơn hàng!';
+                }
+            } catch (err) {
+                alertBox.style.display = 'block';
+                alertBox.innerText = 'Lỗi kết nối máy chủ!';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '✓ Tạo đơn hàng mới';
+            }
+        }
+    </script>
+</body>
+</html>

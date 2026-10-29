@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - UTE Express Logistics</title>
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
+            padding: 30px 20px;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 460px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            padding: 36px 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .auth-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 12px;
+        }
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .modal-backdrop.show {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transform: translateY(10px);
+            transition: transform 0.2s ease;
+        }
+        .modal-backdrop.show .modal-card {
+            transform: translateY(0);
+        }
+        .modal-header {
+            padding: 20px 24px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color, #E2E8F0);
+        }
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            line-height: 1;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-md);
+            transition: color 0.15s, background-color 0.15s;
+        }
+        .modal-close-btn:hover {
+            color: var(--text-primary);
+            background-color: var(--bg-subtle, #F1F5F9);
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .otp-input {
+            font-size: 22px !important;
+            letter-spacing: 6px !important;
+            text-align: center !important;
+            font-weight: 700 !important;
+        }
+        .field-error {
+            color: var(--danger, #DC2626);
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a th:href="@{/}" href="/" class="auth-logo" style="display: block; text-align: center;">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express" style="height: 64px; object-fit: contain; margin-bottom: 8px;">
+                </a>
+                <h1 style="font-size: 24px; font-weight: 700; color: var(--brand-blue);">Đăng nhập hệ thống</h1>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Chào mừng bạn trở lại với UTE Express Logistics</p>
+            </div>
+
+            <!-- Notification alert -->
+            <div id="loginAlert" style="display: none; padding: 10px 14px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 16px;"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Tên đăng nhập (hoặc Số điện thoại)</label>
+                    <input type="text" class="form-control" id="loginUsername" placeholder="Nhập tên đăng nhập hoặc số điện thoại..." required>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" style="margin-bottom: 0;">Mật khẩu</label>
+                        <a href="javascript:void(0)" onclick="openForgotPasswordModal()" style="font-size: 12.5px; color: var(--primary-blue); font-weight: 600; text-decoration: none;">Quên mật khẩu?</a>
+                    </div>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" id="btnSubmit" class="btn btn-primary btn-block btn-lg" style="margin-top: 16px;">
+                    Đăng nhập
+                </button>
+
+                <div style="text-align: center; margin-top: 18px; font-size: 13.5px; color: var(--text-secondary);">
+                    Chưa có tài khoản? <a th:href="@{/register}" href="/register" style="color: var(--primary-blue); font-weight: 600;">Đăng ký ngay</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Quên mật khẩu & Đặt lại mật khẩu -->
+    <div class="modal-backdrop" id="forgotPasswordModal" onclick="handleBackdropClick(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: var(--brand-blue); margin: 0;">Quên mật khẩu</h3>
+                    <p id="fpHeaderSubtitle" style="font-size: 12.5px; color: var(--text-secondary); margin: 3px 0 0 0;">Lấy lại mật khẩu qua OTP email</p>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeForgotPasswordModal()" aria-label="Đóng">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Alert box trong modal -->
+                <div id="fpAlert" style="display: none; padding: 10px 14px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 16px;"></div>
+
+                <!-- BƯỚC 1: Nhập Số điện thoại & Email -->
+                <form id="fpStep1Form" onsubmit="handleFpSendOtp(event)" novalidate>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại tài khoản <span style="color: red;">*</span></label>
+                        <input type="tel" class="form-control" id="fpPhone" placeholder="Ví dụ: 0901234567" maxlength="10" required>
+                        <div class="field-error" id="fpPhoneError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email đã đăng ký <span style="color: red;">*</span></label>
+                        <input type="email" class="form-control" id="fpEmail" placeholder="user@gmail.com" required>
+                        <div class="field-error" id="fpEmailError"></div>
+                    </div>
+
+                    <button type="submit" id="btnFpSendOtp" class="btn btn-primary btn-block btn-lg" style="margin-top: 20px;">
+                        Gửi mã OTP xác thực
+                    </button>
+                </form>
+
+                <!-- BƯỚC 2: Nhập OTP & Mật khẩu mới -->
+                <form id="fpStep2Form" onsubmit="handleFpResetPassword(event)" style="display: none;" novalidate>
+                    <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: #1E40AF;">
+                        📩 Mã OTP đã được gửi tới email <b id="fpDisplayEmail"></b>. Vui lòng kiểm tra hộp thư!
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mã OTP (6 chữ số) <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control otp-input" id="fpOtp" placeholder="••••••" maxlength="6" required>
+                        <div class="field-error" id="fpOtpError" style="text-align: center;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu mới (tối thiểu 6 ký tự) <span style="color: red;">*</span></label>
+                        <input type="password" class="form-control" id="fpNewPassword" placeholder="Nhập mật khẩu mới..." required>
+                        <div class="field-error" id="fpNewPasswordError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Xác nhận mật khẩu mới <span style="color: red;">*</span></label>
+                        <input type="password" class="form-control" id="fpConfirmPassword" placeholder="Nhập lại mật khẩu mới..." required>
+                        <div class="field-error" id="fpConfirmPasswordError"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="backToFpStep1()" style="flex: 1;">Quay lại</button>
+                        <button type="submit" id="btnFpReset" class="btn btn-primary" style="flex: 2;">Đổi mật khẩu</button>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 14px;">
+                        <a href="javascript:void(0)" onclick="resendFpOtp()" style="font-size: 12.5px; color: var(--primary-blue); font-weight: 600; text-decoration: none;">Chưa nhận được mã? Gửi lại OTP</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Xóa sạch dữ liệu phiên đăng nhập cũ trong localStorage nếu đã đăng xuất
+        if (new URLSearchParams(window.location.search).get('logout') === 'true' || !document.cookie.includes('accessToken=')) {
+            ['accessToken', 'token', 'maNd', 'tenDangNhap', 'hoTen', 'vaiTro', 'tenVaiTro', 'maDoiTuong', 'userAvatarUrl', 'ute_current_driver'].forEach(k => localStorage.removeItem(k));
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('loginAlert');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const tenDangNhap = document.getElementById('loginUsername').value.trim();
+            const matKhau = document.getElementById('loginPassword').value.trim();
+
+            alertBox.style.display = 'none';
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = 'Đang đăng nhập...';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tenDangNhap, matKhau })
+                });
+
+                const resData = await response.json();
+
+                if (response.ok && resData.success) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.backgroundColor = 'var(--success-bg)';
+                    alertBox.style.color = 'var(--success)';
+                    alertBox.innerText = 'Đăng nhập thành công! Đang chuyển hướng...';
+
+                    // Save token and user info
+                    localStorage.setItem('accessToken', resData.data.accessToken);
+                    localStorage.setItem('token', resData.data.accessToken);
+                    localStorage.setItem('maNd', resData.data.maNd);
+                    localStorage.setItem('tenDangNhap', resData.data.tenDangNhap);
+                    localStorage.setItem('hoTen', resData.data.hoTen || resData.data.tenDangNhap);
+                    localStorage.setItem('vaiTro', resData.data.vaiTro);
+                    localStorage.setItem('tenVaiTro', resData.data.tenVaiTro || '');
+                    if (resData.data.maDoiTuong) {
+                        localStorage.setItem('maDoiTuong', resData.data.maDoiTuong);
+                        if (resData.data.vaiTro === 'TAI_XE') {
+                            localStorage.setItem('ute_current_driver', resData.data.maDoiTuong);
+                        }
+                    } else if (resData.data.vaiTro === 'TAI_XE') {
+                        localStorage.setItem('ute_current_driver', resData.data.tenDangNhap);
+                    }
+                    if (resData.data.avatarUrl) {
+                        localStorage.setItem('userAvatarUrl', resData.data.avatarUrl);
+                    } else {
+                        localStorage.removeItem('userAvatarUrl');
+                    }
+
+                    // Lưu cookie để trình duyệt tự động gửi kèm khi truy cập trực tiếp các trang giao diện
+                    document.cookie = `accessToken=${resData.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
+
+                    setTimeout(() => {
+                        const role = resData.data.vaiTro;
+                        if (role === 'ADMIN') {
+                            window.location.href = '/admin/dashboard';
+                        } else if (role === 'NVBC') {
+                            window.location.href = '/post-office/dashboard';
+                        } else if (role === 'NVDP') {
+                            window.location.href = '/dispatcher/dashboard';
+                        } else if (role === 'TAI_XE') {
+                            window.location.href = '/driver/dashboard';
+                        } else {
+                            window.location.href = '/customer/dashboard';
+                        }
+                    }, 800);
+                } else {
+                    alertBox.style.display = 'block';
+                    alertBox.style.backgroundColor = 'var(--danger-bg)';
+                    alertBox.style.color = 'var(--danger)';
+                    alertBox.innerText = resData.message || 'Tên đăng nhập hoặc mật khẩu không đúng!';
+                }
+            } catch (err) {
+                alertBox.style.display = 'block';
+                alertBox.style.backgroundColor = 'var(--danger-bg)';
+                alertBox.style.color = 'var(--danger)';
+                alertBox.innerText = 'Lỗi kết nối máy chủ! Vui lòng thử lại sau.';
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = 'Đăng nhập';
+            }
+        }
+
+        // ==========================================
+        // QUẢN LÝ QUÊN MẬT KHẨU (FORGOT PASSWORD)
+        // ==========================================
+        let fpCurrentPhone = '';
+        let fpCurrentEmail = '';
+
+        function openForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            const loginUser = document.getElementById('loginUsername').value.trim();
+            if (loginUser && /^[0-9]{10}$/.test(loginUser)) {
+                document.getElementById('fpPhone').value = loginUser;
+            }
+            backToFpStep1();
+            clearFpAlert();
+            modal.classList.add('show');
+        }
+
+        function closeForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.classList.remove('show');
+            clearFpAlert();
+        }
+
+        function handleBackdropClick(e) {
+            if (e.target.id === 'forgotPasswordModal') {
+                closeForgotPasswordModal();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeForgotPasswordModal();
+            }
+        });
+
+        function backToFpStep1() {
+            document.getElementById('fpStep1Form').style.display = 'block';
+            document.getElementById('fpStep2Form').style.display = 'none';
+            document.getElementById('fpHeaderSubtitle').innerText = 'Lấy lại mật khẩu qua OTP email';
+            clearFpErrors();
+        }
+
+        function showFpAlert(msg, isSuccess = false) {
+            const alertBox = document.getElementById('fpAlert');
+            alertBox.style.display = 'block';
+            alertBox.style.backgroundColor = isSuccess ? 'var(--success-bg, #DCFCE7)' : 'var(--danger-bg, #FEE2E2)';
+            alertBox.style.color = isSuccess ? 'var(--success, #16A34A)' : 'var(--danger, #DC2626)';
+            alertBox.innerText = msg;
+        }
+
+        function clearFpAlert() {
+            const alertBox = document.getElementById('fpAlert');
+            alertBox.style.display = 'none';
+            alertBox.innerText = '';
+        }
+
+        function clearFpErrors() {
+            clearFpAlert();
+            document.querySelectorAll('#forgotPasswordModal .field-error').forEach(el => {
+                el.innerText = '';
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('#forgotPasswordModal .form-control').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+        }
+
+        function setFpFieldError(inputId, errorId, msg) {
+            const inp = document.getElementById(inputId);
+            const err = document.getElementById(errorId);
+            if (inp) inp.classList.add('is-invalid');
+            if (err) {
+                err.innerText = msg;
+                err.style.display = 'block';
+            }
+        }
+
+        async function handleFpSendOtp(e) {
+            e.preventDefault();
+            clearFpErrors();
+
+            const sdt = document.getElementById('fpPhone').value.trim();
+            const email = document.getElementById('fpEmail').value.trim();
+            let hasError = false;
+
+            if (!sdt) {
+                setFpFieldError('fpPhone', 'fpPhoneError', 'Vui lòng nhập số điện thoại');
+                hasError = true;
+            } else if (!/^[0-9]{10}$/.test(sdt)) {
+                setFpFieldError('fpPhone', 'fpPhoneError', 'Số điện thoại phải có đúng 10 chữ số');
+                hasError = true;
+            }
+
+            if (!email) {
+                setFpFieldError('fpEmail', 'fpEmailError', 'Vui lòng nhập email');
+                hasError = true;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                setFpFieldError('fpEmail', 'fpEmailError', 'Email không đúng định dạng');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            const btn = document.getElementById('btnFpSendOtp');
+            btn.disabled = true;
+            btn.innerText = 'Đang gửi mã OTP...';
+
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sdt, email })
+                });
+                const resData = await response.json();
+
+                if (response.ok && resData.success) {
+                    fpCurrentPhone = sdt;
+                    fpCurrentEmail = email;
+                    document.getElementById('fpDisplayEmail').innerText = email;
+                    document.getElementById('fpStep1Form').style.display = 'none';
+                    document.getElementById('fpStep2Form').style.display = 'block';
+                    document.getElementById('fpHeaderSubtitle').innerText = 'Nhập mã OTP và mật khẩu mới';
+                    document.getElementById('fpOtp').value = '';
+                    document.getElementById('fpNewPassword').value = '';
+                    document.getElementById('fpConfirmPassword').value = '';
+                    showFpAlert('Mã OTP đã được gửi đến email của bạn!', true);
+                } else {
+                    showFpAlert(resData.message || 'Không thể gửi OTP. Vui lòng kiểm tra lại thông tin.');
+                }
+            } catch (err) {
+                showFpAlert('Lỗi kết nối máy chủ! Vui lòng thử lại sau.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Gửi mã OTP xác thực';
+            }
+        }
+
+        async function resendFpOtp() {
+            if (!fpCurrentPhone || !fpCurrentEmail) return;
+            clearFpErrors();
+            showFpAlert('Đang gửi lại mã OTP...');
+
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sdt: fpCurrentPhone, email: fpCurrentEmail })
+                });
+                const resData = await response.json();
+                if (response.ok && resData.success) {
+                    showFpAlert('Đã gửi lại mã OTP đến email của bạn!', true);
+                } else {
+                    showFpAlert(resData.message || 'Gửi lại OTP thất bại.');
+                }
+            } catch (err) {
+                showFpAlert('Lỗi kết nối máy chủ khi gửi lại OTP!');
+            }
+        }
+
+        async function handleFpResetPassword(e) {
+            e.preventDefault();
+            clearFpErrors();
+
+            const otp = document.getElementById('fpOtp').value.trim();
+            const matKhauMoi = document.getElementById('fpNewPassword').value.trim();
+            const xacNhan = document.getElementById('fpConfirmPassword').value.trim();
+            let hasError = false;
+
+            if (!otp) {
+                setFpFieldError('fpOtp', 'fpOtpError', 'Vui lòng nhập mã OTP');
+                hasError = true;
+            } else if (otp.length !== 6) {
+                setFpFieldError('fpOtp', 'fpOtpError', 'Mã OTP gồm 6 chữ số');
+                hasError = true;
+            }
+
+            if (!matKhauMoi) {
+                setFpFieldError('fpNewPassword', 'fpNewPasswordError', 'Vui lòng nhập mật khẩu mới');
+                hasError = true;
+            } else if (matKhauMoi.length < 6) {
+                setFpFieldError('fpNewPassword', 'fpNewPasswordError', 'Mật khẩu phải có ít nhất 6 ký tự');
+                hasError = true;
+            }
+
+            if (!xacNhan) {
+                setFpFieldError('fpConfirmPassword', 'fpConfirmPasswordError', 'Vui lòng xác nhận mật khẩu mới');
+                hasError = true;
+            } else if (matKhauMoi !== xacNhan) {
+                setFpFieldError('fpConfirmPassword', 'fpConfirmPasswordError', 'Mật khẩu xác nhận không khớp');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            const btn = document.getElementById('btnFpReset');
+            btn.disabled = true;
+            btn.innerText = 'Đang đặt lại mật khẩu...';
+
+            try {
+                const queryParams = new URLSearchParams({
+                    sdt: fpCurrentPhone,
+                    otp: otp,
+                    matKhauMoi: matKhauMoi
+                });
+
+                const response = await fetch(`/api/auth/reset-password?${queryParams.toString()}`, {
+                    method: 'POST'
+                });
+                const resData = await response.json();
+
+                if (response.ok && resData.success) {
+                    showFpAlert('Đặt lại mật khẩu thành công! Đang quay lại trang đăng nhập...', true);
+
+                    // Tự động điền SĐT vào form đăng nhập chính
+                    document.getElementById('loginUsername').value = fpCurrentPhone;
+                    document.getElementById('loginPassword').value = '';
+                    document.getElementById('loginPassword').focus();
+
+                    // Hiển thị alert thông báo ở form chính
+                    const loginAlert = document.getElementById('loginAlert');
+                    loginAlert.style.display = 'block';
+                    loginAlert.style.backgroundColor = 'var(--success-bg, #DCFCE7)';
+                    loginAlert.style.color = 'var(--success, #16A34A)';
+                    loginAlert.innerText = 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.';
+
+                    setTimeout(() => {
+                        closeForgotPasswordModal();
+                    }, 1200);
+                } else {
+                    showFpAlert(resData.message || 'Đặt lại mật khẩu không thành công. Vui lòng kiểm tra lại mã OTP!');
+                }
+            } catch (err) {
+                showFpAlert('Lỗi kết nối máy chủ! Vui lòng thử lại sau.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Đổi mật khẩu';
+            }
+        }
+
+        // Kiểm tra thông báo lỗi khi bị từ chối truy cập do sai quyền
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('error') === 'access_denied') {
+                const alertBox = document.getElementById('loginAlert');
+                alertBox.style.display = 'block';
+                alertBox.style.backgroundColor = 'var(--danger-bg)';
+                alertBox.style.color = 'var(--danger)';
+                alertBox.innerText = 'Bạn không có quyền truy cập trang yêu cầu. Vui lòng đăng nhập với tài khoản có vai trò phù hợp!';
+            }
+        });
+    </script>
+</body>
+</html>

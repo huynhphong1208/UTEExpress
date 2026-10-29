@@ -97,7 +97,7 @@ CREATE TABLE tuyen_van_chuyen (
 CREATE TABLE chuyen_giao (
     ma_chuyen   VARCHAR(20) PRIMARY KEY DEFAULT ('CG' || lpad(nextval('seq_chuyen')::text, 6, '0')),
     loai_chuyen VARCHAR(20) NOT NULL DEFAULT 'LIEN_KHO'
-                CONSTRAINT ck_cg_loai_val CHECK (loai_chuyen IN ('LIEN_KHO','GIAO_CUOI')),
+                CONSTRAINT ck_cg_loai_val CHECK (loai_chuyen IN ('LIEN_KHO','GIAO_CUOI','LAY_HANG')),
     ma_tuyen    VARCHAR(20) REFERENCES tuyen_van_chuyen(ma_tuyen),
     ma_kho_giao VARCHAR(20) REFERENCES kho(ma_kho),
     ma_tx       VARCHAR(20) NOT NULL REFERENCES tai_xe(ma_tx),
@@ -111,14 +111,14 @@ CREATE TABLE chuyen_giao (
                 CONSTRAINT ck_cg_trang_thai CHECK (trang_thai IN ('Chưa đi','Đang đi','Hoàn thành','Đã hủy')),
     CONSTRAINT ck_cg_loai CHECK (
         (loai_chuyen = 'LIEN_KHO'  AND ma_tuyen IS NOT NULL AND ma_kho_giao IS NULL) OR
-        (loai_chuyen = 'GIAO_CUOI' AND ma_tuyen IS NULL     AND ma_kho_giao IS NOT NULL)),
+        (loai_chuyen IN ('GIAO_CUOI', 'LAY_HANG') AND ma_tuyen IS NULL AND ma_kho_giao IS NOT NULL)),
     CONSTRAINT ck_cg_thoi_gian CHECK (ngay_den_du_kien > ngay_xuat_phat),
     CONSTRAINT ck_cg_thuc CHECK (ngay_den IS NULL OR ngay_xuat_phat_thuc IS NULL OR ngay_den >= ngay_xuat_phat_thuc),
-    -- Một tài xế / một xe không được có 2 chuyến chồng thời gian
+    -- Một tài xế / một xe không được có 2 chuyến chồng thời gian (chỉ xét chuyến chưa đi hoặc đang đi)
     CONSTRAINT ex_cg_tx_trung_lich EXCLUDE USING gist
-        (ma_tx WITH =, tsrange(ngay_xuat_phat, ngay_den_du_kien) WITH &&) WHERE (trang_thai <> 'Đã hủy'),
+        (ma_tx WITH =, tsrange(ngay_xuat_phat, ngay_den_du_kien) WITH &&) WHERE (trang_thai IN ('Chưa đi', 'Đang đi')),
     CONSTRAINT ex_cg_pt_trung_lich EXCLUDE USING gist
-        (ma_pt WITH =, tsrange(ngay_xuat_phat, ngay_den_du_kien) WITH &&) WHERE (trang_thai <> 'Đã hủy')
+        (ma_pt WITH =, tsrange(ngay_xuat_phat, ngay_den_du_kien) WITH &&) WHERE (trang_thai IN ('Chưa đi', 'Đang đi'))
 );
 
 -- 10. TRẠNG THÁI ĐƠN HÀNG
@@ -149,7 +149,10 @@ CREATE TABLE don_hang (
     phi_van_chuyen NUMERIC(12,2) NOT NULL DEFAULT 0 CONSTRAINT ck_dh_phi CHECK (phi_van_chuyen >= 0),
     cod            NUMERIC(12,2) NOT NULL DEFAULT 0 CONSTRAINT ck_dh_cod CHECK (cod >= 0),
     ma_tt          VARCHAR(20) NOT NULL DEFAULT 'TT01' REFERENCES trang_thai_dh(ma_trang_thai),
-    ma_nv          VARCHAR(20) REFERENCES nhan_vien(ma_nv)
+    ma_nv          VARCHAR(20) REFERENCES nhan_vien(ma_nv),
+    trang_thai_lay VARCHAR(20) NOT NULL DEFAULT 'CHUA_LAY'
+                   CONSTRAINT ck_dh_trang_thai_lay CHECK (trang_thai_lay IN ('CHUA_LAY','DANG_LAY','DA_LAY')),
+    ma_tx_lay      VARCHAR(20) REFERENCES tai_xe(ma_tx)
 );
 
 -- 12. KIỆN HÀNG (ma_kho_hien_tai NULL = chưa tiếp nhận / đang trên đường)

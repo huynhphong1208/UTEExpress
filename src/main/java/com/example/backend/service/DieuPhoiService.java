@@ -1,0 +1,957 @@
+package com.example.backend.service;
+
+import com.example.backend.dto.common.*;
+import com.example.backend.dto.chuyengiao.*;
+import com.example.backend.dto.dieuphoi.*;
+import com.example.backend.entity.*;
+import com.example.backend.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Timestamp;
+import java.util.List;
+
+@Service
+public class DieuPhoiService {
+
+    private final TuyenVanChuyenRepository tuyenVanChuyenRepository;
+    private final ChuyenGiaoRepository chuyenGiaoRepository;
+    private final ChiTietChuyenGiaoRepository chiTietChuyenGiaoRepository;
+    private final KhoRepository khoRepository;
+    private final TaiXeRepository taiXeRepository;
+    private final PhuongTienRepository phuongTienRepository;
+    private final KienHangRepository kienHangRepository;
+    private final DonHangRepository donHangRepository;
+    private final NhanVienRepository nhanVienRepository;
+    private final JdbcTemplate jdbcTemplate;
+
+    public DieuPhoiService(TuyenVanChuyenRepository tuyenVanChuyenRepository,
+                           ChuyenGiaoRepository chuyenGiaoRepository,
+                           ChiTietChuyenGiaoRepository chiTietChuyenGiaoRepository,
+                           KhoRepository khoRepository,
+                           TaiXeRepository taiXeRepository,
+                           PhuongTienRepository phuongTienRepository,
+                           KienHangRepository kienHangRepository,
+                           DonHangRepository donHangRepository,
+                           NhanVienRepository nhanVienRepository,
+                           JdbcTemplate jdbcTemplate) {
+        this.tuyenVanChuyenRepository = tuyenVanChuyenRepository;
+        this.chuyenGiaoRepository = chuyenGiaoRepository;
+        this.chiTietChuyenGiaoRepository = chiTietChuyenGiaoRepository;
+        this.khoRepository = khoRepository;
+        this.taiXeRepository = taiXeRepository;
+        this.phuongTienRepository = phuongTienRepository;
+        this.kienHangRepository = kienHangRepository;
+        this.donHangRepository = donHangRepository;
+        this.nhanVienRepository = nhanVienRepository;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * Tự động xác định và chuẩn hóa thông tin nhân viên điều phối hợp lệ.
+     * Tránh lỗi vi phạm ràng buộc CSDL: 'Chỉ nhân viên điều phối mới được lập chuyến'.
+     */
+    public String[] resolveDispatcher(String maNvDp, String maNd) {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                String username = auth.getName();
+                var nvOpt = nhanVienRepository.findByNguoiDung_TenDangNhap(username);
+                if (nvOpt.isPresent() && "Nhân viên điều phối".equalsIgnoreCase(nvOpt.get().getChucVu())) {
+                    NhanVien nv = nvOpt.get();
+                    String resolvedNd = nv.getNguoiDung() != null ? nv.getNguoiDung().getMaNd() : maNd;
+                    return new String[]{nv.getMaNv(), resolvedNd != null ? resolvedNd : "ND004"};
+                }
+            }
+        } catch (Exception ignored) {}
+
+        if (maNvDp != null && !maNvDp.isBlank()) {
+            var nvOpt = nhanVienRepository.findById(maNvDp);
+            if (nvOpt.isPresent() && "Nhân viên điều phối".equalsIgnoreCase(nvOpt.get().getChucVu())) {
+                String resolvedNd = (maNd != null && !maNd.isBlank()) ? maNd
+                        : (nvOpt.get().getNguoiDung() != null ? nvOpt.get().getNguoiDung().getMaNd() : "ND004");
+                return new String[]{maNvDp, resolvedNd};
+            }
+        }
+
+        if (maNd != null && !maNd.isBlank()) {
+            var nvOpt = nhanVienRepository.findByNguoiDung_MaNd(maNd);
+            if (nvOpt.isPresent() && "Nhân viên điều phối".equalsIgnoreCase(nvOpt.get().getChucVu())) {
+                return new String[]{nvOpt.get().getMaNv(), maNd};
+            }
+        }
+
+        var defaultNv = nhanVienRepository.findFirstByChucVu("Nhân viên điều phối").orElse(null);
+        if (defaultNv != null) {
+            String resolvedNd = defaultNv.getNguoiDung() != null ? defaultNv.getNguoiDung().getMaNd() : "ND004";
+            return new String[]{defaultNv.getMaNv(), resolvedNd};
+        }
+
+        return new String[]{"NV011", "ND004"};
+    }
+
+    // ========================== TUYẾN VẬN CHUYỂN (CRUD) ==========================
+
+    public List<TuyenVanChuyen> getAllTuyen() {
+        return tuyenVanChuyenRepository.findAll();
+    }
+
+    public TuyenVanChuyen getTuyenById(String maTuyen) {
+        return tuyenVanChuyenRepository.findById(maTuyen)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tuyến vận chuyển: " + maTuyen));
+    }
+
+    @Transactional
+    public TuyenVanChuyen createTuyen(TuyenVanChuyen tuyen) {
+        return tuyenVanChuyenRepository.save(tuyen);
+    }
+
+    @Transactional
+    public TuyenVanChuyen updateTuyen(String maTuyen, TuyenVanChuyen tuyenUpdate) {
+        TuyenVanChuyen existing = getTuyenById(maTuyen);
+        existing.setMaKhoDi(tuyenUpdate.getMaKhoDi());
+        existing.setMaKhoDen(tuyenUpdate.getMaKhoDen());
+        existing.setKhoangCach(tuyenUpdate.getKhoangCach());
+        existing.setThoiGianDuKienGio(tuyenUpdate.getThoiGianDuKienGio());
+        return tuyenVanChuyenRepository.save(existing);
+    }
+
+    @Transactional
+    public void deleteTuyen(String maTuyen) {
+        if (!tuyenVanChuyenRepository.existsById(maTuyen)) {
+            throw new RuntimeException("Không tìm thấy tuyến vận chuyển: " + maTuyen);
+        }
+        tuyenVanChuyenRepository.deleteById(maTuyen);
+    }
+
+    // ========================== DANH MỤC PHỤC VỤ ĐIỀU PHỐI ==========================
+
+    public List<Kho> getAllKho() {
+        return khoRepository.findAll();
+    }
+
+    public List<TaiXe> getAllTaiXe() {
+        return taiXeRepository.findAll();
+    }
+
+    public List<PhuongTien> getAllPhuongTien() {
+        return phuongTienRepository.findAll();
+    }
+
+    public List<KienHang> getAvailableKienHang(String maKho) {
+        if (maKho != null && !maKho.isBlank()) {
+            return kienHangRepository.findAvailableKienHangByKho(maKho);
+        }
+        return kienHangRepository.findAvailableKienHang();
+    }
+
+    // ========================== ĐIỀU PHỐI LẤY HÀNG (PICKUP) ==========================
+
+    /**
+     * Lấy danh sách các đơn hàng đã được bưu cục tiếp nhận (TT02) nhưng đang chờ lấy hoặc đang lấy.
+     */
+    public List<DonHang> getDonHangCanLay(String maKho) {
+        if (maKho != null && !maKho.isBlank()) {
+            return donHangRepository.findByMaKhoGuiAndTrangThai_MaTrangThaiAndTrangThaiLayIn(
+                    maKho, "TT02", List.of("CHUA_LAY", "DANG_LAY"));
+        }
+        return donHangRepository.findByTrangThai_MaTrangThaiAndTrangThaiLayIn(
+                "TT02", List.of("CHUA_LAY", "DANG_LAY"));
+    }
+
+    /**
+     * Điều phối viên phân công tài xế đến nhà khách lấy hàng.
+     */
+    @Transactional
+    public DonHang assignTaiXeLayHang(String maDh, String maTx) {
+        DonHang donHang = donHangRepository.findById(maDh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + maDh));
+
+        if (donHang.getTrangThai() == null || !"TT02".equals(donHang.getTrangThai().getMaTrangThai())) {
+            throw new RuntimeException("Đơn hàng chưa được bưu cục tiếp nhận, không thể phân công tài xế lấy hàng");
+        }
+
+        donHang.setMaTxLay(maTx);
+        donHang.setTrangThaiLay("DANG_LAY");
+        return donHangRepository.save(donHang);
+    }
+
+    // ========================== CHUYẾN GIAO ==========================
+
+    /**
+     * Tạo chuyến giao mới bằng Stored Procedure sp_tao_chuyen_giao.
+     * Sử dụng CallableStatement để nhận giá trị trả về từ tham số INOUT p_ma_chuyen.
+     */
+    @Transactional
+    public String taoChuyenGiao(TaoChuyenGiaoRequest request) {
+        String[] dp = resolveDispatcher(request.getMaNvDp(), request.getMaNd());
+        String validMaNvDp = dp[0];
+        String validMaNd = dp[1];
+
+        try {
+            return jdbcTemplate.execute((java.sql.Connection con) -> {
+                try (java.sql.CallableStatement cs = con.prepareCall("CALL sp_tao_chuyen_giao(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                    cs.setString(1, request.getLoai());
+                    cs.setString(2, request.getMaTuyen());
+                    cs.setString(3, request.getMaKhoGiao());
+                    cs.setString(4, request.getMaTx());
+                    cs.setString(5, request.getMaPt());
+                    cs.setTimestamp(6, request.getNgayXuatPhat() != null ? java.sql.Timestamp.valueOf(request.getNgayXuatPhat()) : null);
+                    cs.setString(7, validMaNvDp);
+                    cs.setString(8, validMaNd);
+                    cs.setTimestamp(9, request.getNgayDenDuKien() != null ? java.sql.Timestamp.valueOf(request.getNgayDenDuKien()) : null);
+                    cs.registerOutParameter(10, java.sql.Types.VARCHAR);
+                    cs.execute();
+                    return cs.getString(10);
+                }
+            });
+        } catch (org.springframework.dao.DataAccessException ex) {
+            Throwable root = ex.getMostSpecificCause();
+            String msg = (root != null && root.getMessage() != null) ? root.getMessage() : ex.getMessage();
+            int nl = msg.indexOf('\n');
+            if (nl > 0) msg = msg.substring(0, nl);
+            if (msg.startsWith("ERROR: ")) msg = msg.substring(7);
+            throw new RuntimeException(msg.trim());
+        }
+    }
+
+    /**
+     * Gán kiện vào chuyến giao bằng Stored Procedure.
+     */
+    @Transactional
+    public void ganKienVaoChuyen(String maChuyen, String maKien, String maNd) {
+        chuyenGiaoRepository.ganKienVaoChuyen(maChuyen, maKien, maNd);
+    }
+
+    /**
+     * Tra cứu danh sách chuyến giao (tất cả hoặc theo NV điều phối).
+     */
+    public List<ChuyenGiao> getChuyenGiaoByNvDieuPhoi(String maNvDieuPhoi) {
+        if (maNvDieuPhoi != null && !maNvDieuPhoi.isBlank()) {
+            return chuyenGiaoRepository.findByMaNvDieuPhoi(maNvDieuPhoi);
+        }
+        return chuyenGiaoRepository.findAll();
+    }
+
+    /**
+     * Lấy chi tiết chuyến giao (danh sách kiện trong chuyến) đầy đủ thông tin:
+     * mã kiện, mã đơn, khối lượng, người nhận, địa chỉ, COD, trạng thái...
+     */
+    public List<KienTrongChuyenDTO> getKienTrongChuyen(String maChuyen) {
+        String sql = """
+            SELECT v.ma_chuyen, v.ma_tx, v.loai_chuyen, v.ma_kien, v.ma_dh,
+                   COALESCE(v.ten_nguoi_nhan, 'Khách hàng') AS ten_nguoi_nhan,
+                   COALESCE(v.sdt_nhan, '') AS sdt_nhan,
+                   COALESCE(v.dia_chi_giao, '') AS dia_chi_giao,
+                   COALESCE(v.dia_chi_lay, '') AS dia_chi_lay,
+                   COALESCE(v.ten_nguoi_gui, 'Khách gửi') AS ten_nguoi_gui,
+                   COALESCE(v.sdt_gui, '') AS sdt_gui,
+                   v.khoi_luong, v.loai_hang, v.trang_thai,
+                   v.trang_thai_lay,
+                   v.thoi_gian_gan, v.thoi_gian_quet, v.ghi_chu,
+                   COALESCE(v.cod, 0) AS cod,
+                   COALESCE(v.phi_van_chuyen, 0) AS phi_van_chuyen,
+                   tt.phuong_thuc AS phuong_thuc_cuoc,
+                   tt.trang_thai AS trang_thai_cuoc
+            FROM v_kien_trong_chuyen v
+            LEFT JOIN LATERAL (
+                SELECT t.phuong_thuc, t.trang_thai
+                FROM thanh_toan t
+                WHERE t.ma_dh = v.ma_dh AND t.loai_khoan = 'PHI_VC'
+                ORDER BY t.thoi_gian DESC
+                LIMIT 1
+            ) tt ON TRUE
+            WHERE v.ma_chuyen = ?
+            ORDER BY v.thoi_gian_gan ASC
+        """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Timestamp tsGan = rs.getTimestamp("thoi_gian_gan");
+            Timestamp tsQuet = rs.getTimestamp("thoi_gian_quet");
+
+            KienTrongChuyenDTO dto = KienTrongChuyenDTO.builder()
+                    .maChuyen(rs.getString("ma_chuyen"))
+                    .maTx(rs.getString("ma_tx"))
+                    .loaiChuyen(rs.getString("loai_chuyen"))
+                    .maKien(rs.getString("ma_kien"))
+                    .maDh(rs.getString("ma_dh"))
+                    .tenNguoiNhan(rs.getString("ten_nguoi_nhan"))
+                    .sdtNhan(rs.getString("sdt_nhan"))
+                    .diaChiGiao(rs.getString("dia_chi_giao"))
+                    .diaChiLay(rs.getString("dia_chi_lay"))
+                    .tenNguoiGui(rs.getString("ten_nguoi_gui"))
+                    .sdtGui(rs.getString("sdt_gui"))
+                    .trangThaiLay(rs.getString("trang_thai_lay"))
+                    .khoiLuong(rs.getBigDecimal("khoi_luong"))
+                    .loaiHang(rs.getString("loai_hang"))
+                    .trangThai(rs.getString("trang_thai"))
+                    .thoiGianGan(tsGan != null ? tsGan.toLocalDateTime() : null)
+                    .thoiGianQuet(tsQuet != null ? tsQuet.toLocalDateTime() : null)
+                    .ghiChu(rs.getString("ghi_chu"))
+                    .cod(rs.getBigDecimal("cod"))
+                    .phiVanChuyen(rs.getBigDecimal("phi_van_chuyen"))
+                    .build();
+            dto.applyPaymentInfo(
+                    rs.getString("loai_chuyen"),
+                    rs.getBigDecimal("phi_van_chuyen"),
+                    rs.getBigDecimal("cod"),
+                    rs.getString("phuong_thuc_cuoc"),
+                    rs.getString("trang_thai_cuoc")
+            );
+            return dto;
+        }, maChuyen);
+    }
+
+    public List<ChiTietChuyenGiao> getChiTietChuyen(String maChuyen) {
+        return chiTietChuyenGiaoRepository.findByMaChuyen(maChuyen);
+    }
+
+    /**
+     * Lấy danh sách chuyến giao kèm chi tiết đầy đủ (tên kho, tên tài xế, biển số, tải trọng, số kiện, tổng kg).
+     */
+    public List<ChuyenGiaoChiTietDTO> getChuyenGiaoChiTietList() {
+        String sql = """
+            SELECT c.ma_chuyen, c.loai_chuyen, c.trang_thai, c.ma_tuyen,
+                   COALESCE(t.ma_kho_di, c.ma_kho_giao) AS ma_kho_xuat_phat,
+                   COALESCE(kdi.ten_kho, 'Kho xuất phát') AS ten_kho_xuat_phat,
+                   t.ma_kho_den,
+                   CASE
+                       WHEN c.loai_chuyen = 'LAY_HANG' THEN 'Địa chỉ khách gửi (Lấy hàng)'
+                       WHEN c.loai_chuyen = 'LIEN_KHO' THEN COALESCE(kden.ten_kho, 'Kho đích')
+                       ELSE 'Địa chỉ khách hàng (Giao cuối)'
+                   END AS ten_diem_den,
+                   c.ma_tx, tx.ho_ten AS ten_tai_xe, c.ma_pt, pt.bien_so, pt.tai_trong,
+                   c.ma_nv_dieu_phoi, c.ngay_xuat_phat, c.ngay_den_du_kien,
+                   COALESCE(ct.so_kien, 0) AS so_kien, COALESCE(ct.tong_kg, 0) AS tong_kg,
+                   CASE WHEN pt.tai_trong > 0 THEN ROUND(100.0 * COALESCE(ct.tong_kg, 0) / pt.tai_trong, 1) ELSE 0 END AS ty_le_tai
+            FROM chuyen_giao c
+            LEFT JOIN tai_xe tx ON tx.ma_tx = c.ma_tx
+            LEFT JOIN phuong_tien pt ON pt.ma_pt = c.ma_pt
+            LEFT JOIN tuyen_van_chuyen t ON t.ma_tuyen = c.ma_tuyen
+            LEFT JOIN kho kdi  ON kdi.ma_kho  = COALESCE(t.ma_kho_di, c.ma_kho_giao)
+            LEFT JOIN kho kden ON kden.ma_kho = t.ma_kho_den
+            LEFT JOIN (
+                SELECT x.ma_chuyen, COUNT(*) AS so_kien, SUM(k.khoi_luong) AS tong_kg
+                FROM chi_tiet_chuyen_giao x
+                JOIN kien_hang k ON k.ma_kien = x.ma_kien
+                GROUP BY x.ma_chuyen
+            ) ct ON ct.ma_chuyen = c.ma_chuyen
+            ORDER BY c.ngay_xuat_phat DESC
+        """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Timestamp tsXuatPhat = rs.getTimestamp("ngay_xuat_phat");
+            Timestamp tsDenDuKien = rs.getTimestamp("ngay_den_du_kien");
+
+            return ChuyenGiaoChiTietDTO.builder()
+                    .maChuyen(rs.getString("ma_chuyen"))
+                    .loaiChuyen(rs.getString("loai_chuyen"))
+                    .trangThai(rs.getString("trang_thai"))
+                    .maTuyen(rs.getString("ma_tuyen"))
+                    .maKhoXuatPhat(rs.getString("ma_kho_xuat_phat"))
+                    .tenKhoXuatPhat(rs.getString("ten_kho_xuat_phat"))
+                    .maKhoDen(rs.getString("ma_kho_den"))
+                    .tenDiemDen(rs.getString("ten_diem_den"))
+                    .maTx(rs.getString("ma_tx"))
+                    .tenTaiXe(rs.getString("ten_tai_xe"))
+                    .maPt(rs.getString("ma_pt"))
+                    .bienSo(rs.getString("bien_so"))
+                    .taiTrong(rs.getBigDecimal("tai_trong"))
+                    .maNvDieuPhoi(rs.getString("ma_nv_dieu_phoi"))
+                    .ngayXuatPhat(tsXuatPhat != null ? tsXuatPhat.toLocalDateTime() : null)
+                    .ngayDenDuKien(tsDenDuKien != null ? tsDenDuKien.toLocalDateTime() : null)
+                    .soKien(rs.getLong("so_kien"))
+                    .tongKg(rs.getBigDecimal("tong_kg"))
+                    .tyLeTai(rs.getBigDecimal("ty_le_tai"))
+                    .build();
+        });
+    }
+
+    /**
+     * Thống kê Dashboard Điều phối
+     */
+    public DieuPhoiDashboardDTO getDashboardStats() {
+        Long tongSoChuyen = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM chuyen_giao WHERE trang_thai <> 'Đã hủy'", Long.class);
+
+        Long chuyenChuaDi = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM chuyen_giao WHERE trang_thai = 'Chưa đi'", Long.class);
+
+        Long chuyenDangDi = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM chuyen_giao WHERE trang_thai = 'Đang đi'", Long.class);
+
+        Long chuyenHoanThanh = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM chuyen_giao WHERE trang_thai = 'Hoàn thành'", Long.class);
+
+        Long donCanDieuPhoi = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM kien_hang k " +
+                "JOIN don_hang dh ON k.ma_dh = dh.ma_dh " +
+                "WHERE (" +
+                "  (k.ma_kho_hien_tai IS NOT NULL AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY')) " +
+                "  OR (dh.ma_tt = 'TT02' AND dh.trang_thai_lay IN ('CHUA_LAY', 'DANG_LAY'))" +
+                ") " +
+                "AND k.ma_kien NOT IN (SELECT c.ma_kien FROM chi_tiet_chuyen_giao c " +
+                "JOIN chuyen_giao cg ON cg.ma_chuyen = c.ma_chuyen WHERE cg.trang_thai IN ('Chưa đi', 'Đang đi'))",
+                Long.class);
+
+        Long taiXeKhaDung = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM tai_xe tx " +
+                "LEFT JOIN nguoi_dung nd ON tx.ma_nd = nd.ma_nd " +
+                "WHERE (nd.trang_thai IS NULL OR nd.trang_thai = 'Hoạt động') " +
+                "AND tx.ma_tx NOT IN (" +
+                "SELECT c.ma_tx FROM chuyen_giao c WHERE c.ma_tx IS NOT NULL AND c.trang_thai IN ('Đang đi', 'Chưa đi'))",
+                Long.class);
+
+        Long phuongTienKhaDung = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM phuong_tien pt " +
+                "WHERE pt.trang_thai = 'Sẵn sàng' AND pt.ma_pt NOT IN (" +
+                "SELECT c.ma_pt FROM chuyen_giao c WHERE c.ma_pt IS NOT NULL AND c.trang_thai IN ('Đang đi', 'Chưa đi'))",
+                Long.class);
+
+        List<ChuyenGiaoChiTietDTO> recentTrips = getChuyenGiaoChiTietList();
+        if (recentTrips.size() > 5) {
+            recentTrips = recentTrips.subList(0, 5);
+        }
+
+        return DieuPhoiDashboardDTO.builder()
+                .tongSoChuyen(tongSoChuyen != null ? tongSoChuyen : 0)
+                .chuyenChuaDi(chuyenChuaDi != null ? chuyenChuaDi : 0)
+                .chuyenDangDi(chuyenDangDi != null ? chuyenDangDi : 0)
+                .chuyenHoanThanh(chuyenHoanThanh != null ? chuyenHoanThanh : 0)
+                .donCanDieuPhoi(donCanDieuPhoi != null ? donCanDieuPhoi : 0)
+                .chuyenDangHoatDong(chuyenDangDi != null ? chuyenDangDi : 0)
+                .taiXeKhaDung(taiXeKhaDung != null ? taiXeKhaDung : 0)
+                .phuongTienKhaDung(phuongTienKhaDung != null ? phuongTienKhaDung : 0)
+                .chuyenGiaoGanDay(recentTrips)
+                .build();
+    }
+
+    /**
+     * STT 1: Danh sách đơn / kiện đang chờ điều phối, chờ xuất bến
+     */
+    public List<DonCanDieuPhoiDTO> getDonCanDieuPhoiList() {
+        return getAvailableKienHangDTOList(null, null, null, null);
+    }
+
+    /**
+     * Lấy danh sách kiện hàng khả dụng cho điều phối có đầy đủ metadata và lọc theo ràng buộc nghiệp vụ:
+     * - loaiChuyen = 'LIEN_KHO':
+     *     + Kiện hàng đang ở kho đi của tuyến (k.ma_kho_hien_tai = tuyen.ma_kho_di)
+     *     + Trạng thái đơn: TT02 hoặc TT04
+     *     + Kho nhận đơn khác kho đi (chưa đến đích cuối)
+     *     + Nếu có maTuyen: ưu tiên hoặc chỉ lấy kiện hợp lệ với tuyến đó
+     * - loaiChuyen = 'GIAO_CUOI':
+     *     + Kiện hàng đang ở kho giao (k.ma_kho_hien_tai = maKhoGiao)
+     *     + Kho nhận của đơn hàng PHẢI là kho giao (dh.ma_kho_nhan = maKhoGiao) - RÀNG BUỘC CƠ SỞ DỮ LIỆU
+     *     + Trạng thái đơn: TT02, TT04, TT08
+     */
+    public List<DonCanDieuPhoiDTO> getAvailableKienHangDTOList(String maKho, String loaiChuyen, String maTuyen) {
+        return getAvailableKienHangDTOList(maKho, loaiChuyen, maTuyen, null);
+    }
+
+    public List<DonCanDieuPhoiDTO> getAvailableKienHangDTOList(String maKho, String loaiChuyen, String maTuyen, String maKhoNhan) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT
+                k.ma_kien,
+                k.ma_dh,
+                k.loai_hang,
+                k.khoi_luong,
+                k.ma_kho_hien_tai,
+                COALESCE(kh.ten_kho, 'Chờ lấy tận nơi') AS ten_kho_hien_tai,
+                dh.dia_chi_giao,
+                dh.dia_chi_lay,
+                kg.ho_ten AS ten_nguoi_gui,
+                kg.sdt AS sdt_gui,
+                dh.phi_van_chuyen,
+                dh.trang_thai_lay,
+                dh.ma_kho_gui,
+                kgui.ten_kho AS ten_kho_gui,
+                dh.ma_kho_nhan,
+                kn.ten_kho AS ten_kho_nhan,
+                dh.ten_nguoi_nhan,
+                dh.sdt_nhan,
+                dh.cod,
+                dh.ma_tt,
+                tt.ten_trang_thai AS trang_thai_don
+            FROM kien_hang k
+            JOIN don_hang dh ON k.ma_dh = dh.ma_dh
+            LEFT JOIN khach_hang kg ON kg.ma_kh = dh.ma_kh_gui
+            LEFT JOIN kho kh ON k.ma_kho_hien_tai = kh.ma_kho
+            LEFT JOIN kho kn ON dh.ma_kho_nhan = kn.ma_kho
+            LEFT JOIN kho kgui ON dh.ma_kho_gui = kgui.ma_kho
+            LEFT JOIN trang_thai_dh tt ON dh.ma_tt = tt.ma_trang_thai
+            WHERE k.ma_kien NOT IN (
+                SELECT c.ma_kien FROM chi_tiet_chuyen_giao c
+                JOIN chuyen_giao cg ON cg.ma_chuyen = c.ma_chuyen
+                WHERE cg.trang_thai IN ('Chưa đi', 'Đang đi')
+            )
+        """);
+
+        List<Object> params = new java.util.ArrayList<>();
+
+        if ("LAY_HANG".equalsIgnoreCase(loaiChuyen)) {
+            // Lấy hàng: đơn TT02 chưa lấy hoặc đang lấy thuộc bưu cục xuất phát
+            sql.append(" AND dh.ma_tt = 'TT02' AND dh.trang_thai_lay IN ('CHUA_LAY', 'DANG_LAY') ");
+            if (maKho != null && !maKho.isBlank()) {
+                sql.append(" AND dh.ma_kho_gui = ? ");
+                params.add(maKho);
+            }
+        } else if ("LIEN_KHO".equalsIgnoreCase(loaiChuyen)) {
+            sql.append(" AND k.ma_kho_hien_tai IS NOT NULL AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY') ");
+            sql.append(" AND dh.ma_tt IN ('TT02', 'TT04') ");
+            if (maTuyen != null && !maTuyen.isBlank()) {
+                TuyenVanChuyen tuyen = tuyenVanChuyenRepository.findById(maTuyen).orElse(null);
+                if (tuyen != null) {
+                    sql.append(" AND k.ma_kho_hien_tai = ? ");
+                    params.add(tuyen.getMaKhoDi());
+                    sql.append(" AND dh.ma_kho_nhan <> ? ");
+                    params.add(tuyen.getMaKhoDi());
+                }
+            } else if (maKho != null && !maKho.isBlank()) {
+                sql.append(" AND k.ma_kho_hien_tai = ? ");
+                params.add(maKho);
+                sql.append(" AND dh.ma_kho_nhan <> ? ");
+                params.add(maKho);
+            }
+        } else if ("GIAO_CUOI".equalsIgnoreCase(loaiChuyen)) {
+            sql.append(" AND k.ma_kho_hien_tai IS NOT NULL AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY') ");
+            sql.append(" AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') ");
+            if (maKho != null && !maKho.isBlank()) {
+                sql.append(" AND k.ma_kho_hien_tai = ? ");
+                params.add(maKho);
+                sql.append(" AND dh.ma_kho_nhan = ? ");
+                params.add(maKho);
+            }
+        } else {
+            // Mặc định (tất cả đơn/kiện cần điều phối)
+            sql.append(" AND ( ");
+            sql.append("   (k.ma_kho_hien_tai IS NOT NULL AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY') AND dh.ma_tt IN ('TT02', 'TT04', 'TT08')) ");
+            sql.append("   OR (dh.ma_tt = 'TT02' AND dh.trang_thai_lay IN ('CHUA_LAY', 'DANG_LAY')) ");
+            sql.append(" ) ");
+            if (maKho != null && !maKho.isBlank()) {
+                sql.append(" AND (k.ma_kho_hien_tai = ? OR (dh.ma_kho_gui = ? AND dh.trang_thai_lay IN ('CHUA_LAY', 'DANG_LAY'))) ");
+                params.add(maKho);
+                params.add(maKho);
+            }
+        }
+
+        if (maKhoNhan != null && !maKhoNhan.isBlank()) {
+            sql.append(" AND dh.ma_kho_nhan = ? ");
+            params.add(maKhoNhan);
+        }
+
+        sql.append(" ORDER BY k.ma_kien ASC ");
+
+        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> DonCanDieuPhoiDTO.builder()
+                .maKien(rs.getString("ma_kien"))
+                .maDh(rs.getString("ma_dh"))
+                .loaiHang(rs.getString("loai_hang"))
+                .khoiLuong(rs.getBigDecimal("khoi_luong"))
+                .maKhoHienTai(rs.getString("ma_kho_hien_tai"))
+                .tenKhoHienTai(rs.getString("ten_kho_hien_tai"))
+                .diaChiGiao(rs.getString("dia_chi_giao"))
+                .diaChiLay(rs.getString("dia_chi_lay"))
+                .tenNguoiGui(rs.getString("ten_nguoi_gui"))
+                .sdtGui(rs.getString("sdt_gui"))
+                .phiVanChuyen(rs.getBigDecimal("phi_van_chuyen"))
+                .trangThaiLay(rs.getString("trang_thai_lay"))
+                .maKhoGui(rs.getString("ma_kho_gui"))
+                .tenKhoGui(rs.getString("ten_kho_gui"))
+                .maKhoNhan(rs.getString("ma_kho_nhan"))
+                .tenKhoNhan(rs.getString("ten_kho_nhan"))
+                .tenNguoiNhan(rs.getString("ten_nguoi_nhan"))
+                .sdtNhan(rs.getString("sdt_nhan"))
+                .cod(rs.getBigDecimal("cod"))
+                .maTt(rs.getString("ma_tt"))
+                .trangThaiDon(rs.getString("trang_thai_don"))
+                .build(), params.toArray());
+    }
+
+    /**
+     * STT 2: Danh sách các chuyến đang chạy (trang_thai = 'Đang đi')
+     */
+    public List<ChuyenGiaoChiTietDTO> getChuyenDangChayList() {
+        String sql = """
+            SELECT c.ma_chuyen, c.loai_chuyen, c.trang_thai, c.ma_tuyen,
+                   COALESCE(t.ma_kho_di, c.ma_kho_giao) AS ma_kho_xuat_phat,
+                   COALESCE(kdi.ten_kho, 'Kho xuất phát') AS ten_kho_xuat_phat,
+                   t.ma_kho_den,
+                   CASE
+                       WHEN c.loai_chuyen = 'LAY_HANG' THEN 'Địa chỉ khách gửi (Lấy hàng)'
+                       WHEN c.loai_chuyen = 'LIEN_KHO' THEN COALESCE(kden.ten_kho, 'Kho đích')
+                       ELSE 'Địa chỉ khách hàng (Giao cuối)'
+                   END AS ten_diem_den,
+                   c.ma_tx, tx.ho_ten AS ten_tai_xe, c.ma_pt, pt.bien_so, pt.tai_trong,
+                   c.ma_nv_dieu_phoi, c.ngay_xuat_phat, c.ngay_den_du_kien,
+                   COALESCE(ct.so_kien, 0) AS so_kien, COALESCE(ct.tong_kg, 0) AS tong_kg,
+                   CASE WHEN pt.tai_trong > 0 THEN ROUND(100.0 * COALESCE(ct.tong_kg, 0) / pt.tai_trong, 1) ELSE 0 END AS ty_le_tai
+            FROM chuyen_giao c
+            JOIN tai_xe tx ON tx.ma_tx = c.ma_tx
+            JOIN phuong_tien pt ON pt.ma_pt = c.ma_pt
+            LEFT JOIN tuyen_van_chuyen t ON t.ma_tuyen = c.ma_tuyen
+            LEFT JOIN kho kdi  ON kdi.ma_kho  = COALESCE(t.ma_kho_di, c.ma_kho_giao)
+            LEFT JOIN kho kden ON kden.ma_kho = t.ma_kho_den
+            LEFT JOIN (
+                SELECT x.ma_chuyen, COUNT(*) AS so_kien, SUM(k.khoi_luong) AS tong_kg
+                FROM chi_tiet_chuyen_giao x
+                JOIN kien_hang k ON k.ma_kien = x.ma_kien
+                GROUP BY x.ma_chuyen
+            ) ct ON ct.ma_chuyen = c.ma_chuyen
+            WHERE c.trang_thai = 'Đang đi'
+            ORDER BY c.ngay_xuat_phat ASC
+        """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Timestamp tsXuatPhat = rs.getTimestamp("ngay_xuat_phat");
+            Timestamp tsDenDuKien = rs.getTimestamp("ngay_den_du_kien");
+
+            return ChuyenGiaoChiTietDTO.builder()
+                    .maChuyen(rs.getString("ma_chuyen"))
+                    .loaiChuyen(rs.getString("loai_chuyen"))
+                    .trangThai(rs.getString("trang_thai"))
+                    .maTuyen(rs.getString("ma_tuyen"))
+                    .maKhoXuatPhat(rs.getString("ma_kho_xuat_phat"))
+                    .tenKhoXuatPhat(rs.getString("ten_kho_xuat_phat"))
+                    .maKhoDen(rs.getString("ma_kho_den"))
+                    .tenDiemDen(rs.getString("ten_diem_den"))
+                    .maTx(rs.getString("ma_tx"))
+                    .tenTaiXe(rs.getString("ten_tai_xe"))
+                    .maPt(rs.getString("ma_pt"))
+                    .bienSo(rs.getString("bien_so"))
+                    .taiTrong(rs.getBigDecimal("tai_trong"))
+                    .maNvDieuPhoi(rs.getString("ma_nv_dieu_phoi"))
+                    .ngayXuatPhat(tsXuatPhat != null ? tsXuatPhat.toLocalDateTime() : null)
+                    .ngayDenDuKien(tsDenDuKien != null ? tsDenDuKien.toLocalDateTime() : null)
+                    .soKien(rs.getLong("so_kien"))
+                    .tongKg(rs.getBigDecimal("tong_kg"))
+                    .tyLeTai(rs.getBigDecimal("ty_le_tai"))
+                    .build();
+        });
+    }
+
+    /**
+     * STT 3: Danh sách tài xế khả dụng (không bị trùng lịch chuyến đang chạy)
+     */
+    public List<TaiXeKhaDungDTO> getTaiXeKhaDungList() {
+        String sql = """
+            SELECT
+                tx.ma_tx,
+                tx.ho_ten,
+                tx.sdt,
+                tx.bang_lai,
+                COALESCE(nd.trang_thai, 'Hoạt động') AS trang_thai_tk
+            FROM tai_xe tx
+            LEFT JOIN nguoi_dung nd ON tx.ma_nd = nd.ma_nd
+            WHERE (nd.trang_thai IS NULL OR nd.trang_thai = 'Hoạt động')
+              AND tx.ma_tx NOT IN (
+                SELECT c2.ma_tx
+                FROM chuyen_giao c2
+                WHERE c2.ma_tx IS NOT NULL
+                  AND c2.trang_thai IN ('Đang đi', 'Chưa đi')
+            )
+            ORDER BY tx.ma_tx ASC
+        """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> TaiXeKhaDungDTO.builder()
+                .maTx(rs.getString("ma_tx"))
+                .hoTen(rs.getString("ho_ten"))
+                .sdt(rs.getString("sdt"))
+                .bangLai(rs.getString("bang_lai"))
+                .trangThaiTaiKhoan(rs.getString("trang_thai_tk"))
+                .chuyenHienTai(null)
+                .thongTinPhanCong("Sẵn sàng nhận chuyến (Chưa gán)")
+                .khaDung(true)
+                .build());
+    }
+
+    /**
+     * STT 4: Danh sách phương tiện khả dụng (sẵn sàng, không bảo trì, không trùng chuyến đang chạy)
+     */
+    public List<PhuongTienKhaDungDTO> getPhuongTienKhaDungList() {
+        String sql = """
+            SELECT
+                pt.ma_pt,
+                pt.bien_so,
+                pt.loai_xe,
+                pt.tai_trong,
+                pt.trang_thai
+            FROM phuong_tien pt
+            WHERE pt.trang_thai = 'Sẵn sàng'
+              AND pt.ma_pt NOT IN (
+                  SELECT c2.ma_pt
+                  FROM chuyen_giao c2
+                  WHERE c2.ma_pt IS NOT NULL
+                    AND c2.trang_thai IN ('Đang đi', 'Chưa đi')
+              )
+            ORDER BY pt.ma_pt ASC
+        """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> PhuongTienKhaDungDTO.builder()
+                .maPt(rs.getString("ma_pt"))
+                .bienSo(rs.getString("bien_so"))
+                .loaiXe(rs.getString("loai_xe"))
+                .taiTrong(rs.getBigDecimal("tai_trong"))
+                .trangThai(rs.getString("trang_thai"))
+                .chuyenHienTai(null)
+                .khaDung(true)
+                .build());
+    }
+
+    /**
+     * Cập nhật thông tin chuyến giao (khi chuyến ở trạng thái 'Chưa đi').
+     * Cho phép đổi tài xế, đổi phương tiện, đổi lộ trình, thời gian.
+     */
+    @Transactional
+    public ChuyenGiao capNhatChuyenGiao(String maChuyen, CapNhatChuyenGiaoRequest req) {
+        ChuyenGiao cg = chuyenGiaoRepository.findById(maChuyen)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến giao: " + maChuyen));
+
+        if (!"Chưa đi".equals(cg.getTrangThai())) {
+            throw new RuntimeException("Chuyến giao đang ở trạng thái [" + cg.getTrangThai() + "], không được phép chỉnh sửa.");
+        }
+
+        if (req.getLoai() != null && !req.getLoai().isBlank()) {
+            cg.setLoaiChuyen(req.getLoai());
+        }
+        if ("LIEN_KHO".equals(cg.getLoaiChuyen())) {
+            if (req.getMaTuyen() != null && !req.getMaTuyen().isBlank()) {
+                cg.setMaTuyen(req.getMaTuyen());
+            }
+            cg.setMaKhoGiao(null);
+        } else if ("GIAO_CUOI".equals(cg.getLoaiChuyen())) {
+            if (req.getMaKhoGiao() != null && !req.getMaKhoGiao().isBlank()) {
+                cg.setMaKhoGiao(req.getMaKhoGiao());
+            }
+            cg.setMaTuyen(null);
+        }
+
+        if (req.getMaTx() != null && !req.getMaTx().isBlank()) cg.setMaTx(req.getMaTx());
+        if (req.getMaPt() != null && !req.getMaPt().isBlank()) cg.setMaPt(req.getMaPt());
+        if (req.getNgayXuatPhat() != null) cg.setNgayXuatPhat(req.getNgayXuatPhat());
+        if (req.getNgayDenDuKien() != null) cg.setNgayDenDuKien(req.getNgayDenDuKien());
+
+        if (req.getMaNd() != null && !req.getMaNd().isBlank()) {
+            try {
+                jdbcTemplate.queryForList("SELECT fn_dat_phien(?, ?)", req.getMaNd(), "Cập nhật phân công chuyến " + maChuyen);
+            } catch (Exception ignored) {
+            }
+        }
+
+        try {
+            return chuyenGiaoRepository.save(cg);
+        } catch (org.springframework.dao.DataAccessException ex) {
+            Throwable root = ex.getMostSpecificCause();
+            String msg = (root != null && root.getMessage() != null) ? root.getMessage() : ex.getMessage();
+            int nl = msg.indexOf('\n');
+            if (nl > 0) msg = msg.substring(0, nl);
+            if (msg.startsWith("ERROR: ")) msg = msg.substring(7);
+            throw new RuntimeException(msg.trim());
+        }
+    }
+
+    /**
+     * Hủy chuyến giao (gọi Stored Procedure sp_huy_chuyen, tự động giải phóng kiện hàng).
+     */
+    @Transactional
+    public void huyChuyenGiao(String maChuyen, String maNd) {
+        ChuyenGiao cg = chuyenGiaoRepository.findById(maChuyen)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến giao: " + maChuyen));
+
+        if (!"Chưa đi".equals(cg.getTrangThai())) {
+            throw new RuntimeException("Thao tác xóa/hủy không thể thực hiện! Chuyến giao đang ở trạng thái [" + cg.getTrangThai() + "]. Chỉ được xóa/hủy chuyến khi chưa xuất phát.");
+        }
+
+        try {
+            jdbcTemplate.execute((java.sql.Connection con) -> {
+                try (java.sql.CallableStatement cs = con.prepareCall("CALL sp_huy_chuyen(?, ?)")) {
+                    cs.setString(1, maChuyen);
+                    cs.setString(2, (maNd != null && !maNd.isBlank()) ? maNd : "ND0003");
+                    cs.execute();
+                    return null;
+                }
+            });
+        } catch (org.springframework.dao.DataAccessException ex) {
+            Throwable root = ex.getMostSpecificCause();
+            String msg = (root != null && root.getMessage() != null) ? root.getMessage() : ex.getMessage();
+            int nl = msg.indexOf('\n');
+            if (nl > 0) msg = msg.substring(0, nl);
+            if (msg.startsWith("ERROR: ")) msg = msg.substring(7);
+            throw new RuntimeException(msg.trim());
+        }
+    }
+
+    /**
+     * Xóa hẳn chuyến giao khỏi cơ sở dữ liệu (hard delete).
+     * Áp dụng cho các chuyến ở trạng thái 'Chưa đi' hoặc 'Đã hủy'.
+     * - 'Chưa đi': gọi sp_huy_chuyen để giải phóng kiện hàng về kho, sau đó xóa hẳn bản ghi khỏi database.
+     * - 'Đã hủy': xóa hẳn bản ghi khỏi database.
+     * - 'Đang đi', 'Hoàn thành': không cho phép xóa.
+     */
+    @Transactional
+    public void xoaChuyenGiao(String maChuyen, String maNd) {
+        ChuyenGiao cg = chuyenGiaoRepository.findById(maChuyen)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến giao: " + maChuyen));
+
+        if ("Đang đi".equals(cg.getTrangThai())) {
+            throw new RuntimeException("Không thể xóa chuyến đang di chuyển trên đường!");
+        }
+        if ("Hoàn thành".equals(cg.getTrangThai())) {
+            throw new RuntimeException("Không thể xóa chuyến đã hoàn thành!");
+        }
+
+        // Nếu chuyến 'Chưa đi', hủy trước bằng sp_huy_chuyen để giải phóng kiện hàng về kho
+        if ("Chưa đi".equals(cg.getTrangThai())) {
+            try {
+                jdbcTemplate.execute((java.sql.Connection con) -> {
+                    try (java.sql.CallableStatement cs = con.prepareCall("CALL sp_huy_chuyen(?, ?)")) {
+                        cs.setString(1, maChuyen);
+                        cs.setString(2, (maNd != null && !maNd.isBlank()) ? maNd : "ND0003");
+                        cs.execute();
+                        return null;
+                    }
+                });
+            } catch (org.springframework.dao.DataAccessException ex) {
+                Throwable root = ex.getMostSpecificCause();
+                String msg = (root != null && root.getMessage() != null) ? root.getMessage() : ex.getMessage();
+                int nl = msg.indexOf('\n');
+                if (nl > 0) msg = msg.substring(0, nl);
+                if (msg.startsWith("ERROR: ")) msg = msg.substring(7);
+                throw new RuntimeException(msg.trim());
+            }
+        }
+
+        // Xóa hoàn toàn bản ghi khỏi database
+        jdbcTemplate.update("DELETE FROM chi_tiet_chuyen_giao WHERE ma_chuyen = ?", maChuyen);
+        jdbcTemplate.update("DELETE FROM chuyen_giao WHERE ma_chuyen = ?", maChuyen);
+    }
+
+    /**
+     * Xác nhận hoàn thành chuyến giao (sp_hoan_thanh_chuyen).
+     */
+    @Transactional
+    public void hoanThanhChuyen(String maChuyen, String maNd) {
+        ChuyenGiao cg = chuyenGiaoRepository.findById(maChuyen)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến giao: " + maChuyen));
+
+        if (!"Đang đi".equals(cg.getTrangThai())) {
+            throw new RuntimeException("Chuyến giao đang ở trạng thái [" + cg.getTrangThai() + "]. Chỉ có thể xác nhận hoàn thành khi chuyến đang chạy.");
+        }
+
+        try {
+            jdbcTemplate.execute((java.sql.Connection con) -> {
+                try (java.sql.CallableStatement cs = con.prepareCall("CALL sp_hoan_thanh_chuyen(?, ?)")) {
+                    cs.setString(1, maChuyen);
+                    cs.setString(2, (maNd != null && !maNd.isBlank()) ? maNd : "ND0003");
+                    cs.execute();
+                    return null;
+                }
+            });
+        } catch (org.springframework.dao.DataAccessException ex) {
+            Throwable root = ex.getMostSpecificCause();
+            String msg = (root != null && root.getMessage() != null) ? root.getMessage() : ex.getMessage();
+            int nl = msg.indexOf('\n');
+            if (nl > 0) msg = msg.substring(0, nl);
+            if (msg.startsWith("ERROR: ")) msg = msg.substring(7);
+            throw new RuntimeException(msg.trim());
+        }
+    }
+
+    // ========================== PHÂN TRANG BACKEND (SERVER-SIDE PAGINATION) ==========================
+
+    /**
+     * Lấy danh sách tuyến vận chuyển có phân trang (Spring Data Pageable) kèm tìm kiếm.
+     */
+    public PageResponse<TuyenVanChuyen> getTuyenPaged(int page, int size, String search) {
+        if (search != null && !search.isBlank()) {
+            String lower = search.toLowerCase().trim();
+            List<TuyenVanChuyen> all = tuyenVanChuyenRepository.findAll().stream().filter(r ->
+                (r.getMaTuyen() != null && r.getMaTuyen().toLowerCase().contains(lower)) ||
+                (r.getMaKhoDi() != null && r.getMaKhoDi().toLowerCase().contains(lower)) ||
+                (r.getMaKhoDen() != null && r.getMaKhoDen().toLowerCase().contains(lower))
+            ).toList();
+            return PageResponse.of(all, page, size);
+        }
+        int p = Math.max(0, page - 1);
+        int s = (size > 0) ? size : 5;
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(p, s);
+        return PageResponse.from(tuyenVanChuyenRepository.findAll(pageable));
+    }
+
+    /**
+     * Lấy danh sách chuyến giao chi tiết có phân trang và bộ lọc trạng thái, tìm kiếm.
+     */
+    public PageResponse<ChuyenGiaoChiTietDTO> getChuyenGiaoChiTietPaged(int page, int size, String trangThai, String search) {
+        List<ChuyenGiaoChiTietDTO> all = getChuyenGiaoChiTietList();
+        if (trangThai != null && !trangThai.isBlank() && !trangThai.equalsIgnoreCase("TAT_CA")) {
+            all = all.stream().filter(c -> trangThai.equalsIgnoreCase(c.getTrangThai())).toList();
+        }
+        if (search != null && !search.isBlank()) {
+            String lower = search.toLowerCase().trim();
+            all = all.stream().filter(c ->
+                (c.getMaChuyen() != null && c.getMaChuyen().toLowerCase().contains(lower)) ||
+                (c.getTenTaiXe() != null && c.getTenTaiXe().toLowerCase().contains(lower)) ||
+                (c.getBienSo() != null && c.getBienSo().toLowerCase().contains(lower))
+            ).toList();
+        }
+        return PageResponse.of(all, page, size);
+    }
+
+    /**
+     * Lấy danh sách kiện chờ điều phối có phân trang.
+     */
+    public PageResponse<DonCanDieuPhoiDTO> getDonCanDieuPhoiPaged(int page, int size, String maKho, String loaiChuyen, String maTuyen) {
+        return getDonCanDieuPhoiPaged(page, size, maKho, loaiChuyen, maTuyen, null);
+    }
+
+    public PageResponse<DonCanDieuPhoiDTO> getDonCanDieuPhoiPaged(int page, int size, String maKho, String loaiChuyen, String maTuyen, String maKhoNhan) {
+        List<DonCanDieuPhoiDTO> all = getAvailableKienHangDTOList(maKho, loaiChuyen, maTuyen, maKhoNhan);
+        return PageResponse.of(all, page, size);
+    }
+
+    /**
+     * Lấy danh sách kiện trong chuyến có phân trang.
+     */
+    public PageResponse<KienTrongChuyenDTO> getKienTrongChuyenPaged(String maChuyen, int page, int size) {
+        List<KienTrongChuyenDTO> all = getKienTrongChuyen(maChuyen);
+        return PageResponse.of(all, page, size);
+    }
+
+    /**
+     * Lấy danh sách chuyến giao entity có phân trang (Spring Data Pageable).
+     */
+    public PageResponse<ChuyenGiao> getChuyenGiaoPaged(String maNvDieuPhoi, int page, int size) {
+        int p = Math.max(0, page - 1);
+        int s = (size > 0) ? size : 5;
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(p, s);
+        if (maNvDieuPhoi != null && !maNvDieuPhoi.isBlank()) {
+            return PageResponse.from(chuyenGiaoRepository.findByMaNvDieuPhoi(maNvDieuPhoi, pageable));
+        }
+        return PageResponse.from(chuyenGiaoRepository.findAll(pageable));
+    }
+
+    /**
+     * Lấy danh sách chuyến đang chạy có phân trang (cho Dashboard Tab 2).
+     */
+    public PageResponse<ChuyenGiaoChiTietDTO> getChuyenDangChayPaged(int page, int size) {
+        List<ChuyenGiaoChiTietDTO> all = getChuyenDangChayList();
+        return PageResponse.of(all, page, size);
+    }
+
+    /**
+     * Lấy danh sách tài xế khả dụng có phân trang (cho Dashboard Tab 3).
+     */
+    public PageResponse<TaiXeKhaDungDTO> getTaiXeKhaDungPaged(int page, int size) {
+        List<TaiXeKhaDungDTO> all = getTaiXeKhaDungList();
+        return PageResponse.of(all, page, size);
+    }
+
+    /**
+     * Lấy danh sách phương tiện khả dụng có phân trang (cho Dashboard Tab 4).
+     */
+    public PageResponse<PhuongTienKhaDungDTO> getPhuongTienKhaDungPaged(int page, int size) {
+        List<PhuongTienKhaDungDTO> all = getPhuongTienKhaDungList();
+        return PageResponse.of(all, page, size);
+    }
+}

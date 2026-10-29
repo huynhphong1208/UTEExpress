@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán cước vận chuyển - UTE Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+    <style>
+        .payment-method-card {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .payment-method-card:hover {
+            border-color: var(--light-blue);
+            background-color: var(--bg-alt);
+        }
+        .payment-method-card.active {
+            border-color: var(--primary-blue);
+            background-color: var(--primary-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR KHÁCH HÀNG -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a th:href="@{/}" href="/" class="sidebar-logo">
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo">
+                </a>
+                <span class="sidebar-role-tag">Khách hàng</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Nghiệp vụ giao nhận</div>
+                <a th:href="@{/customer/dashboard}" href="/customer/dashboard" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Tổng quan &amp; Đơn hàng</span>
+                </a>
+                <a th:href="@{/customer/create-order}" href="/customer/create-order" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>Tạo đơn hàng mới</span>
+                </a>
+                <a th:href="@{/customer/order-detail}" href="/customer/order-detail" class="nav-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Chi tiết đơn hàng</span>
+                </a>
+
+                <div class="nav-section-title">Tài chính &amp; Cá nhân</div>
+                <a th:href="@{/customer/payment}" href="/customer/payment" class="nav-item active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    <span>Thanh toán &amp; COD</span>
+                </a>
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item" style="color: #F87171; margin-top: 30px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar" id="userAvatar" onclick="openAccountSettingsModal()" style="cursor: pointer;" title="Cài đặt tài khoản" th:text="${khachHang != null and khachHang.hoTen != null and #strings.length(khachHang.hoTen) >= 2 ? #strings.substring(khachHang.hoTen, 0, 2).toUpperCase() : 'KH'}">KH</div>
+                <div class="user-info" onclick="openAccountSettingsModal()" style="cursor: pointer;" title="Cài đặt tài khoản">
+                    <div class="user-name" id="userNameDisplay" th:text="${khachHang != null and khachHang.hoTen != null ? khachHang.hoTen : 'Khách hàng'}">Khách hàng</div>
+                    <div class="user-sub" id="userSubDisplay" th:text="${khachHang != null and khachHang.sdt != null ? 'SĐT: ' + khachHang.sdt : 'Tài khoản Khách hàng'}">Tài khoản Khách hàng</div>
+                </div>
+                <button type="button" class="sidebar-settings-btn" onclick="openAccountSettingsModal()" title="Cài đặt tài khoản" aria-label="Cài đặt tài khoản">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="breadcrumbs">
+                    <a th:href="@{/customer/dashboard}" href="/customer/dashboard">Dashboard</a>
+                    <span>/</span>
+                    <span>Thanh toán cước phí</span>
+                    <span>/</span>
+                    <strong th:text="${donHang != null ? donHang.maDh : (maDh != null ? maDh : 'Chưa có đơn')}">DH000001</strong>
+                </div>
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <!-- Dropdown chọn đơn hàng của khách -->
+                    <div th:if="${danhSachDonHang != null and !danhSachDonHang.isEmpty()}" style="display: flex; gap: 6px; align-items: center;">
+                        <label style="font-size: 13px; color: var(--text-secondary); white-space: nowrap;">Chọn đơn:</label>
+                        <select class="form-select form-select-sm" onchange="window.location.href='/customer/payment?maDh=' + this.value" style="min-width: 170px;">
+                            <option th:each="dh : ${danhSachDonHang}" 
+                                    th:value="${dh.maDh}" 
+                                    th:text="${dh.maDh + ' (' + (dh.trangThai != null ? dh.trangThai.tenTrangThai : '') + ')'}"
+                                    th:selected="${donHang != null and dh.maDh == donHang.maDh}">DH000001</option>
+                        </select>
+                    </div>
+
+                    <a th:if="${donHang != null}" th:href="@{/customer/order-detail(maDh=${donHang.maDh})}" class="btn btn-secondary btn-sm">Xem chi tiết đơn</a>
+                </div>
+            </header>
+
+            <div class="page-container" style="max-width: 960px;">
+                <!-- Thông báo nếu không có đơn -->
+                <div th:if="${donHang == null}" class="card" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                    <p style="font-size: 16px; margin-bottom: 12px;">Không tìm thấy đơn hàng cần thanh toán.</p>
+                    <a th:href="@{/customer/dashboard}" class="btn btn-primary btn-sm">Quay lại Dashboard</a>
+                </div>
+
+                <div th:if="${donHang != null}">
+                    <!-- Thông báo thanh toán thành công -->
+                    <div th:if="${paid == true}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--success); background-color: var(--success-bg);">
+                        <div class="card-body" style="padding: 16px 20px;">
+                            <h4 style="color: var(--success); margin-bottom: 4px;">✓ Thanh toán thành công!</h4>
+                            <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">
+                                Giao dịch thanh toán cước cho đơn hàng <strong th:text="${donHang.maDh}">DH000001</strong> đã được cập nhật thành công vào cơ sở dữ liệu.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Thông báo lỗi nếu có -->
+                    <div th:if="${errorMessage}" class="card" style="margin-bottom: 20px; border-left: 4px solid var(--brand-red); background-color: var(--brand-red-light);">
+                        <div class="card-body" style="padding: 16px 20px;">
+                            <h4 style="color: var(--brand-red); margin-bottom: 4px;">Có lỗi xảy ra</h4>
+                            <p style="margin: 0; color: var(--text-secondary); font-size: 14px;" th:text="${errorMessage}">Lỗi thanh toán</p>
+                        </div>
+                    </div>
+
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title" th:text="${'Thanh toán đơn hàng ' + donHang.maDh}">Thanh toán đơn hàng DH000001</h1>
+                            <p class="page-subtitle">Chọn phương thức thanh toán phù hợp và kiểm tra thông tin cước phí & COD</p>
+                        </div>
+                        <div>
+                            <span class="badge" 
+                                  th:classappend="${paid == true or (paymentSummary != null and paymentSummary.phiDaThanhToan) ? 'badge-success' : 'badge-warning'}" 
+                                  id="payStatusBadge">
+                                <span class="badge-dot"></span>
+                                <span th:text="${paid == true or (paymentSummary != null and paymentSummary.phiDaThanhToan) ? 'Đã thanh toán' : 'Chưa thanh toán'}">Chưa thanh toán</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid-12">
+                        <!-- Left: Khi đơn ĐÃ THANH TOÁN -> Ẩn QR & Phương thức, hiện Biên nhận hoàn tất -->
+                        <div class="col-7" th:if="${paid == true or (paymentSummary != null and paymentSummary.phiDaThanhToan)}">
+                            <div class="card" style="text-align: center; padding: 42px 28px; margin-bottom: 20px;">
+                                <div style="width: 68px; height: 68px; border-radius: 50%; background: #DCFCE7; color: #16A34A; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 18px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);">
+                                    <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <h3 style="font-size: 21px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0;">Đơn hàng đã thanh toán cước phí</h3>
+                                <p style="color: #64748B; font-size: 14px; max-width: 460px; margin: 0 auto 24px; line-height: 1.5;">
+                                    Giao dịch cước phí vận chuyển cho đơn hàng <strong style="color: var(--primary-blue);" th:text="${donHang.maDh}">DH000001</strong> đã hoàn tất thành công. Bạn không cần thực hiện thêm thao tác chuyển khoản nào khác.
+                                </p>
+
+                                <!-- Tóm tắt biên nhận đã thanh toán -->
+                                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px 20px; max-width: 440px; margin: 0 auto 28px; text-align: left; font-size: 13.5px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="color: #64748B;">Mã đơn hàng:</span>
+                                        <strong style="color: var(--primary-blue);" th:text="${donHang.maDh}">DH000001</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="color: #64748B;">Số tiền đã thanh toán:</span>
+                                        <strong style="color: #16A34A; font-size: 15px;" th:text="${donHang.phiVanChuyen != null ? #numbers.formatDecimal(donHang.phiVanChuyen, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="color: #64748B;">Trạng thái cước phí:</span>
+                                        <span class="badge badge-success"><span class="badge-dot"></span>Đã thanh toán</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="color: #64748B;">Trạng thái giao hàng:</span>
+                                        <strong style="color: #0F172A;" th:text="${donHang.trangThai != null ? donHang.trangThai.tenTrangThai : 'Đang xử lý'}">Đang xử lý</strong>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                                    <a th:href="@{/customer/order-detail(maDh=${donHang.maDh})}" class="btn btn-primary" style="padding: 10px 22px;">
+                                        Chi tiết đơn hàng
+                                    </a>
+                                    <a th:href="@{/customer/dashboard}" class="btn btn-secondary" style="padding: 10px 22px;">
+                                        Về danh sách đơn
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Left: Khi đơn CHƯA THANH TOÁN -> Hiện chọn phương thức & mã QR bình thường -->
+                        <div class="col-7" th:if="${paid != true and (paymentSummary == null or !paymentSummary.phiDaThanhToan)}">
+                            <div class="card" style="margin-bottom: 20px;">
+                                <div class="card-header">
+                                    <h3 class="card-title">Chọn phương thức thanh toán</h3>
+                                </div>
+                                <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+                                    <label class="payment-method-card active" onclick="selectMethod(this, 'bank')">
+                                        <input type="radio" name="payMethodRadio" checked style="accent-color: var(--primary-blue);">
+                                        <div>
+                                            <strong style="display: block; font-size: 14.5px;">Chuyển khoản QR Ngân hàng (Khuyên dùng)</strong>
+                                            <span style="font-size: 12.5px; color: var(--text-secondary);">Quét mã QR VietQR Napas 24/7 tức thì</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="payment-method-card" onclick="selectMethod(this, 'momo')">
+                                        <input type="radio" name="payMethodRadio" style="accent-color: var(--primary-blue);">
+                                        <div>
+                                            <strong style="display: block; font-size: 14.5px;">Ví điện tử MoMo / ZaloPay</strong>
+                                            <span style="font-size: 12.5px; color: var(--text-secondary);">Quét mã QR qua ứng dụng Ví điện tử MoMo</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="payment-method-card" onclick="selectMethod(this, 'cod')">
+                                        <input type="radio" name="payMethodRadio" style="accent-color: var(--primary-blue);">
+                                        <div>
+                                            <strong style="display: block; font-size: 14.5px;">Thanh toán khi nhận hàng (COD / Tiền mặt)</strong>
+                                            <span style="font-size: 12.5px; color: var(--text-secondary);">Tài xế giao hàng sẽ thu cước và tiền COD trực tiếp</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- VietQR Box -->
+                            <div class="card" id="bankQrBox" style="text-align: center; padding: 24px;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px;">
+                                    <span style="background: #E0F2FE; color: #0284C7; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 4px;">TỰ ĐỘNG SINH MÃ</span>
+                                    <h4 style="font-size: 16px; margin: 0; color: #0F172A;">Mã VietQR Ngân hàng (Vietcombank)</h4>
+                                </div>
+                                <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 16px;">Mở ứng dụng ngân hàng bất kỳ (VCB, MB, Techcombank,...) để quét mã</p>
+
+                                <div style="display: inline-block; padding: 12px; background: white; border: 2px solid #E2E8F0; border-radius: 12px; box-shadow: var(--shadow-md);">
+                                    <img th:src="@{'https://img.vietqr.io/image/vietcombank-02838968641-compact2.png?amount=' + ${donHang.phiVanChuyen != null ? donHang.phiVanChuyen.intValue() : 0} + '&addInfo=' + ${donHang.maDh} + '&accountName=UTE%20EXPRESS'}"
+                                         alt="Mã QR VietQR Chuyển khoản"
+                                         style="width: 240px; height: auto; max-width: 100%; border-radius: 6px; display: block; margin: 0 auto;" />
+                                </div>
+
+                                <div style="margin-top: 14px; font-size: 13px; color: var(--text-secondary); background: #F8FAFC; padding: 10px; border-radius: 8px; text-align: left; max-width: 380px; margin-left: auto; margin-right: auto; border: 1px solid #E2E8F0;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>Ngân hàng:</span> <strong>Vietcombank (VCB)</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>Số tài khoản:</span> <strong style="color: #0284C7;">02838968641</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>Chủ tài khoản:</span> <strong>UTE EXPRESS</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>Nội dung chuyển:</span> <strong style="color: #D97706;" th:text="${donHang.maDh}">DH000001</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span>Số tiền cước:</span> 
+                                        <strong style="color: var(--primary-blue); font-size: 15px;" 
+                                                th:text="${donHang.phiVanChuyen != null ? #numbers.formatDecimal(donHang.phiVanChuyen, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Cảnh báo thử nghiệm đồ án -->
+                                <div style="margin-top: 14px; padding: 10px 14px; background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 8px; font-size: 12px; color: #92400E; text-align: left; line-height: 1.5;">
+                                    ⚠️ <strong>Môi trường thử nghiệm đồ án (Demo):</strong><br>
+                                    Bạn có thể dùng app ngân hàng quét thử để kiểm tra hệ thống tự động điền đúng số tiền và mã đơn hàng. <strong>Không cần xác nhận chuyển tiền thật</strong> để tránh trừ tiền! Sau khi quét xong, hãy bấm nút <em>"Xác nhận đã chuyển khoản (Demo Test)"</em> bên cạnh.
+                                </div>
+                            </div>
+
+                            <!-- MoMo Box -->
+                            <div class="card" id="momoQrBox" style="display: none; text-align: center; padding: 24px;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px;">
+                                    <span style="background: #FDF2F8; color: #DB2777; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 4px;">VÍ ĐIỆN TỬ</span>
+                                    <h4 style="font-size: 16px; margin: 0; color: #A50064;">Mã QR Ví MoMo</h4>
+                                </div>
+                                <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 16px;">Mở ứng dụng MoMo để quét mã thanh toán</p>
+
+                                <div style="display: inline-block; padding: 12px; background: white; border: 2px solid #FBCFE8; border-radius: 12px; box-shadow: var(--shadow-md);">
+                                    <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=2%7C99%7C0901000001%7CUTE%20EXPRESS%7Clephongle475@gmail.com%7C0%7C0%7C' + ${donHang.phiVanChuyen != null ? donHang.phiVanChuyen.intValue() : 0} + '%7C' + ${donHang.maDh} + '%7Ctransfer_myqr'}"
+                                         alt="Mã QR Ví MoMo"
+                                         style="width: 220px; height: 220px; border-radius: 6px; display: block; margin: 0 auto;" />
+                                </div>
+
+                                <div style="margin-top: 14px; font-size: 13px; color: var(--text-secondary); background: #FDF2F8; padding: 10px; border-radius: 8px; text-align: left; max-width: 380px; margin-left: auto; margin-right: auto; border: 1px solid #FCE7F3;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>Ví điện tử:</span> <strong>MoMo</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>Số điện thoại nhận:</span> <strong style="color: #A50064;">0901 000 001</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>Chủ ví:</span> <strong>UTE EXPRESS</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span>Nội dung chuyển:</span> <strong style="color: #D97706;" th:text="${donHang.maDh}">DH000001</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span>Số tiền cước:</span> 
+                                        <strong style="color: #A50064; font-size: 15px;" 
+                                                th:text="${donHang.phiVanChuyen != null ? #numbers.formatDecimal(donHang.phiVanChuyen, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Cảnh báo thử nghiệm đồ án -->
+                                <div style="margin-top: 14px; padding: 10px 14px; background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 8px; font-size: 12px; color: #92400E; text-align: left; line-height: 1.5;">
+                                    ⚠️ <strong>Môi trường thử nghiệm đồ án (Demo):</strong><br>
+                                    Quý khách quét mã để kiểm tra chức năng nhận diện đơn hàng, <strong>không cần chuyển tiền thật</strong>. Sau đó nhấn nút <em>"Xác nhận đã chuyển khoản (Demo Test)"</em> để hệ thống ghi nhận.
+                                </div>
+                            </div>
+
+                            <!-- COD Box -->
+                            <div class="card" id="codBox" style="display: none; padding: 24px; text-align: center;">
+                                <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                                    <svg style="width: 36px; height: 36px; color: var(--primary-blue);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                                <h4 style="font-size: 15px; margin-bottom: 6px;">Thanh toán khi nhận hàng (COD / Tiền mặt)</h4>
+                                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 auto; max-width: 420px;">
+                                    Tài xế giao nhận sẽ thu tiền mặt trực tiếp khi phát hàng đến tay người nhận. Bạn không cần chuyển khoản trước.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Right: Chi tiết biên nhận thanh toán -->
+                        <div class="col-5">
+                            <div class="card">
+                                <div class="card-header" style="background-color: var(--bg-alt);">
+                                    <h3 class="card-title">Chi tiết thanh toán</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div style="font-size: 13.5px; display: flex; flex-direction: column; gap: 10px;">
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--text-secondary);">Mã đơn hàng:</span>
+                                            <strong th:text="${donHang.maDh}">DH000001</strong>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--text-secondary);">Người thanh toán:</span>
+                                            <span th:text="${khachHang != null ? khachHang.hoTen : 'Nguyễn Văn An'}">Nguyễn Văn An</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--text-secondary);">Người nhận:</span>
+                                            <span th:text="${donHang.tenNguoiNhan}">Trần Thị Bích</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--text-secondary);">Thời gian tạo:</span>
+                                            <span th:text="${#temporals.format(donHang.ngayTao, 'dd/MM/yyyy HH:mm')}">22/09/2026 09:15</span>
+                                        </div>
+                                        <hr style="border: none; border-top: 1px solid var(--border-color);">
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--text-secondary);">Phí vận chuyển:</span>
+                                            <span th:text="${donHang.phiVanChuyen != null ? #numbers.formatDecimal(donHang.phiVanChuyen, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--text-secondary);">Tiền thu hộ COD:</span>
+                                            <span th:text="${donHang.cod != null ? #numbers.formatDecimal(donHang.cod, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</span>
+                                        </div>
+                                        <hr style="border: none; border-top: 1px dashed var(--border-color);">
+                                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                            <span style="font-weight: 600;">Cước cần thanh toán:</span>
+                                            <strong style="color: var(--primary-blue); font-size: 22px;" 
+                                                    th:text="${donHang.phiVanChuyen != null ? #numbers.formatDecimal(donHang.phiVanChuyen, 1, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">35,000 đ</strong>
+                                        </div>
+                                    </div>
+
+                                    <!-- Nút xác nhận thanh toán kết nối trực tiếp DB -->
+                                    <div style="margin-top: 20px;">
+                                        <div th:if="${paid == true or (paymentSummary != null and paymentSummary.phiDaThanhToan)}">
+                                            <div style="padding: 12px; background: var(--success-bg); border-radius: var(--radius-md); text-align: center; color: var(--success); font-weight: 600; margin-bottom: 10px;">
+                                                ✓ Cước vận chuyển đã được thanh toán
+                                            </div>
+                                            <a th:href="@{/customer/order-detail(maDh=${donHang.maDh})}" class="btn btn-secondary btn-block">
+                                                Quay lại chi tiết đơn hàng
+                                            </a>
+                                        </div>
+
+                                        <div th:if="${paid != true and (paymentSummary == null or !paymentSummary.phiDaThanhToan)}">
+                                            <!-- Hộp thông báo khi chọn tiền mặt -->
+                                            <div id="cashNoticeBox" style="display: none; padding: 14px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); text-align: left; color: var(--text-primary); font-size: 13px; line-height: 1.5; margin-bottom: 12px;">
+                                                <div style="font-weight: 700; color: var(--primary-blue); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                                                    <span>📦 Thanh toán tiền mặt khi lấy hàng:</span>
+                                                </div>
+                                                <p style="margin: 0; color: var(--text-secondary); font-size: 12.5px;">
+                                                    Bạn không cần thanh toán trên website. Vui lòng thanh toán cước trực tiếp cho tài xế khi bàn giao hàng. Đơn hàng sẽ <strong>tự động chuyển sang 'Đã thanh toán'</strong> ngay khi tài xế bấm xác nhận lấy hàng thành công.
+                                                </p>
+                                            </div>
+
+                                            <form id="paySubmitForm" th:action="@{/customer/process-payment}" method="post">
+                                                <input type="hidden" name="maDh" th:value="${donHang.maDh}">
+                                                <input type="hidden" name="soTien" th:value="${donHang.phiVanChuyen != null ? donHang.phiVanChuyen : 0}">
+                                                <input type="hidden" name="phuongThuc" id="hiddenPhuongThuc" value="Chuyển khoản">
+
+                                                <button type="submit" id="btnConfirmPay" class="btn btn-primary btn-block btn-lg" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                    <span>Xác nhận đã chuyển khoản (Demo Test)</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+        <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
+    <script>
+        const token = localStorage.getItem('accessToken');
+        const hoTen = localStorage.getItem('hoTen');
+        const tenDangNhap = localStorage.getItem('tenDangNhap') || '';
+        if (hoTen && hoTen !== 'undefined' && hoTen.trim() && !/^[0-9+]+$/.test(hoTen.trim())) {
+            const el = document.getElementById('userNameDisplay');
+            if (el) el.innerText = hoTen;
+            const initials = hoTen.trim().split(' ').map(w => w[0]).join('').slice(-2).toUpperCase();
+            const av = document.getElementById('userAvatar');
+            if (av && initials && !localStorage.getItem('userAvatarUrl')) av.innerText = initials;
+        }
+        if (tenDangNhap) {
+            const sub = document.getElementById('userSubDisplay');
+            if (sub) sub.innerText = 'SĐT: ' + tenDangNhap;
+        }
+
+        if (!token) {
+            alert('Bạn chưa đăng nhập! Vui lòng đăng nhập tài khoản Khách hàng.');
+            window.location.href = '/login';
+        } else if (!document.cookie.includes('accessToken=')) {
+            document.cookie = `accessToken=${token}; path=/; max-age=86400; SameSite=Lax`;
+            window.location.reload();
+        }
+
+        function logout() {
+            localStorage.clear();
+            document.cookie = "accessToken=; path=/; max-age=0; SameSite=Lax";
+            window.location.href = '/login';
+        }
+
+        function selectMethod(el, method) {
+            document.querySelectorAll('.payment-method-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            el.querySelector('input').checked = true;
+
+            const bankBox = document.getElementById('bankQrBox');
+            const momoBox = document.getElementById('momoQrBox');
+            const codBox = document.getElementById('codBox');
+            const hiddenPt = document.getElementById('hiddenPhuongThuc');
+
+            if (bankBox) bankBox.style.display = 'none';
+            if (momoBox) momoBox.style.display = 'none';
+            if (codBox) codBox.style.display = 'none';
+
+            const paySubmitForm = document.getElementById('paySubmitForm');
+            const cashNoticeBox = document.getElementById('cashNoticeBox');
+
+            if (method === 'bank') {
+                if (bankBox) bankBox.style.display = 'block';
+                if (hiddenPt) hiddenPt.value = 'Chuyển khoản';
+                if (paySubmitForm) paySubmitForm.style.display = 'block';
+                if (cashNoticeBox) cashNoticeBox.style.display = 'none';
+            } else if (method === 'momo') {
+                if (momoBox) momoBox.style.display = 'block';
+                if (hiddenPt) hiddenPt.value = 'Chuyển khoản';
+                if (paySubmitForm) paySubmitForm.style.display = 'block';
+                if (cashNoticeBox) cashNoticeBox.style.display = 'none';
+            } else if (method === 'cod') {
+                if (codBox) codBox.style.display = 'block';
+                if (hiddenPt) hiddenPt.value = 'Tiền mặt';
+                if (paySubmitForm) paySubmitForm.style.display = 'none';
+                if (cashNoticeBox) cashNoticeBox.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

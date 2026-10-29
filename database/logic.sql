@@ -189,13 +189,22 @@ LEFT JOIN LATERAL (SELECT bool_or(loai_khoan = 'PHI_VC' AND trang_thai = 'Đã t
                           bool_or(loai_khoan = 'COD'    AND trang_thai = 'Đã thanh toán') AS cod_da_tt
                    FROM thanh_toan WHERE ma_dh = d.ma_dh) p ON TRUE;
 
--- Guest tra cứu: chỉ trạng thái tổng quát, che SĐT, không có địa chỉ
+-- Guest tra cứu: chỉ trạng thái tổng quát, che SĐT, kèm thông tin bưu cục lộ trình
 CREATE OR REPLACE VIEW v_tra_cuu_cong_khai AS
-SELECT d.ma_dh, d.ngay_tao, tt.ten_trang_thai,
+SELECT d.ma_dh, d.ngay_tao, d.ma_tt, tt.ten_trang_thai,
        (SELECT MAX(thoi_gian) FROM lich_su_trang_thai l WHERE l.ma_dh = d.ma_dh) AS cap_nhat_luc,
        fn_mask_sdt(d.sdt_nhan) AS sdt_nhan_che,
-       (SELECT COUNT(*) FROM kien_hang k WHERE k.ma_dh = d.ma_dh) AS so_kien
-FROM don_hang d JOIN trang_thai_dh tt ON tt.ma_trang_thai = d.ma_tt;
+       (SELECT COUNT(*) FROM kien_hang k WHERE k.ma_dh = d.ma_dh) AS so_kien,
+       d.ma_kho_gui,
+       kgui.ten_kho AS ten_kho_gui,
+       d.ma_kho_nhan,
+       knhan.ten_kho AS ten_kho_nhan,
+       (SELECT k.ma_kho_hien_tai FROM kien_hang k WHERE k.ma_dh = d.ma_dh ORDER BY k.ma_kien LIMIT 1) AS ma_kho_hien_tai,
+       (SELECT kh.ten_kho FROM kien_hang k JOIN kho kh ON kh.ma_kho = k.ma_kho_hien_tai WHERE k.ma_dh = d.ma_dh ORDER BY k.ma_kien LIMIT 1) AS ten_kho_hien_tai
+FROM don_hang d
+JOIN trang_thai_dh tt ON tt.ma_trang_thai = d.ma_tt
+LEFT JOIN kho kgui ON kgui.ma_kho = d.ma_kho_gui
+LEFT JOIN kho knhan ON knhan.ma_kho = d.ma_kho_nhan;
 
 CREATE OR REPLACE VIEW v_lich_su_van_chuyen AS
 SELECT l.ma_ls, l.ma_dh, l.ma_tt, tt.ten_trang_thai, l.thoi_gian,
@@ -229,12 +238,16 @@ LEFT JOIN LATERAL (SELECT COUNT(*) AS so_kien, SUM(k.khoi_luong) AS tong_kg
 
 -- Tài xế xem kiện trong chuyến (lọc theo ma_chuyen / ma_tx ở tầng Spring)
 CREATE OR REPLACE VIEW v_kien_trong_chuyen AS
-SELECT x.ma_chuyen, c.ma_tx, x.ma_kien, k.ma_dh, d.ten_nguoi_nhan, d.sdt_nhan, d.dia_chi_giao,
+SELECT x.ma_chuyen, c.ma_tx, c.loai_chuyen, x.ma_kien, k.ma_dh,
+       d.ten_nguoi_nhan, d.sdt_nhan, d.dia_chi_giao,
+       d.dia_chi_lay, kh.ho_ten AS ten_nguoi_gui, kh.sdt AS sdt_gui,
+       d.phi_van_chuyen, d.cod, d.trang_thai_lay,
        k.khoi_luong, k.loai_hang, x.trang_thai, x.thoi_gian_gan, x.thoi_gian_quet, x.ghi_chu
 FROM chi_tiet_chuyen_giao x
 JOIN chuyen_giao c ON c.ma_chuyen = x.ma_chuyen
 JOIN kien_hang k   ON k.ma_kien = x.ma_kien
-JOIN don_hang d    ON d.ma_dh = k.ma_dh;
+JOIN don_hang d    ON d.ma_dh = k.ma_dh
+LEFT JOIN khach_hang kh ON kh.ma_kh = d.ma_kh_gui;
 
 CREATE OR REPLACE VIEW v_thong_ke_don_theo_trang_thai AS
 SELECT t.ma_trang_thai, t.ten_trang_thai, COUNT(d.ma_dh) AS so_don
@@ -309,22 +322,22 @@ LEFT JOIN LATERAL (SELECT COUNT(DISTINCT cg.ma_chuyen) AS so_chuyen, COUNT(x.ma_
 -- 3.1 Vai trò của tài khoản phải khớp bảng liên kết ---------------------------
 -- 3.1 Vai trò của tài khoản phải khớp bảng liên kết
 CREATE OR REPLACE FUNCTION fn_trg_kiem_tra_vai_tro() RETURNS trigger AS $$
-DECLARE 
+DECLARE
     v_vt VARCHAR;
 BEGIN
-    IF NEW.ma_nd IS NULL THEN 
-        RETURN NEW; 
+    IF NEW.ma_nd IS NULL THEN
+        RETURN NEW;
     END IF;
 
     SELECT ma_vai_tro INTO v_vt FROM nguoi_dung WHERE ma_nd = NEW.ma_nd;
 
     IF TG_TABLE_NAME = 'khach_hang' THEN
-        IF v_vt <> 'KHACH_HANG' THEN 
-            RAISE EXCEPTION 'Tài khoản % không có vai trò Khách hàng', NEW.ma_nd; 
+        IF v_vt <> 'KHACH_HANG' THEN
+            RAISE EXCEPTION 'Tài khoản % không có vai trò Khách hàng', NEW.ma_nd;
         END IF;
     ELSIF TG_TABLE_NAME = 'tai_xe' THEN
-        IF v_vt <> 'TAI_XE' THEN 
-            RAISE EXCEPTION 'Tài khoản % không có vai trò Tài xế', NEW.ma_nd; 
+        IF v_vt <> 'TAI_XE' THEN
+            RAISE EXCEPTION 'Tài khoản % không có vai trò Tài xế', NEW.ma_nd;
         END IF;
     ELSE  -- nhan_vien
         IF v_vt <> (CASE WHEN NEW.chuc_vu = 'Nhân viên bưu cục' THEN 'NVBC' ELSE 'NVDP' END) THEN
@@ -463,13 +476,19 @@ BEGIN
             SELECT COUNT(*), COUNT(*) FILTER (WHERE trang_thai <> 'Đã quét') INTO v_so, v_chua
             FROM chi_tiet_chuyen_giao WHERE ma_chuyen = NEW.ma_chuyen;
             IF v_so = 0   THEN RAISE EXCEPTION 'Chuyến % chưa có kiện hàng nào', NEW.ma_chuyen; END IF;
-            IF v_chua > 0 THEN RAISE EXCEPTION 'Còn % kiện chưa được quét lên xe', v_chua; END IF;
+            IF NEW.loai_chuyen <> 'LAY_HANG' AND v_chua > 0 THEN
+                RAISE EXCEPTION 'Còn % kiện chưa được quét lên xe', v_chua;
+            END IF;
             NEW.ngay_xuat_phat_thuc := clock_timestamp()::timestamp;
         ELSIF NEW.trang_thai = 'Hoàn thành' THEN
             IF NEW.loai_chuyen = 'GIAO_CUOI' THEN
                 SELECT COUNT(*) INTO v_chua FROM chi_tiet_chuyen_giao
                 WHERE ma_chuyen = NEW.ma_chuyen AND trang_thai NOT IN ('Đã giao','Thất bại');
                 IF v_chua > 0 THEN RAISE EXCEPTION 'Còn % kiện chưa có kết quả giao', v_chua; END IF;
+            ELSIF NEW.loai_chuyen = 'LAY_HANG' THEN
+                SELECT COUNT(*) INTO v_chua FROM chi_tiet_chuyen_giao
+                WHERE ma_chuyen = NEW.ma_chuyen AND trang_thai NOT IN ('Đã quét','Thất bại');
+                IF v_chua > 0 THEN RAISE EXCEPTION 'Còn % kiện chưa được xác nhận lấy hoặc báo thất bại', v_chua; END IF;
             END IF;
             NEW.ngay_den := clock_timestamp()::timestamp;
         END IF;
@@ -501,13 +520,20 @@ BEGIN
     WHEN 'Đang đi' THEN
         PERFORM set_config('app.ghi_chu', 'Chuyến ' || NEW.ma_chuyen || ' xuất phát', true);
         UPDATE phuong_tien SET trang_thai = 'Đang chạy' WHERE ma_pt = NEW.ma_pt;
-        UPDATE kien_hang SET ma_kho_hien_tai = NULL
-        WHERE ma_kien IN (SELECT ma_kien FROM chi_tiet_chuyen_giao WHERE ma_chuyen = NEW.ma_chuyen);
-        v_tt_moi := CASE WHEN NEW.loai_chuyen = 'LIEN_KHO' THEN 'TT03' ELSE 'TT05' END;
-        UPDATE don_hang SET ma_tt = v_tt_moi
-        WHERE ma_dh IN (SELECT k.ma_dh FROM kien_hang k JOIN chi_tiet_chuyen_giao c ON c.ma_kien = k.ma_kien
-                        WHERE c.ma_chuyen = NEW.ma_chuyen)
-          AND fn_chuyen_trang_thai_hop_le(ma_tt, v_tt_moi);
+        IF NEW.loai_chuyen = 'LAY_HANG' THEN
+            UPDATE don_hang SET trang_thai_lay = 'DANG_LAY'
+            WHERE ma_dh IN (SELECT k.ma_dh FROM kien_hang k JOIN chi_tiet_chuyen_giao c ON c.ma_kien = k.ma_kien
+                            WHERE c.ma_chuyen = NEW.ma_chuyen)
+              AND (trang_thai_lay IS NULL OR trang_thai_lay = 'CHUA_LAY');
+        ELSE
+            UPDATE kien_hang SET ma_kho_hien_tai = NULL
+            WHERE ma_kien IN (SELECT ma_kien FROM chi_tiet_chuyen_giao WHERE ma_chuyen = NEW.ma_chuyen);
+            v_tt_moi := CASE WHEN NEW.loai_chuyen = 'LIEN_KHO' THEN 'TT03' ELSE 'TT05' END;
+            UPDATE don_hang SET ma_tt = v_tt_moi
+            WHERE ma_dh IN (SELECT k.ma_dh FROM kien_hang k JOIN chi_tiet_chuyen_giao c ON c.ma_kien = k.ma_kien
+                            WHERE c.ma_chuyen = NEW.ma_chuyen)
+              AND fn_chuyen_trang_thai_hop_le(ma_tt, v_tt_moi);
+        END IF;
     WHEN 'Hoàn thành' THEN
         PERFORM set_config('app.ghi_chu', 'Chuyến ' || NEW.ma_chuyen || ' hoàn thành', true);
         UPDATE phuong_tien SET trang_thai = 'Sẵn sàng' WHERE ma_pt = NEW.ma_pt;
@@ -518,12 +544,26 @@ BEGIN
             WHERE ma_dh IN (SELECT k.ma_dh FROM kien_hang k JOIN chi_tiet_chuyen_giao c ON c.ma_kien = k.ma_kien
                             WHERE c.ma_chuyen = NEW.ma_chuyen)
               AND fn_chuyen_trang_thai_hop_le(ma_tt, 'TT04');
+        ELSIF NEW.loai_chuyen = 'LAY_HANG' THEN
+            -- Kiện lấy thành công được đưa về bưu cục quản lý
+            UPDATE kien_hang SET ma_kho_hien_tai = NEW.ma_kho_giao
+            WHERE ma_kien IN (SELECT ma_kien FROM chi_tiet_chuyen_giao
+                              WHERE ma_chuyen = NEW.ma_chuyen AND trang_thai = 'Đã quét');
+            UPDATE don_hang SET trang_thai_lay = 'DA_LAY'
+            WHERE ma_dh IN (SELECT k.ma_dh FROM kien_hang k JOIN chi_tiet_chuyen_giao c ON c.ma_kien = k.ma_kien
+                            WHERE c.ma_chuyen = NEW.ma_chuyen AND c.trang_thai = 'Đã quét');
         ELSE   -- giao cuối: kiện giao thất bại quay về kho giao
             UPDATE kien_hang SET ma_kho_hien_tai = NEW.ma_kho_giao
             WHERE ma_kien IN (SELECT ma_kien FROM chi_tiet_chuyen_giao
                               WHERE ma_chuyen = NEW.ma_chuyen AND trang_thai = 'Thất bại');
         END IF;
     WHEN 'Đã hủy' THEN
+        IF NEW.loai_chuyen = 'LAY_HANG' THEN
+            UPDATE don_hang SET trang_thai_lay = 'CHUA_LAY'
+            WHERE ma_dh IN (SELECT k.ma_dh FROM kien_hang k JOIN chi_tiet_chuyen_giao c ON c.ma_kien = k.ma_kien
+                            WHERE c.ma_chuyen = NEW.ma_chuyen)
+              AND trang_thai_lay = 'DANG_LAY';
+        END IF;
         DELETE FROM chi_tiet_chuyen_giao WHERE ma_chuyen = NEW.ma_chuyen;
     ELSE NULL;
     END CASE;
@@ -554,7 +594,11 @@ BEGIN
             RAISE EXCEPTION 'Đơn % chưa sẵn sàng vận chuyển liên kho (trạng thái: %)', v_dh.ma_dh, v_dh.ma_tt;
         END IF;
         SELECT ma_kho_di INTO v_kho_xuat FROM tuyen_van_chuyen WHERE ma_tuyen = v_cg.ma_tuyen;
-    ELSE
+        IF v_kien.ma_kho_hien_tai IS DISTINCT FROM v_kho_xuat THEN
+            RAISE EXCEPTION 'Kiện % đang ở kho %, không phải kho xuất phát % của chuyến',
+                v_kien.ma_kien, COALESCE(v_kien.ma_kho_hien_tai, '(không ở kho)'), v_kho_xuat;
+        END IF;
+    ELSIF v_cg.loai_chuyen = 'GIAO_CUOI' THEN
         IF v_dh.ma_tt NOT IN ('TT02','TT04','TT08') THEN
             RAISE EXCEPTION 'Đơn % chưa sẵn sàng giao hàng (trạng thái: %)', v_dh.ma_dh, v_dh.ma_tt;
         END IF;
@@ -563,11 +607,21 @@ BEGIN
                 v_cg.ma_kho_giao, v_dh.ma_dh, v_dh.ma_kho_nhan;
         END IF;
         v_kho_xuat := v_cg.ma_kho_giao;
-    END IF;
-
-    IF v_kien.ma_kho_hien_tai IS DISTINCT FROM v_kho_xuat THEN
-        RAISE EXCEPTION 'Kiện % đang ở kho %, không phải kho xuất phát % của chuyến',
-            v_kien.ma_kien, COALESCE(v_kien.ma_kho_hien_tai, '(không ở kho)'), v_kho_xuat;
+        IF v_kien.ma_kho_hien_tai IS DISTINCT FROM v_kho_xuat THEN
+            RAISE EXCEPTION 'Kiện % đang ở kho %, không phải kho xuất phát % của chuyến',
+                v_kien.ma_kien, COALESCE(v_kien.ma_kho_hien_tai, '(không ở kho)'), v_kho_xuat;
+        END IF;
+    ELSIF v_cg.loai_chuyen = 'LAY_HANG' THEN
+        IF v_dh.ma_tt <> 'TT02' THEN
+            RAISE EXCEPTION 'Đơn % chưa sẵn sàng để đi lấy (trạng thái: %)', v_dh.ma_dh, v_dh.ma_tt;
+        END IF;
+        IF v_dh.trang_thai_lay = 'DA_LAY' THEN
+            RAISE EXCEPTION 'Đơn % đã được lấy hàng trước đó', v_dh.ma_dh;
+        END IF;
+        IF v_dh.ma_kho_gui <> v_cg.ma_kho_giao THEN
+            RAISE EXCEPTION 'Bưu cục của chuyến (%) không phụ trách lấy đơn % (kho gửi %)',
+                v_cg.ma_kho_giao, v_dh.ma_dh, v_dh.ma_kho_gui;
+        END IF;
     END IF;
 
     IF EXISTS (SELECT 1 FROM chi_tiet_chuyen_giao c JOIN chuyen_giao g ON g.ma_chuyen = c.ma_chuyen
@@ -665,8 +719,9 @@ BEGIN
     SELECT * INTO v_kh FROM khach_hang WHERE sdt = p_sdt;
     IF v_kh.ma_kh IS NOT NULL AND v_kh.ma_nd IS NOT NULL THEN RAISE EXCEPTION 'Tài khoản đã tồn tại!'; END IF;
     IF p_email IS NOT NULL AND EXISTS (SELECT 1 FROM khach_hang WHERE lower(email) = lower(p_email)
-                                        AND ma_kh IS DISTINCT FROM v_kh.ma_kh) THEN
-        RAISE EXCEPTION 'Email đã được sử dụng';
+                                        AND ma_kh IS DISTINCT FROM v_kh.ma_kh
+                                        AND ma_nd IS NOT NULL) THEN
+        RAISE EXCEPTION 'Email đã được sử dụng bởi tài khoản khác';
     END IF;
 
     INSERT INTO nguoi_dung (ten_dang_nhap, mat_khau, ma_vai_tro)
@@ -806,7 +861,7 @@ CREATE OR REPLACE PROCEDURE sp_tao_chuyen_giao(
 LANGUAGE plpgsql AS $$
 DECLARE v_gio NUMERIC; v_den TIMESTAMP := p_ngay_den_du_kien; v_c TEXT;
 BEGIN
-    IF p_loai NOT IN ('LIEN_KHO','GIAO_CUOI') THEN RAISE EXCEPTION 'Loại chuyến không hợp lệ'; END IF;
+    IF p_loai NOT IN ('LIEN_KHO','GIAO_CUOI','LAY_HANG') THEN RAISE EXCEPTION 'Loại chuyến không hợp lệ'; END IF;
     IF p_ngay_xuat_phat IS NULL THEN RAISE EXCEPTION 'Thiếu ngày xuất phát'; END IF;
 
     IF p_loai = 'LIEN_KHO' THEN
@@ -815,8 +870,8 @@ BEGIN
         IF NOT FOUND THEN RAISE EXCEPTION 'Không tìm thấy tuyến vận chuyển'; END IF;
         v_den := COALESCE(v_den, p_ngay_xuat_phat + v_gio * INTERVAL '1 hour');
     ELSE
-        IF p_ma_kho_giao IS NULL THEN RAISE EXCEPTION 'Chuyến giao cuối phải chọn kho xuất phát'; END IF;
-        IF v_den IS NULL THEN RAISE EXCEPTION 'Chuyến giao cuối phải có ngày đến dự kiến'; END IF;
+        IF p_ma_kho_giao IS NULL THEN RAISE EXCEPTION 'Chuyến giao/lấy hàng phải chọn bưu cục/kho phụ trách'; END IF;
+        IF v_den IS NULL THEN RAISE EXCEPTION 'Chuyến giao/lấy hàng phải có ngày đến dự kiến'; END IF;
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM nhan_vien WHERE ma_nv = p_ma_nv_dp AND chuc_vu = 'Nhân viên điều phối') THEN
@@ -824,13 +879,13 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM tai_xe WHERE ma_tx = p_ma_tx) THEN RAISE EXCEPTION 'Không tìm thấy tài xế'; END IF;
     IF NOT EXISTS (SELECT 1 FROM phuong_tien WHERE ma_pt = p_ma_pt) THEN RAISE EXCEPTION 'Không tìm thấy phương tiện'; END IF;
 
-    PERFORM fn_dat_phien(p_ma_nd, 'Lập chuyến giao');
+    PERFORM fn_dat_phien(p_ma_nd, 'Lập chuyến ' || p_loai);
     BEGIN
         INSERT INTO chuyen_giao (loai_chuyen, ma_tuyen, ma_kho_giao, ma_tx, ma_pt, ma_nv_dieu_phoi,
                                  ngay_xuat_phat, ngay_den_du_kien)
         VALUES (p_loai,
-                CASE WHEN p_loai = 'LIEN_KHO'  THEN p_ma_tuyen END,
-                CASE WHEN p_loai = 'GIAO_CUOI' THEN p_ma_kho_giao END,
+                CASE WHEN p_loai = 'LIEN_KHO' THEN p_ma_tuyen END,
+                CASE WHEN p_loai IN ('GIAO_CUOI', 'LAY_HANG') THEN p_ma_kho_giao END,
                 p_ma_tx, p_ma_pt, p_ma_nv_dp, p_ngay_xuat_phat, v_den)
         RETURNING ma_chuyen INTO p_ma_chuyen;
     EXCEPTION WHEN exclusion_violation THEN
@@ -930,6 +985,16 @@ BEGIN
             INSERT INTO thanh_toan (ma_dh, loai_khoan, so_tien, phuong_thuc, trang_thai, nguoi_thanh_toan)
             VALUES (v_dh.ma_dh, 'COD', v_dh.cod, 'COD', 'Đã thanh toán', COALESCE(p_nguoi_thu, v_dh.ten_nguoi_nhan));
         END IF;
+
+        -- Khi giao thành công và thu tiền: cập nhật cước tiền mặt chưa thanh toán sang Đã thanh toán
+        UPDATE thanh_toan
+        SET trang_thai = 'Đã thanh toán',
+            thoi_gian = CURRENT_TIMESTAMP,
+            nguoi_thanh_toan = COALESCE(p_nguoi_thu, nguoi_thanh_toan)
+        WHERE ma_dh = v_dh.ma_dh
+          AND loai_khoan = 'PHI_VC'
+          AND trang_thai <> 'Đã thanh toán';
+
         UPDATE don_hang SET ma_tt = 'TT06' WHERE ma_dh = v_dh.ma_dh;
     END IF;
 END;
@@ -1012,4 +1077,68 @@ BEGIN
     WHERE ma_nd = p_ma_nd;
 END;
 
+$$;
+-- UC_LAY: xác nhận tài xế lấy kiện hàng thành công tại nhà người gửi
+CREATE OR REPLACE PROCEDURE sp_lay_hang_thanh_cong(
+    p_ma_chuyen VARCHAR, p_ma_kien VARCHAR, p_ma_nd VARCHAR,
+    p_nguoi_giao VARCHAR DEFAULT NULL, p_ghi_chu TEXT DEFAULT NULL)
+LANGUAGE plpgsql AS $$
+DECLARE v_cg chuyen_giao%ROWTYPE; v_dh don_hang%ROWTYPE;
+BEGIN
+    IF NOT fn_la_tai_xe_cua_chuyen(p_ma_chuyen, p_ma_nd) THEN
+        RAISE EXCEPTION 'Bạn không được phân công chuyến này'; END IF;
+    SELECT * INTO v_cg FROM chuyen_giao WHERE ma_chuyen = p_ma_chuyen;
+    IF v_cg.loai_chuyen <> 'LAY_HANG' OR v_cg.trang_thai <> 'Đang đi' THEN
+        RAISE EXCEPTION 'Chỉ xác nhận lấy hàng khi chuyến lấy hàng đang chạy'; END IF;
+
+    SELECT d.* INTO v_dh FROM don_hang d JOIN kien_hang k ON k.ma_dh = d.ma_dh
+    WHERE k.ma_kien = p_ma_kien FOR UPDATE OF d;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Không tìm thấy kiện hàng!'; END IF;
+
+    PERFORM fn_dat_phien(p_ma_nd, COALESCE(p_ghi_chu, 'Lấy hàng thành công'));
+    UPDATE chi_tiet_chuyen_giao
+    SET trang_thai = 'Đã quét', ghi_chu = COALESCE(p_ghi_chu, 'Đã lấy hàng')
+    WHERE ma_chuyen = p_ma_chuyen AND ma_kien = p_ma_kien;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Kiện không thuộc chuyến này'; END IF;
+
+    -- Kiểm tra nếu toàn bộ kiện của đơn này đã được lấy
+    IF NOT EXISTS (SELECT 1 FROM kien_hang k WHERE k.ma_dh = v_dh.ma_dh
+                   AND NOT EXISTS (SELECT 1 FROM chi_tiet_chuyen_giao c
+                                   WHERE c.ma_kien = k.ma_kien AND c.trang_thai = 'Đã quét')) THEN
+        -- Cập nhật cước tiền mặt nếu khách thanh toán trực tiếp khi lấy hàng
+        UPDATE thanh_toan
+        SET trang_thai = 'Đã thanh toán',
+            thoi_gian = CURRENT_TIMESTAMP,
+            nguoi_thanh_toan = COALESCE(p_nguoi_giao, nguoi_thanh_toan)
+        WHERE ma_dh = v_dh.ma_dh
+          AND loai_khoan = 'PHI_VC'
+          AND trang_thai <> 'Đã thanh toán';
+
+        UPDATE don_hang SET trang_thai_lay = 'DA_LAY' WHERE ma_dh = v_dh.ma_dh;
+    END IF;
+END;
+$$;
+
+-- UC_LAY: báo không lấy được hàng (người gửi hủy / không liên lạc được)
+CREATE OR REPLACE PROCEDURE sp_lay_hang_that_bai(
+    p_ma_chuyen VARCHAR, p_ma_kien VARCHAR, p_ma_nd VARCHAR, p_ly_do TEXT)
+LANGUAGE plpgsql AS $$
+DECLARE v_cg chuyen_giao%ROWTYPE; v_ma_dh VARCHAR;
+BEGIN
+    IF NOT fn_la_tai_xe_cua_chuyen(p_ma_chuyen, p_ma_nd) THEN
+        RAISE EXCEPTION 'Bạn không được phân công chuyến này'; END IF;
+    IF COALESCE(trim(p_ly_do), '') = '' THEN RAISE EXCEPTION 'Phải nhập lý do không lấy được hàng'; END IF;
+    SELECT * INTO v_cg FROM chuyen_giao WHERE ma_chuyen = p_ma_chuyen;
+    IF v_cg.loai_chuyen <> 'LAY_HANG' OR v_cg.trang_thai <> 'Đang đi' THEN
+        RAISE EXCEPTION 'Chỉ cập nhật kết quả khi chuyến lấy hàng đang chạy'; END IF;
+
+    SELECT ma_dh INTO v_ma_dh FROM kien_hang WHERE ma_kien = p_ma_kien;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Không tìm thấy kiện hàng!'; END IF;
+
+    PERFORM fn_dat_phien(p_ma_nd, 'Lấy hàng không thành công: ' || p_ly_do);
+    UPDATE chi_tiet_chuyen_giao SET trang_thai = 'Thất bại', ghi_chu = p_ly_do
+    WHERE ma_chuyen = p_ma_chuyen AND ma_kien = p_ma_kien;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Kiện không thuộc chuyến này'; END IF;
+    UPDATE don_hang SET trang_thai_lay = 'CHUA_LAY' WHERE ma_dh = v_ma_dh;
+END;
 $$;

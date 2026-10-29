@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ Logistics UTE Express</title>
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" href="/css/design-system.css">
+    <link rel="stylesheet" th:href="@{/css/components.css}" href="/css/components.css">
+    <link rel="stylesheet" th:href="@{/css/layout.css}" href="/css/layout.css">
+    <style>
+        .hero-slider-section {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background: #FFFFFF;
+            border-bottom: 3px solid var(--brand-red);
+            user-select: none;
+        }
+        .hero-slider-track {
+            display: flex;
+            width: 200%;
+            transition: transform 0.65s cubic-bezier(0.25, 1, 0.5, 1);
+            will-change: transform;
+        }
+        .hero-slide {
+            width: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F8FAFC;
+        }
+        .hero-slide-img {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: cover;
+            display: block;
+        }
+        .slider-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: var(--brand-navy);
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            z-index: 5;
+            opacity: 0;
+        }
+        .hero-slider-section:hover .slider-arrow {
+            opacity: 1;
+        }
+        .slider-arrow:hover {
+            background: var(--brand-red);
+            color: #FFFFFF;
+            border-color: var(--brand-red);
+            transform: translateY(-50%) scale(1.08);
+        }
+        .slider-prev { left: 20px; }
+        .slider-next { right: 20px; }
+        .slider-dots-container {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 5;
+            background: rgba(11, 25, 44, 0.45);
+            backdrop-filter: blur(6px);
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+        .slider-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.65);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+        .slider-dot.active {
+            width: 28px;
+            border-radius: 10px;
+            background: var(--brand-red);
+        }
+        .hero-tracking-section {
+            background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+            padding: 40px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .hero-tracking-wrapper {
+            max-width: 780px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .hero-tracking-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--brand-blue);
+            margin-bottom: 6px;
+        }
+        .hero-tracking-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 22px;
+        }
+        .hero-tracking-box {
+            background: #FFFFFF;
+            padding: 10px 14px;
+            border-radius: var(--radius-xl);
+            box-shadow: 0 10px 30px rgba(11, 25, 44, 0.12);
+            border: 2px solid var(--brand-red);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .hero-tracking-box input {
+            border: 1px solid transparent;
+            border-radius: var(--radius-lg);
+            padding: 14px 18px;
+            font-size: 15px;
+            flex: 1;
+            outline: none;
+            color: var(--text-primary);
+            background: var(--bg-main);
+        }
+        .tracking-quick-hints {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+        .quick-hint-tag {
+            background: white;
+            padding: 4px 12px;
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--border-color);
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--brand-blue);
+        }
+        /* Fee Estimator Section */
+        .fee-estimator-section {
+            padding: 50px 24px;
+            background: var(--bg-main);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .fee-estimator-card {
+            max-width: 860px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border-radius: var(--radius-xl);
+            padding: 32px 36px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+        .service-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 32px 24px;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: var(--shadow-xs);
+            border-top: 4px solid var(--brand-blue);
+        }
+        .service-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--radius-lg);
+            background: var(--brand-blue-light);
+            color: var(--brand-blue);
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-top: 36px;
+        }
+        .process-item { text-align: center; }
+        .process-num {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--brand-blue);
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+        }
+        /* Network hubs */
+        .hub-card {
+            background: #FFFFFF;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-xs);
+        }
+        .hub-card:hover {
+            border-color: var(--brand-blue);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Public Header -->
+    <header class="public-header">
+        <a th:href="@{/}" href="/" class="public-logo-wrapper">
+            <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express Logo" class="public-logo-img">
+        </a>
+
+        <nav class="public-nav">
+            <a th:href="@{/}" href="/" class="active">Trang chủ</a>
+            <a th:href="@{/tracking}" href="/tracking">Tra cứu đơn hàng</a>
+            <a href="#estimator">Tính cước phí</a>
+            <a href="#services">Dịch vụ</a>
+            <a href="#hubs">Bưu cục</a>
+        </nav>
+
+        <div id="guestAuthBox" style="display: flex; align-items: center; gap: 12px;">
+            <a th:href="@{/login}" href="/login" class="btn btn-secondary btn-sm">Đăng nhập</a>
+            <a th:href="@{/register}" href="/register" class="btn btn-primary btn-sm">Đăng ký</a>
+        </div>
+        <div id="userAuthBox" style="display: none; align-items: center; gap: 12px;">
+            <a id="dashboardLink" href="/customer/dashboard" style="display: flex; align-items: center; gap: 8px; text-decoration: none; padding: 4px 12px; border-radius: 20px; background: rgba(13, 44, 84, 0.06); transition: background 0.2s;">
+                <div id="headerAvatar" style="width: 32px; height: 32px; border-radius: 50%; background: var(--brand-blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">
+                    KH
+                </div>
+                <div style="text-align: left; line-height: 1.2;">
+                    <span id="headerUserName" style="font-weight: 700; font-size: 13.5px; color: var(--brand-navy); display: block;">Khách hàng</span>
+                    <span id="headerUserRole" style="font-size: 11px; color: var(--text-muted); display: block;">Tài khoản</span>
+                </div>
+            </a>
+            <a th:href="@{/logout}" href="/logout" onclick="logout()" class="btn btn-secondary btn-sm" style="color: #DC2626; border-color: rgba(220, 38, 38, 0.2);">
+                Đăng xuất
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Slider Section -->
+    <section class="hero-slider-section" id="heroSliderSection">
+        <div class="hero-slider-track" id="heroSliderTrack">
+            <div class="hero-slide">
+                <img th:src="@{/images/banner-hero1.png}" src="/images/banner-hero1.png" alt="UTE Express Banner 1" class="hero-slide-img">
+            </div>
+            <div class="hero-slide">
+                <img th:src="@{/images/banner-hero2.png}" src="/images/banner-hero2.png" alt="UTE Express Banner 2" class="hero-slide-img">
+            </div>
+        </div>
+
+        <button class="slider-arrow slider-prev" onclick="prevHeroSlide()">&#10094;</button>
+        <button class="slider-arrow slider-next" onclick="nextHeroSlide()">&#10095;</button>
+
+        <div class="slider-dots-container" id="sliderDotsContainer">
+            <button class="slider-dot active" onclick="jumpToHeroSlide(0)"></button>
+            <button class="slider-dot" onclick="jumpToHeroSlide(1)"></button>
+        </div>
+    </section>
+
+    <!-- Tracking Section -->
+    <section class="hero-tracking-section">
+        <div class="hero-tracking-wrapper">
+            <h2 class="hero-tracking-title">Tra Cứu Trạng Thái Đơn Hàng & Vận Đơn</h2>
+            <p class="hero-tracking-subtitle">Theo dõi hành trình kiện hàng thời gian thực trên toàn mạng lưới bưu cục UTE Express</p>
+            
+            <div class="hero-tracking-box">
+                <input type="text" id="quickTrackingCode" placeholder="Nhập mã vận đơn cần tra cứu (Ví dụ: DH000001)..." value="DH000001">
+                <button class="btn btn-primary btn-lg" onclick="handleQuickTrack()">🔍 Tra cứu ngay</button>
+            </div>
+
+            <div class="tracking-quick-hints">
+                <span>Gợi ý mã mẫu:</span>
+                <span class="quick-hint-tag" onclick="fillTrackingCode('DH000001')">DH000001</span>
+                <span class="quick-hint-tag" onclick="fillTrackingCode('DH000002')">DH000002</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: CÔNG CỤ TÍNH CƯỚC VẬN CHUYỂN DỰ KIẾN -->
+    <section id="estimator" class="fee-estimator-section">
+        <div class="fee-estimator-card">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <h2 style="font-size: 22px; font-weight: 700; color: var(--brand-blue); margin-bottom: 6px;">💡 Ước tính cước phí vận chuyển</h2>
+                <p style="font-size: 13.5px; color: var(--text-secondary);">Nhập tuyến đường và kích thước kiện hàng để ước tính chi phí giao hàng tự động</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Kho đi (Bưu cục gửi)</label>
+                    <select id="estKhoGui" class="form-select">
+                        <option th:each="kho : ${danhSachKho}" th:value="${kho.maKho}" th:text="|${kho.maKho} - ${kho.tenKho}|" th:selected="${kho.maKho == 'KHO01'}">KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO01" selected>KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO02">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO03">KHO03 - Bưu cục Đà Nẵng</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO05">KHO05 - Bưu cục Quận 1 (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO06">KHO06 - Bưu cục Đống Đa (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO07">KHO07 - Bưu cục Hải Phòng</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO08">KHO08 - Bưu cục Biên Hòa (Đồng Nai)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhKho)}" value="KHO09">KHO09 - Bưu cục Nha Trang (Khánh Hòa)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhKho)}" value="KHO10">KHO10 - Bưu cục Buôn Ma Thuột (Đắk Lắk)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kho đến (Bưu cục nhận)</label>
+                    <select id="estKhoNhan" class="form-select">
+                        <option th:each="kho : ${danhSachKho}" th:value="${kho.maKho}" th:text="|${kho.maKho} - ${kho.tenKho}|" th:selected="${kho.maKho == 'KHO02'}">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO01">KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO02" selected>KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO03">KHO03 - Bưu cục Đà Nẵng</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO05">KHO05 - Bưu cục Quận 1 (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO06">KHO06 - Bưu cục Đống Đa (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO07">KHO07 - Bưu cục Hải Phòng</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO08">KHO08 - Bưu cục Biên Hòa (Đồng Nai)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhKho)}" value="KHO09">KHO09 - Bưu cục Nha Trang (Khánh Hòa)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhKho)}" value="KHO10">KHO10 - Bưu cục Buôn Ma Thuột (Đắk Lắk)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Khối lượng kiện hàng (kg)</label>
+                    <input type="number" id="estWeight" class="form-control" placeholder="1.5" value="1.5" step="0.1" min="0.1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kích thước Dài x Rộng x Cao (cm)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="estLength" class="form-control" placeholder="Dài" value="20" min="1">
+                        <input type="number" id="estWidth" class="form-control" placeholder="Rộng" value="15" min="1">
+                        <input type="number" id="estHeight" class="form-control" placeholder="Cao" value="10" min="1">
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 12px;">
+                <button class="btn btn-primary btn-lg" id="btnCalcEstimator" onclick="calculateEstimatedFee()">⚡ Tính cước phí ngay</button>
+            </div>
+
+            <!-- Kết quả tính cước chuẩn xác -->
+            <div id="calcResult" style="display: none; margin-top: 24px; padding: 22px; background: #FEF2F2; border: 1.5px solid #FCA5A5; border-radius: var(--radius-lg); text-align: center;">
+                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">Ước tính cước phí vận chuyển tiêu chuẩn:</div>
+                <div id="calcFeeText" style="font-size: 32px; font-weight: 800; color: var(--brand-red); margin-bottom: 8px;">0 đ</div>
+                <div id="calcDetailsRow" style="display: flex; justify-content: center; gap: 20px; font-size: 13px; color: #475569; margin: 10px 0; flex-wrap: wrap;">
+                    <span>📍 Tuyến đường: <strong id="calcRouteText">Thủ Đức → Cầu Giấy</strong></span>
+                    <span>📏 Khoảng cách: <strong id="calcDistanceText">-- km</strong></span>
+                    <span>⚖️ Khối lượng tính cước: <strong id="calcWeightText">-- kg</strong></span>
+                    <span>⏱️ Dự kiến: <strong id="calcTimeText">-- giờ</strong></span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Cước phí chưa bao gồm tiền thu hộ COD. Giá thực tế chuẩn hóa theo biểu phí công khai UTE Express Logistics.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section id="services" style="padding: 70px 40px; background-color: var(--bg-main);">
+        <div style="max-width: var(--content-max-width); margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 48px;">
+                <h2 style="font-size: 28px; margin-bottom: 8px; color: var(--brand-blue);">Dịch vụ Vận chuyển Toàn diện UTE Express</h2>
+                <p style="color: var(--text-secondary); max-width: 580px; margin: 0 auto;">Kết nối thông minh giữa mạng lưới Bưu cục, Tuyến vận chuyển liên kho và Khách hàng</p>
+            </div>
+
+            <div class="grid-4">
+                <div class="service-card">
+                    <div class="service-icon">📦</div>
+                    <h3 style="font-size: 18px; margin-bottom: 10px;">1. Tạo & gửi đơn hàng</h3>
+                    <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.5;">Tạo đơn trực tuyến chỉ với 3 phút, hệ thống tự động tính cước theo khối lượng và khoảng cách.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🔍</div>
+                    <h3 style="font-size: 18px; margin-bottom: 10px;">2. Theo dõi đơn hàng</h3>
+                    <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.5;">Giám sát hành trình liên kho, cập nhật vị trí kiện hàng theo thời gian thực công khai minh bạch.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">💳</div>
+                    <h3 style="font-size: 18px; margin-bottom: 10px;">3. Thanh toán linh hoạt</h3>
+                    <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.5;">Hỗ trợ COD (thu hộ tiền), chuyển khoản VietQR 24/7 và ví điện tử an toàn, đối soát định kỳ.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🎧</div>
+                    <h3 style="font-size: 18px; margin-bottom: 10px;">4. Hỗ trợ khách hàng</h3>
+                    <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.5;">Đội ngũ nhân viên bưu cục và chăm sóc khách hàng hỗ trợ xử lý sự cố và chuyển hoàn tận tâm.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: MẠNG LƯỚI BƯU CỤC UTE EXPRESS -->
+    <section id="hubs" style="padding: 70px 40px; background: white; border-top: 1px solid var(--border-color);">
+        <div style="max-width: var(--content-max-width); margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 44px;">
+                <h2 style="font-size: 28px; margin-bottom: 8px; color: var(--brand-blue);">Mạng lưới Bưu cục Trọng điểm</h2>
+                <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">Hệ thống trung tâm khai thác & bưu cục phủ sóng miền Bắc, Trung, Nam</p>
+            </div>
+
+            <div class="grid-3">
+                <div class="hub-card">
+                    <div style="font-size: 12px; color: var(--brand-red); font-weight: 700; text-transform: uppercase;">Bưu cục Miền Nam</div>
+                    <h3 style="font-size: 18px; color: var(--brand-navy); margin: 6px 0 10px;">KHO01 - Bưu cục Thủ Đức (TP.HCM)</h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">📍 12 Võ Văn Ngân, P. Linh Chiểu, TP. Thủ Đức, TP.HCM</p>
+                    <p style="font-size: 13px; color: var(--brand-blue); font-weight: 600;">📞 Hotline: 028 1111 111</p>
+                </div>
+                <div class="hub-card">
+                    <div style="font-size: 12px; color: var(--brand-red); font-weight: 700; text-transform: uppercase;">Bưu cục Miền Trung</div>
+                    <h3 style="font-size: 18px; color: var(--brand-navy); margin: 6px 0 10px;">KHO03 - Bưu cục Đà Nẵng</h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">📍 45 Nguyễn Văn Linh, Q. Hải Châu, Đà Nẵng</p>
+                    <p style="font-size: 13px; color: var(--brand-blue); font-weight: 600;">📞 Hotline: 0236 3333 333</p>
+                </div>
+                <div class="hub-card">
+                    <div style="font-size: 12px; color: var(--brand-red); font-weight: 700; text-transform: uppercase;">Bưu cục Miền Bắc</div>
+                    <h3 style="font-size: 18px; color: var(--brand-navy); margin: 6px 0 10px;">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">📍 25 Trần Thái Tông, Q. Cầu Giấy, Hà Nội</p>
+                    <p style="font-size: 13px; color: var(--brand-blue); font-weight: 600;">📞 Hotline: 024 2222 222</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: ĐÁNH GIÁ TỪ KHÁCH HÀNG THỰC TẾ (CUSTOMER TESTIMONIALS & FEEDBACK) -->
+    <section id="feedback" style="padding: 70px 40px; background: #F8FAFC; border-top: 1px solid var(--border-color);">
+        <div style="max-width: var(--content-max-width); margin: 0 auto;">
+            <!-- Tiêu đề Section -->
+            <div style="text-align: center; margin-bottom: 48px;">
+                <span style="display: inline-block; padding: 4px 12px; background: #EFF6FF; color: var(--primary-blue, #0033A0); border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Đánh giá &amp; Tin cậy</span>
+                <h2 style="font-size: 28px; font-weight: 800; color: #0F172A; margin: 0 0 10px 0;">Khách hàng nói gì về UTE Express?</h2>
+                <p style="color: #64748B; font-size: 15px; max-width: 620px; margin: 0 auto;">Hơn 10.000+ cá nhân kinh doanh online và doanh nghiệp trên toàn quốc đồng hành mỗi ngày cùng dịch vụ giao nhận của chúng tôi.</p>
+            </div>
+
+            <!-- Grid 3 thẻ Feedback -->
+            <div class="grid-3" style="gap: 24px; margin-bottom: 40px;">
+                <!-- Card 1 -->
+                <div style="background: #ffffff; border-radius: 14px; padding: 28px 24px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05); border: 1px solid #E2E8F0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <!-- Stars & Badge -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div style="color: #F59E0B; font-size: 16px; letter-spacing: 2px;">★★★★★</div>
+                            <span style="font-size: 11px; font-weight: 600; background: #DCFCE7; color: #15803D; padding: 3px 8px; border-radius: 6px;">Đã gửi 250+ đơn</span>
+                        </div>
+                        <!-- Review Quote -->
+                        <p style="color: #334155; font-size: 14px; line-height: 1.6; font-style: italic; margin-bottom: 24px;">
+                            "Bưu cục Thủ Đức hỗ trợ lấy hàng rất đúng giờ. Tiền thu hộ COD được hạch toán minh bạch, đối soát tự động hàng tuần nên việc quay vòng vốn kinh doanh của shop mình rất suôn sẻ."
+                        </p>
+                    </div>
+                    <!-- Author Info -->
+                    <div style="display: flex; align-items: center; gap: 12px; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120&q=80" 
+                             alt="Nguyễn Lan Hương" 
+                             style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #DBEAFE;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 14px; color: #0F172A;">Nguyễn Lan Hương</div>
+                            <div style="font-size: 12px; color: #64748B;">Chủ shop Thời trang Glamour, TP.HCM</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div style="background: #ffffff; border-radius: 14px; padding: 28px 24px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05); border: 1px solid #E2E8F0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <!-- Stars & Badge -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div style="color: #F59E0B; font-size: 16px; letter-spacing: 2px;">★★★★★</div>
+                            <span style="font-size: 11px; font-weight: 600; background: #EFF6FF; color: var(--primary-blue, #0033A0); padding: 3px 8px; border-radius: 6px;">Theo dõi Real-time</span>
+                        </div>
+                        <!-- Review Quote -->
+                        <p style="color: #334155; font-size: 14px; line-height: 1.6; font-style: italic; margin-bottom: 24px;">
+                            "Tính năng tra cứu vận đơn thời gian thực rất mượt mà. Mình gửi linh kiện điện tử từ TP.HCM đi Đà Nẵng, kiện hàng tới kho nào là chuông thông báo nhảy ngay, không cần phải gọi điện hỏi bưu tá."
+                        </p>
+                    </div>
+                    <!-- Author Info -->
+                    <div style="display: flex; align-items: center; gap: 12px; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80" 
+                             alt="Trần Quốc Huy" 
+                             style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #DBEAFE;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 14px; color: #0F172A;">Trần Quốc Huy</div>
+                            <div style="font-size: 12px; color: #64748B;">Kỹ sư hệ thống nhúng, Đà Nẵng</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div style="background: #ffffff; border-radius: 14px; padding: 28px 24px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05); border: 1px solid #E2E8F0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <!-- Stars & Badge -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div style="color: #F59E0B; font-size: 16px; letter-spacing: 2px;">★★★★★</div>
+                            <span style="font-size: 11px; font-weight: 600; background: #FEF3C7; color: #B45309; padding: 3px 8px; border-radius: 6px;">Đối tác Doanh nghiệp</span>
+                        </div>
+                        <!-- Review Quote -->
+                        <p style="color: #334155; font-size: 14px; line-height: 1.6; font-style: italic; margin-bottom: 24px;">
+                            "Biểu phí minh bạch và tự động tính cước theo cự ly km và thể tích rất rõ ràng. Nhập hàng phân phối ra các chi nhánh Hà Nội - Hải Phòng chưa bao giờ bị sai sót trọng lượng hay cước phí."
+                        </p>
+                    </div>
+                    <!-- Author Info -->
+                    <div style="display: flex; align-items: center; gap: 12px; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80" 
+                             alt="Lê Minh Tuấn" 
+                             style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #DBEAFE;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 14px; color: #0F172A;">Lê Minh Tuấn</div>
+                            <div style="font-size: 12px; color: #64748B;">Giám đốc Công ty Phân phối Tuấn Phát, Hà Nội</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Bar / Thông số cam kết chất lượng -->
+            <div style="background: #ffffff; border-radius: 12px; border: 1px solid #E2E8F0; padding: 20px 32px; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 20px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 26px; font-weight: 800; color: var(--primary-blue, #0033A0); line-height: 1.2;">4.9 / 5.0</div>
+                    <div style="font-size: 13px; color: #64748B; margin-top: 2px;">Điểm đánh giá dịch vụ trung bình</div>
+                </div>
+                <div style="width: 1px; height: 36px; background: #E2E8F0;"></div>
+                <div style="text-align: center;">
+                    <div style="font-size: 26px; font-weight: 800; color: #10B981; line-height: 1.2;">98.6%</div>
+                    <div style="font-size: 13px; color: #64748B; margin-top: 2px;">Tỷ lệ giao hàng đúng cam kết SLA</div>
+                </div>
+                <div style="width: 1px; height: 36px; background: #E2E8F0;"></div>
+                <div style="text-align: center;">
+                    <div style="font-size: 26px; font-weight: 800; color: var(--brand-red, #D92D20); line-height: 1.2;">100%</div>
+                    <div style="font-size: 13px; color: #64748B; margin-top: 2px;">Bảo hiểm &amp; Đối soát tiền COD an toàn</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="support" class="public-footer">
+        <div style="max-width: var(--content-max-width); margin: 0 auto;">
+            <div class="grid-4" style="margin-bottom: 40px;">
+                <div>
+                    <img th:src="@{/images/logo-ute-express.png}" src="/images/logo-ute-express.png" alt="UTE Express" style="height: 54px; background: white; padding: 4px 8px; border-radius: var(--radius-md); margin-bottom: 16px;">
+                    <p style="font-size: 13.5px; line-height: 1.6; color: #94A3B8;">Hệ thống Dịch vụ Chuyển phát nhanh Logistics trực thuộc Trường Đại học Sư phạm Kỹ thuật TP.HCM (HCMUTE).</p>
+                </div>
+                <div>
+                    <h4 style="color: white; margin-bottom: 14px; font-size: 15px; border-left: 3px solid var(--brand-red); padding-left: 8px;">Thông tin liên hệ</h4>
+                    <p style="font-size: 13.5px; margin-bottom: 8px;">📍 01 Võ Văn Ngân, P. Linh Chiểu, TP. Thủ Đức, TP.HCM</p>
+                    <p style="font-size: 13.5px; margin-bottom: 8px;">📞 Hotline: 1900 1234 - 028 3896 8641</p>
+                </div>
+                <div>
+                    <h4 style="color: white; margin-bottom: 14px; font-size: 15px; border-left: 3px solid var(--brand-red); padding-left: 8px;">Liên kết nhanh</h4>
+                    <p style="font-size: 13.5px; margin-bottom: 6px;"><a th:href="@{/tracking}" href="/tracking" style="color: #94A3B8;">Tra cứu vận đơn</a></p>
+                    <p style="font-size: 13.5px; margin-bottom: 6px;"><a th:href="@{/register}" href="/register" style="color: #94A3B8;">Đăng ký</a></p>
+                </div>
+                <div>
+                    <h4 style="color: white; margin-bottom: 14px; font-size: 15px; border-left: 3px solid var(--brand-red); padding-left: 8px;">Chính sách</h4>
+                    <p style="font-size: 13.5px; margin-bottom: 6px;"><a href="#" style="color: #94A3B8;">Chính sách vận chuyển</a></p>
+                </div>
+            </div>
+            <div style="text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 24px; font-size: 13px; color: #64748B;">
+                © 2026 UTE Express Logistics System.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Shared Prototype & Component Scripts -->
+    <script th:src="@{/js/mock-data.js}" src="/js/mock-data.js"></script>
+    <script th:src="@{/js/components.js}" src="/js/components.js"></script>
+    <script>
+        let currentSlide = 0;
+        const totalSlides = 2;
+        let slideTimer = null;
+        const SLIDE_INTERVAL = 5000; // Chu kỳ 5 giây tự động đổi ảnh
+
+        function updateSliderUI() {
+            const track = document.getElementById('heroSliderTrack');
+            if (track) track.style.transform = `translateX(-${currentSlide * 50}%)`;
+            const dots = document.querySelectorAll('.slider-dot');
+            dots.forEach((dot, idx) => {
+                if (idx === currentSlide) dot.classList.add('active');
+                else dot.classList.remove('active');
+            });
+        }
+
+        function nextHeroSlide(manual = true) {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSliderUI();
+            if (manual) restartSlideTimer();
+        }
+
+        function prevHeroSlide(manual = true) {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSliderUI();
+            if (manual) restartSlideTimer();
+        }
+
+        function jumpToHeroSlide(index) {
+            currentSlide = index;
+            updateSliderUI();
+            restartSlideTimer();
+        }
+
+        function startSlideTimer() {
+            if (slideTimer) clearInterval(slideTimer);
+            slideTimer = setInterval(() => {
+                nextHeroSlide(false);
+            }, SLIDE_INTERVAL);
+        }
+
+        function restartSlideTimer() {
+            startSlideTimer();
+        }
+
+        function initHeroSlider() {
+            updateSliderUI();
+            startSlideTimer();
+
+            const slider = document.getElementById('heroSliderSection');
+            if (slider) {
+                let hoverResumeTimeout = null;
+                slider.addEventListener('mouseenter', () => {
+                    if (slideTimer) clearInterval(slideTimer);
+                    if (hoverResumeTimeout) clearTimeout(hoverResumeTimeout);
+                    // Sau tối đa 15 giây rê chuột, tự động kích hoạt lại chu kỳ trượt ảnh
+                    hoverResumeTimeout = setTimeout(() => {
+                        startSlideTimer();
+                    }, 15000);
+                });
+                slider.addEventListener('mouseleave', () => {
+                    // Ngay khi rời chuột, kích hoạt lại ngay chu kỳ trượt ảnh
+                    if (hoverResumeTimeout) clearTimeout(hoverResumeTimeout);
+                    startSlideTimer();
+                });
+            }
+        }
+
+        // Tự động khởi chạy ngay lập tức cả khi DOMContentLoaded đã kích hoạt
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHeroSlider);
+        } else {
+            initHeroSlider();
+        }
+
+        function fillTrackingCode(code) {
+            document.getElementById('quickTrackingCode').value = code;
+            handleQuickTrack();
+        }
+
+        function handleQuickTrack() {
+            const code = document.getElementById('quickTrackingCode').value.trim();
+            if (!code) {
+                showToast('Thông báo', 'Vui lòng nhập mã đơn hàng!', 'warning');
+                return;
+            }
+            window.location.href = `/tracking?maDh=${code}`;
+        }
+
+        async function calculateEstimatedFee() {
+            const w = parseFloat(document.getElementById('estWeight').value) || 1;
+            const l = parseFloat(document.getElementById('estLength').value) || 20;
+            const wi = parseFloat(document.getElementById('estWidth').value) || 15;
+            const h = parseFloat(document.getElementById('estHeight').value) || 10;
+            const kgEl = document.getElementById('estKhoGui');
+            const knEl = document.getElementById('estKhoNhan');
+            const kg = kgEl.value;
+            const kn = knEl.value;
+            const kgText = kgEl.options[kgEl.selectedIndex]?.text?.split(' - ')[1] || kg;
+            const knText = knEl.options[knEl.selectedIndex]?.text?.split(' - ')[1] || kn;
+            const btn = document.getElementById('btnCalcEstimator');
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = '⏳ Đang tính toán...';
+            }
+
+            try {
+                const res = await fetch(`/api/tra-cuu/uoc-tinh-cuoc?maKhoGui=${encodeURIComponent(kg)}&maKhoNhan=${encodeURIComponent(kn)}&khoiLuong=${w}&dai=${l}&rong=${wi}&cao=${h}`);
+                const data = await res.json();
+
+                if (res.ok && data.success && data.data) {
+                    const info = data.data;
+                    document.getElementById('calcResult').style.display = 'block';
+                    document.getElementById('calcFeeText').innerText = Number(info.phiVanChuyen).toLocaleString('vi-VN') + ' đ';
+                    document.getElementById('calcRouteText').innerText = `${info.tenKhoGui || kgText} → ${info.tenKhoNhan || knText}`;
+                    document.getElementById('calcDistanceText').innerText = info.cungKho ? 'Nội bưu cục (0 km)' : `${info.khoangCachKm} km`;
+                    document.getElementById('calcWeightText').innerText = `${info.khoiLuongTinhCuoc} kg (Thực: ${w}kg, Quy đổi: ${info.khoiLuongQuyDoi}kg)`;
+                    document.getElementById('calcTimeText').innerText = info.cungKho ? 'Trong ngày' : `~${info.thoiGianDuKienGio} giờ`;
+                    return;
+                }
+            } catch (err) {
+                console.warn('API tính cước lỗi, chuyển sang tính cục bộ:', err);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '⚡ Tính cước phí ngay';
+                }
+            }
+
+            // Fallback tính toán cục bộ chính xác
+            let distance = 15;
+            if (kg === kn) distance = 0;
+            else if ((kg === 'KHO01' && kn === 'KHO03') || (kg === 'KHO03' && kn === 'KHO01')) distance = 960;
+            else if ((kg === 'KHO01' && kn === 'KHO02') || (kg === 'KHO02' && kn === 'KHO01')) distance = 1700;
+            else if ((kg === 'KHO03' && kn === 'KHO02') || (kg === 'KHO02' && kn === 'KHO03')) distance = 770;
+            else if ((kg === 'KHO01' && kn === 'KHO04') || (kg === 'KHO04' && kn === 'KHO01')) distance = 170;
+            else if ((kg === 'KHO01' && kn === 'KHO05') || (kg === 'KHO05' && kn === 'KHO01')) distance = 15;
+            else if ((kg === 'KHO01' && kn === 'KHO08') || (kg === 'KHO08' && kn === 'KHO01')) distance = 25;
+            else if ((kg === 'KHO02' && kn === 'KHO06') || (kg === 'KHO06' && kn === 'KHO02')) distance = 8;
+            else if ((kg === 'KHO02' && kn === 'KHO07') || (kg === 'KHO07' && kn === 'KHO02')) distance = 120;
+            else if ((kg === 'KHO01' && kn === 'KHO09') || (kg === 'KHO09' && kn === 'KHO01')) distance = 430;
+            else if ((kg === 'KHO01' && kn === 'KHO10') || (kg === 'KHO10' && kn === 'KHO01')) distance = 350;
+            else distance = 500;
+
+            const fee = calculateShippingFee(w, l, wi, h, distance);
+            document.getElementById('calcResult').style.display = 'block';
+            document.getElementById('calcFeeText').innerText = fee.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('calcRouteText').innerText = `${kgText} → ${knText}`;
+            document.getElementById('calcDistanceText').innerText = distance === 0 ? 'Nội bưu cục' : `${distance} km`;
+            document.getElementById('calcWeightText').innerText = `${w} kg`;
+            document.getElementById('calcTimeText').innerText = distance <= 25 ? 'Trong ngày' : (distance <= 300 ? '24 giờ' : '36 - 48 giờ');
+        }
+
+        function logout() {
+            localStorage.clear();
+            document.cookie = 'accessToken=; path=/; max-age=0';
+            window.location.href = '/login';
+        }
+
+        function checkAuthStatus() {
+            const token = localStorage.getItem('accessToken');
+            const hoTen = localStorage.getItem('hoTen');
+            const tenDangNhap = localStorage.getItem('tenDangNhap');
+            const vaiTro = localStorage.getItem('vaiTro');
+            const tenVaiTro = localStorage.getItem('tenVaiTro');
+
+            const guestBox = document.getElementById('guestAuthBox');
+            const userBox = document.getElementById('userAuthBox');
+
+            if (token) {
+                if (guestBox) guestBox.style.display = 'none';
+                if (userBox) userBox.style.display = 'flex';
+
+                const name = (hoTen && hoTen !== 'undefined' && hoTen.trim()) ? hoTen : (tenDangNhap || 'Người dùng');
+                const nameEl = document.getElementById('headerUserName');
+                if (nameEl) nameEl.innerText = name;
+
+                const initials = name.trim().split(' ').map(w => w[0]).join('').slice(-2).toUpperCase();
+                const avEl = document.getElementById('headerAvatar');
+                if (avEl && initials) avEl.innerText = initials;
+
+                const roleEl = document.getElementById('headerUserRole');
+                if (roleEl) roleEl.innerText = tenVaiTro || vaiTro || 'Thành viên';
+
+                const dashLink = document.getElementById('dashboardLink');
+                if (dashLink) {
+                    if (vaiTro === 'ADMIN') dashLink.href = '/admin/dashboard';
+                    else if (vaiTro === 'NVBC') dashLink.href = '/post-office/dashboard';
+                    else if (vaiTro === 'NVDP') dashLink.href = '/dispatcher/dashboard';
+                    else if (vaiTro === 'TAI_XE') dashLink.href = '/driver/dashboard';
+                    else dashLink.href = '/customer/dashboard';
+                }
+            } else {
+                if (guestBox) guestBox.style.display = 'flex';
+                if (userBox) userBox.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', checkAuthStatus);
+    </script>
+</body>
+</html>
