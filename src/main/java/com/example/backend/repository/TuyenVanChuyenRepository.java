@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TuyenVanChuyenRepository extends JpaRepository<TuyenVanChuyen, String> {
@@ -12,4 +13,6 @@ public interface TuyenVanChuyenRepository extends JpaRepository<TuyenVanChuyen, 
     List<TuyenVanChuyen> findByMaKhoDi(String maKhoDi);
 
     List<TuyenVanChuyen> findByMaKhoDen(String maKhoDen);
+    
+    Optional<TuyenVanChuyen> findByMaKhoDiAndMaKhoDen(String maKhoDi, String maKhoDen);
 }

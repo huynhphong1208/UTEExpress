@@ -40,16 +40,22 @@ public class AuthService {
     // UC02: Đăng nhập
     // =========================================================
     public LoginResponse login(LoginRequest request) {
+        String input = request.getTenDangNhap() != null ? request.getTenDangNhap().trim() : "";
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getTenDangNhap(),
+                        input,
                         request.getMatKhau()
                 )
         );
 
         String token = jwtUtils.generateToken(authentication);
 
-        NguoiDung nd = nguoiDungRepository.findByTenDangNhap(request.getTenDangNhap())
+        String principalUsername = authentication.getName();
+        NguoiDung nd = nguoiDungRepository.findByTenDangNhap(principalUsername)
+                .or(() -> nguoiDungRepository.findByTenDangNhap(input))
+                .or(() -> nhanVienRepository.findBySdt(input).map(com.example.backend.entity.NhanVien::getNguoiDung))
+                .or(() -> khachHangRepository.findBySdt(input).map(com.example.backend.entity.KhachHang::getNguoiDung))
+                .or(() -> taiXeRepository.findBySdt(input).map(com.example.backend.entity.TaiXe::getNguoiDung))
                 .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại", 404));
 
         String hoTen = nd.getTenDangNhap();

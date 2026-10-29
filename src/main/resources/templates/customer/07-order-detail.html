@@ -201,6 +201,43 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Chi tiết giao dịch thanh toán -->
+                            <div class="card" th:if="${paymentSummary != null and paymentSummary.lichSuThanhToan != null and !paymentSummary.lichSuThanhToan.isEmpty()}" style="margin-top: 20px;">
+                                <div class="card-header">
+                                    <h3 class="card-title">Chi tiết các khoản thanh toán</h3>
+                                </div>
+                                <div class="card-body" style="padding: 0;">
+                                    <div class="table-responsive">
+                                        <table class="table" style="margin: 0; font-size: 13px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Mã GD</th>
+                                                    <th>Khoản thu</th>
+                                                    <th>Số tiền</th>
+                                                    <th>Phương thức</th>
+                                                    <th>Trạng thái</th>
+                                                    <th>Thời gian</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="pt : ${paymentSummary.lichSuThanhToan}">
+                                                    <td style="font-weight: 600; color: var(--primary-blue);" th:text="${pt.maTTToan}">TT0001</td>
+                                                    <td th:text="${pt.loaiKhoan == 'PHI_VC' ? 'Cước vận chuyển' : (pt.loaiKhoan == 'COD' ? 'Tiền thu hộ COD' : pt.loaiKhoan)}">Cước vận chuyển</td>
+                                                    <td style="font-weight: 600;" th:text="${#numbers.formatDecimal(pt.soTien, 1, 'COMMA', 0, 'POINT') + ' đ'}">35,000 đ</td>
+                                                    <td>
+                                                        <span class="badge" th:classappend="${pt.phuongThuc == 'Chuyển khoản' ? 'badge-info' : 'badge-secondary'}" th:text="${pt.phuongThuc}">Tiền mặt</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge" th:classappend="${pt.trangThai == 'Đã thanh toán' or pt.trangThai == 'DA_THANH_TOAN' ? 'badge-success' : 'badge-yellow'}" th:text="${pt.trangThai}">Chưa thanh toán</span>
+                                                    </td>
+                                                    <td style="color: var(--text-muted);" th:text="${pt.thoiGian != null ? #temporals.format(pt.thoiGian, 'dd/MM/yyyy HH:mm') : '---'}">22/09/2026 08:30</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Right Column: Thanh toán & Thao tác -->
@@ -226,7 +263,7 @@
                                     </div>
 
                                     <div style="background: var(--bg-alt); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px; font-size: 12.5px;">
-                                        <div>Phương thức: <strong>Chuyển khoản / COD</strong></div>
+                                        <div>Phương thức: <strong th:text="${paymentSummary != null and paymentSummary.phuongThucThanhToan != null ? paymentSummary.phuongThucThanhToan : (thanhToans != null and !thanhToans.isEmpty() ? thanhToans[0].phuongThuc : 'Tiền mặt khi giao/lấy hàng')}">Tiền mặt khi giao/lấy hàng</strong></div>
                                         <div style="margin-top: 4px;">Trạng thái TT: 
                                             <span class="badge" 
                                                   th:classappend="${paymentSummary != null and (paymentSummary.phiDaThanhToan or paymentSummary.tinhTrangThanhToan == 'Đã thanh toán đủ') ? 'badge-success' : 'badge-yellow'}"

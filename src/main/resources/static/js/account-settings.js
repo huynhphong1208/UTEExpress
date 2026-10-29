@@ -6,9 +6,15 @@
 (function() {
     let currentUserProfile = null;
 
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+        return v ? decodeURIComponent(v[2]) : null;
+    }
+
     // Helper lấy JWT token
     function getAuthToken() {
-        return localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+        const t = localStorage.getItem('accessToken') || localStorage.getItem('token') || getCookie('accessToken') || '';
+        return (t && t !== 'null' && t !== 'undefined') ? t : '';
     }
 
     // Cập nhật hiển thị tên người dùng
@@ -27,9 +33,9 @@
             if (avatarUrl) {
                 el.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
             } else {
-                const currentName = localStorage.getItem('hoTen') || el.innerText || 'KH';
+                const currentName = localStorage.getItem('hoTen') || el.innerText || 'AD';
                 const words = currentName.trim().split(' ');
-                let initials = 'KH';
+                let initials = 'AD';
                 if (words.length >= 2) {
                     initials = (words[words.length - 2][0] + words[words.length - 1][0]).toUpperCase();
                 } else if (words.length === 1 && words[0].length >= 2) {
@@ -59,7 +65,7 @@
         if (token) {
             fetch('/api/auth/me', {
                 headers: { 'Authorization': 'Bearer ' + token },
-                credentials: 'same-origin'
+                credentials: 'include'
             })
             .then(res => res.ok ? res.json() : null)
             .then(data => {
@@ -95,6 +101,17 @@
                 footer.appendChild(gearBtn);
             }
         });
+
+        // Dọn dẹp bất kỳ mục "Cài đặt tài khoản" nào trong sidebar-nav (người dùng mở qua avatar/tên/bánh răng ở sidebar footer)
+        document.querySelectorAll('.nav-item-account-settings').forEach(el => el.remove());
+
+        // Bổ sung sự kiện click mở modal cho phần user-info và header actions
+        const userInfos = document.querySelectorAll('.user-info, .sidebar-footer .user-info, #userNameDisplay, #userSubDisplay');
+        userInfos.forEach(el => {
+            el.style.cursor = 'pointer';
+            el.title = 'Bấm để cài đặt tài khoản';
+            el.onclick = openAccountSettingsModal;
+        });
     }
 
     // 2. Chèn Modal Cài Đặt Tài Khoản vào DOM
@@ -123,9 +140,9 @@
                     </button>
                 </div>
 
-                <!-- Tab 1: Xem Thông Tin Tài Khoản -->
+                <!-- Tab 1: Thông Tin & Cập Nhật Tài Khoản -->
                 <div id="tabContentInfo" class="account-tab-content active">
-                    <div class="profile-card-header">
+                    <div class="profile-card-header" style="margin-bottom: 16px;">
                         <div id="infoCardAvatar" class="profile-card-avatar">KH</div>
                         <div class="profile-card-info">
                             <div id="infoCardName" class="profile-card-name">Đang tải...</div>
@@ -136,37 +153,59 @@
                         </div>
                     </div>
 
-                    <div class="profile-grid">
-                        <div class="profile-item">
-                            <div class="profile-item-label">📱 Số điện thoại</div>
-                            <div id="infoItemPhone" class="profile-item-value">--</div>
-                        </div>
-                        <div class="profile-item">
-                            <div class="profile-item-label">✉️ Email</div>
-                            <div id="infoItemEmail" class="profile-item-value">--</div>
-                        </div>
-                        <div class="profile-item">
-                            <div class="profile-item-label">🆔 Mã tài khoản</div>
-                            <div id="infoItemMaNd" class="profile-item-value">--</div>
-                        </div>
-                        <div class="profile-item">
-                            <div class="profile-item-label">🏷️ Mã định danh</div>
-                            <div id="infoItemMaDinhDanh" class="profile-item-value">--</div>
-                        </div>
-                        <div class="profile-item" style="grid-column: span 2;">
-                            <div class="profile-item-label" id="infoItemLocationLabel">📍 Địa chỉ mặc định</div>
-                            <div id="infoItemLocation" class="profile-item-value">--</div>
-                        </div>
-                    </div>
+                    <div id="profileAlert" style="display: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 14px;"></div>
 
-                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #E2E8F0;">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="switchAccountTab('avatar')" style="padding: 8px 16px; border: 1px solid #CBD5E1; background: #F1F5F9; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            🖼️ Đổi ảnh đại diện
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="switchAccountTab('password')" style="padding: 8px 16px; border: 1px solid #CBD5E1; background: #F1F5F9; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            🔒 Đổi mật khẩu
-                        </button>
-                    </div>
+                    <form id="editProfileForm" onsubmit="handleSaveProfile(event)">
+                        <div class="account-input-group">
+                            <label for="profileEditHoTen">Họ và tên <span style="color: #E31B23;">*</span></label>
+                            <input type="text" id="profileEditHoTen" required placeholder="Nhập họ và tên">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="account-input-group">
+                                <label for="profileEditSdt">Số điện thoại (SĐT) <span style="color: #E31B23;">*</span></label>
+                                <input type="tel" id="profileEditSdt" required pattern="[0-9]{10}" maxlength="10" placeholder="10 chữ số">
+                            </div>
+                            <div class="account-input-group">
+                                <label for="profileEditEmail">Gmail / Email <span style="color: #E31B23;">*</span></label>
+                                <input type="email" id="profileEditEmail" placeholder="example@gmail.com">
+                            </div>
+                        </div>
+
+                        <div class="account-input-group" id="profileEditDiaChiGroup">
+                            <label for="profileEditDiaChi" id="profileEditDiaChiLabel">Địa chỉ mặc định</label>
+                            <input type="text" id="profileEditDiaChi" placeholder="Nhập địa chỉ của bạn">
+                        </div>
+
+                        <div class="profile-grid" style="margin-top: 10px; margin-bottom: 12px;">
+                            <div class="profile-item">
+                                <div class="profile-item-label">🆔 Mã tài khoản</div>
+                                <div id="infoItemMaNd" class="profile-item-value">--</div>
+                            </div>
+                            <div class="profile-item">
+                                <div class="profile-item-label">🏷️ Mã định danh</div>
+                                <div id="infoItemMaDinhDanh" class="profile-item-value">--</div>
+                            </div>
+                            <div class="profile-item" style="grid-column: span 2;">
+                                <div class="profile-item-label" id="infoItemLocationLabel">🏢 Bưu cục / Đơn vị</div>
+                                <div id="infoItemLocation" class="profile-item-value">--</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid #E2E8F0;">
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="switchAccountTab('avatar')" style="padding: 7px 12px; border: 1px solid #CBD5E1; background: #F1F5F9; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                                    🖼️ Đổi ảnh
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="switchAccountTab('password')" style="padding: 7px 12px; border: 1px solid #CBD5E1; background: #F1F5F9; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                                    🔒 Mật khẩu
+                                </button>
+                            </div>
+                            <button type="submit" id="btnSaveProfile" class="btn btn-primary btn-sm" style="background: #E31B23; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                                💾 Lưu thay đổi thông tin
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Tab 2: Cập nhật Avatar -->
@@ -343,9 +382,24 @@
                     if (locationLabel) locationLabel.innerText = '🏢 Bưu cục / Kho làm việc';
                     locationEl.innerText = user.khoLamViec + (user.chucVu ? ' (' + user.chucVu + ')' : '');
                 } else {
-                    if (locationLabel) locationLabel.innerText = '📍 Địa chỉ mặc định';
-                    locationEl.innerText = user.diaChi || 'Chưa cập nhật';
+                    locationEl.innerText = user.diaChi || 'Trụ sở chính';
                 }
+            }
+
+            // Điền vào các trường chỉnh sửa
+            const editName = document.getElementById('profileEditHoTen');
+            const editPhone = document.getElementById('profileEditSdt');
+            const editEmail = document.getElementById('profileEditEmail');
+            const editLocation = document.getElementById('profileEditDiaChi');
+            const editDiaChiGroup = document.getElementById('profileEditDiaChiGroup');
+
+            if (editName && (!editName.value || editName.value === '--')) editName.value = user.hoTen || user.tenDangNhap || '';
+            if (editPhone && (!editPhone.value || editPhone.value === '--')) editPhone.value = user.sdt || user.tenDangNhap || '';
+            if (editEmail && (!editEmail.value || editEmail.value === '--')) editEmail.value = (user.email && user.email !== 'Chưa cập nhật') ? user.email : '';
+            if (editLocation && (!editLocation.value || editLocation.value === '--')) editLocation.value = (user.diaChi && user.diaChi !== 'Chưa cập nhật') ? user.diaChi : '';
+            if (editDiaChiGroup && user.vaiTro !== 'KHACH_HANG') {
+                const label = document.getElementById('profileEditDiaChiLabel');
+                if (label) label.innerText = 'Địa chỉ / Ghi chú nơi làm việc';
             }
         };
 
@@ -356,7 +410,7 @@
         if (token) {
             fetch('/api/auth/me', {
                 headers: { 'Authorization': 'Bearer ' + token },
-                credentials: 'same-origin'
+                credentials: 'include'
             })
             .then(res => res.ok ? res.json() : null)
             .then(data => {
@@ -368,6 +422,80 @@
             .catch(() => {});
         }
     }
+
+    function showProfileAlert(msg, isSuccess) {
+        const box = document.getElementById('profileAlert');
+        if (!box) return;
+        box.style.display = 'block';
+        box.style.background = isSuccess ? '#DCFCE7' : '#FEE2E2';
+        box.style.color = isSuccess ? '#15803D' : '#B91C1C';
+        box.innerText = msg;
+    }
+
+    window.handleSaveProfile = async function(e) {
+        e.preventDefault();
+        const hoTen = document.getElementById('profileEditHoTen').value.trim();
+        const sdt = document.getElementById('profileEditSdt').value.trim();
+        const email = document.getElementById('profileEditEmail').value.trim();
+        const diaChi = document.getElementById('profileEditDiaChi') ? document.getElementById('profileEditDiaChi').value.trim() : '';
+        const btn = document.getElementById('btnSaveProfile');
+
+        if (!hoTen) {
+            showProfileAlert('Vui lòng nhập họ và tên!', false);
+            return;
+        }
+        if (!/^[0-9]{10}$/.test(sdt)) {
+            showProfileAlert('Số điện thoại phải có đúng 10 chữ số!', false);
+            return;
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showProfileAlert('Địa chỉ email / gmail không đúng định dạng!', false);
+            return;
+        }
+
+        const token = getAuthToken();
+        if (!token) {
+            showProfileAlert('Phiên làm việc hết hạn. Vui lòng đăng nhập lại!', false);
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'Đang lưu...';
+
+        try {
+            const res = await fetch('/api/auth/profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                credentials: 'include',
+                body: JSON.stringify({ hoTen, sdt, email, diaChi })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                currentUserProfile = data.data;
+                localStorage.setItem('hoTen', hoTen);
+                updateNameElements(hoTen);
+                if (!localStorage.getItem('userAvatarUrl')) {
+                    renderAvatars(null);
+                }
+                loadAccountInfo();
+                showProfileAlert('✓ Cập nhật tên, gmail và số điện thoại thành công!', true);
+                setTimeout(() => {
+                    const box = document.getElementById('profileAlert');
+                    if (box) box.style.display = 'none';
+                }, 3500);
+            } else {
+                showProfileAlert(data.message || 'Lỗi khi cập nhật thông tin!', false);
+            }
+        } catch (err) {
+            showProfileAlert('Lỗi kết nối máy chủ! Vui lòng thử lại sau.', false);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = '💾 Lưu thay đổi thông tin';
+        }
+    };
 
     function getInitials(name) {
         if (!name) return 'KH';
@@ -443,7 +571,7 @@
                 const res = await fetch('/api/auth/avatar/upload', {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token },
-                    credentials: 'same-origin',
+                    credentials: 'include',
                     body: formData
                 });
                 const data = await res.json();
@@ -469,7 +597,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    credentials: 'same-origin',
+                    credentials: 'include',
                     body: JSON.stringify({ avatarUrl: linkUrl })
                 });
                 const data = await res.json();
@@ -508,7 +636,7 @@
             const res = await fetch('/api/auth/avatar/remove', {
                 method: 'POST',
                 headers: { 'Authorization': 'Bearer ' + token },
-                credentials: 'same-origin'
+                credentials: 'include'
             });
             const data = await res.json();
 
@@ -585,7 +713,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                credentials: 'same-origin',
+                credentials: 'include',
                 body: JSON.stringify({
                     matKhauCu: oldPassword,
                     matKhauMoi: newPassword,

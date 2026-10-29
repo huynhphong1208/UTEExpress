@@ -36,13 +36,36 @@ public class DieuPhoiController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String maKho,
             @RequestParam(required = false) String loaiChuyen,
-            @RequestParam(required = false) String maTuyen) {
+            @RequestParam(required = false) String maTuyen,
+            @RequestParam(required = false) String maKhoNhan) {
         if (page != null && size != null) {
-            PageResponse<DonCanDieuPhoiDTO> paged = dieuPhoiService.getDonCanDieuPhoiPaged(page, size, maKho, loaiChuyen, maTuyen);
+            PageResponse<DonCanDieuPhoiDTO> paged = dieuPhoiService.getDonCanDieuPhoiPaged(page, size, maKho, loaiChuyen, maTuyen, maKhoNhan);
             return ResponseEntity.ok(ApiResponse.ok(paged, "Lấy danh sách đơn cần điều phối phân trang thành công"));
         }
-        List<DonCanDieuPhoiDTO> list = dieuPhoiService.getDonCanDieuPhoiList();
+        List<DonCanDieuPhoiDTO> list = (maKhoNhan != null && !maKhoNhan.isBlank()) 
+                ? dieuPhoiService.getAvailableKienHangDTOList(maKho, loaiChuyen, maTuyen, maKhoNhan)
+                : dieuPhoiService.getDonCanDieuPhoiList();
         return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách đơn cần điều phối thành công"));
+    }
+
+    // ========================== ĐIỀU PHỐI LẤY HÀNG ==========================
+
+    @GetMapping("/don-can-lay")
+    public ResponseEntity<ApiResponse<List<DonHang>>> getDonCanLay(
+            @RequestParam(required = false) String maKho) {
+        List<DonHang> list = dieuPhoiService.getDonHangCanLay(maKho);
+        return ResponseEntity.ok(ApiResponse.ok(list, "Lấy danh sách đơn cần lấy thành công"));
+    }
+
+    @PostMapping("/assign-pickup")
+    public ResponseEntity<ApiResponse<DonHang>> assignPickup(@RequestBody java.util.Map<String, String> body) {
+        String maDh = body.get("maDh");
+        String maTx = body.get("maTx");
+        if (maDh == null || maDh.isBlank() || maTx == null || maTx.isBlank()) {
+            throw new RuntimeException("Vui lòng cung cấp đầy đủ maDh và maTx");
+        }
+        DonHang updated = dieuPhoiService.assignTaiXeLayHang(maDh, maTx);
+        return ResponseEntity.ok(ApiResponse.ok(updated, "Phân công tài xế " + maTx + " lấy đơn " + maDh + " thành công"));
     }
 
     @GetMapping("/chuyen-dang-chay")

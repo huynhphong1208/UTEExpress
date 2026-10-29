@@ -68,6 +68,7 @@ public class ViewController implements WebMvcConfigurer {
     private final DonHangService donHangService;
     private final NhanVienRepository nhanVienRepository;
     private final PhuongTienRepository phuongTienRepository;
+    private final TaiXeRepository taiXeRepository;
 
     private KhachHang getCurrentKhachHang() {
         org.springframework.security.core.Authentication auth =
@@ -84,8 +85,10 @@ public class ViewController implements WebMvcConfigurer {
         return null;
     }
 
-    @GetMapping("/")
-    public String index() {
+    @GetMapping({"/", "/index", "/index.html"})
+    public String index(Model model) {
+        List<Kho> danhSachKho = khoRepository.findAll();
+        model.addAttribute("danhSachKho", danhSachKho);
         return "guest/03-index";
     }
 
@@ -107,7 +110,7 @@ public class ViewController implements WebMvcConfigurer {
                 .sameSite("Lax")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return "redirect:/login";
+        return "redirect:/login?logout=true";
     }
 
     @GetMapping("/tracking")
@@ -157,79 +160,176 @@ public class ViewController implements WebMvcConfigurer {
 
     @GetMapping({"/admin/dashboard", "/admin/18-dashboard.html"})
     public String adminDashboard(Model model) {
-        log.info("Tải Admin Dashboard từ cơ sở dữ liệu");
-        try {
-            AdminOverviewReportResponse overview = adminReportService.getOverviewReport();
-            model.addAttribute("overview", overview);
-        } catch (Exception e) {
-            log.warn("Lỗi tải overview report: {}", e.getMessage());
-        }
-        try {
-            var slaReport = adminReportService.getSlaPerformanceReport();
-            model.addAttribute("slaReport", slaReport);
-        } catch (Exception e) {
-            log.warn("Lỗi tải SLA report: {}", e.getMessage());
-        }
+        log.info("Tải dữ liệu Admin Dashboard từ cơ sở dữ liệu");
+        AdminOverviewReportResponse overview = adminReportService.getOverviewReport();
         long tongNguoiDung = nguoiDungRepository.count();
         long tongKhachHang = khachHangRepository.count();
         long tongNhanVien = nhanVienRepository.count();
+        long tongTaiXe = taiXeRepository.count();
+        long tongKho = khoRepository.count();
         long tongPhuongTien = phuongTienRepository.count();
+        List<DonHang> donHangMoiNhat = donHangRepository.findAllByOrderByNgayTaoDesc(PageRequest.of(0, 6)).getContent();
+
+        model.addAttribute("overview", overview);
         model.addAttribute("tongNguoiDung", tongNguoiDung);
         model.addAttribute("tongKhachHang", tongKhachHang);
         model.addAttribute("tongNhanVien", tongNhanVien);
+        model.addAttribute("tongTaiXe", tongTaiXe);
+        model.addAttribute("tongKho", tongKho);
         model.addAttribute("tongPhuongTien", tongPhuongTien);
+        model.addAttribute("donHangMoiNhat", donHangMoiNhat);
+
         return "admin/18-dashboard";
     }
 
     @GetMapping({"/admin/orders", "/admin/27-orders.html"})
     public String adminOrders(
-            @RequestParam(value = "keyword", required = false) String keyword,
-            @RequestParam(value = "maTrangThai", required = false) String maTrangThai,
-            @RequestParam(value = "maKho", required = false) String maKho,
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "15") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String maTrangThai,
+            @RequestParam(required = false) String maKho,
             Model model) {
-        log.info("Tải trang Giám sát đơn hàng Admin từ DB");
-        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
-        Page<DonHang> pagedOrders = donHangRepository.findAllByOrderByNgayTaoDesc(pageable);
-        List<com.example.backend.entity.TrangThaiDH> danhSachTrangThai = trangThaiDHRepository.findAll();
-        List<com.example.backend.entity.Kho> danhSachKho = khoRepository.findAll();
-        model.addAttribute("danhSachDonHang", pagedOrders.getContent());
-        model.addAttribute("currentPage", pagedOrders.getNumber());
-        model.addAttribute("pageSize", pagedOrders.getSize());
-        model.addAttribute("totalPages", pagedOrders.getTotalPages());
-        model.addAttribute("totalElements", pagedOrders.getTotalElements());
-        model.addAttribute("danhSachTrangThai", danhSachTrangThai);
-        model.addAttribute("danhSachKho", danhSachKho);
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("selectedMaTrangThai", maTrangThai);
-        model.addAttribute("selectedMaKho", maKho);
+        log.info("Tải danh sách đơn hàng Admin, keyword={}, maTrangThai={}, maKho={}", keyword, maTrangThai, maKho);
+
+        List<DonHang> allOrders = donHangRepository.findAllByOrderByNgayTaoDesc();
+
+        List<DonHang> filteredOrders = allOrders.stream().filter(dh -> {
+            if (keyword != null && !keyword.isBlank()) {
+                String kw = keyword.trim().toLowerCase();
+                boolean matchMa = dh.getMaDh() != null && dh.getMaDh().toLowerCase().contains(kw);
+                boolean matchTenNhan = dh.getTenNguoiNhan() != null && dh.getTenNguoiNhan().toLowerCase().contains(kw);
+                boolean matchSdtNhan = dh.getSdtNhan() != null && dh.getSdtNhan().contains(kw);
+                boolean matchMaKh = dh.getMaKhGui() != null && dh.getMaKhGui().toLowerCase().contains(kw);
+                if (!matchMa && !matchTenNhan && !matchSdtNhan && !matchMaKh) return false;
+            }
+            if (maTrangThai != null && !maTrangThai.isBlank()) {
+                if (dh.getTrangThai() == null || !maTrangThai.equalsIgnoreCase(dh.getTrangThai().getMaTrangThai())) return false;
+            }
+            if (maKho != null && !maKho.isBlank()) {
+                if (!maKho.equalsIgnoreCase(dh.getMaKhoGui()) && !maKho.equalsIgnoreCase(dh.getMaKhoNhan())) return false;
+            }
+            return true;
+        }).toList();
+
+        model.addAttribute("danhSachDonHang", filteredOrders);
+        model.addAttribute("danhSachTrangThai", trangThaiDHRepository.findAll());
+        model.addAttribute("danhSachKho", khoRepository.findAll());
+        model.addAttribute("selectedKeyword", keyword);
+        model.addAttribute("selectedTrangThai", maTrangThai);
+        model.addAttribute("selectedKho", maKho);
+        model.addAttribute("totalFiltered", filteredOrders.size());
+        model.addAttribute("totalAll", allOrders.size());
+
         return "admin/27-orders";
     }
 
     @GetMapping({"/admin/users", "/admin/19-users.html"})
-    public String adminUsers() {
+    public String adminUsers(Model model) {
+        model.addAttribute("danhSachKho", khoRepository.findAll());
         return "admin/19-users";
     }
 
     @GetMapping({"/admin/warehouses", "/admin/24-warehouses.html"})
     public String adminWarehouses(Model model) {
-        log.info("Tải trang Quản lý Kho từ DB");
-        List<com.example.backend.entity.Kho> danhSachKho = khoRepository.findAll();
+        log.info("Tải danh sách Kho/Bưu cục Admin từ cơ sở dữ liệu");
+        List<Kho> danhSachKho = khoRepository.findAll();
         model.addAttribute("danhSachKho", danhSachKho);
         return "admin/24-warehouses";
     }
 
+    @PostMapping("/admin/warehouses/save")
+    public String saveWarehouse(
+            @RequestParam(required = false) String maKho,
+            @RequestParam String tenKho,
+            @RequestParam String diaChi,
+            @RequestParam(required = false) String sdt,
+            RedirectAttributes redirectAttributes) {
+        try {
+            Kho kho;
+            if (maKho != null && !maKho.isBlank() && khoRepository.existsById(maKho.trim())) {
+                kho = khoRepository.findById(maKho.trim()).get();
+                kho.setTenKho(tenKho.trim());
+                kho.setDiaChi(diaChi.trim());
+                kho.setSdt(sdt != null ? sdt.trim() : null);
+                khoRepository.save(kho);
+                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật bưu cục " + maKho + " thành công!");
+            } else {
+                String nextCode = (maKho != null && !maKho.isBlank()) ? maKho.trim() : null;
+                if (nextCode == null) {
+                    long count = khoRepository.count() + 1;
+                    nextCode = String.format("KHO%02d", count);
+                    while (khoRepository.existsById(nextCode)) {
+                        count++;
+                        nextCode = String.format("KHO%02d", count);
+                    }
+                }
+                kho = Kho.builder()
+                        .maKho(nextCode)
+                        .tenKho(tenKho.trim())
+                        .diaChi(diaChi.trim())
+                        .sdt(sdt != null ? sdt.trim() : null)
+                        .build();
+                khoRepository.save(kho);
+                redirectAttributes.addFlashAttribute("successMessage", "Thêm mới bưu cục " + nextCode + " thành công!");
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi lưu kho/bưu cục: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi lưu kho/bưu cục: " + e.getMessage());
+        }
+        return "redirect:/admin/warehouses";
+    }
+
     @GetMapping({"/admin/vehicles", "/admin/25-vehicles.html"})
     public String adminVehicles(Model model) {
-        log.info("Tải trang Quản lý Phương tiện từ DB");
-        List<com.example.backend.entity.PhuongTien> danhSachPhuongTien = phuongTienRepository.findAll();
-        model.addAttribute("danhSachPhuongTien", danhSachPhuongTien);
+        log.info("Tải danh sách Phương tiện vận chuyển Admin từ cơ sở dữ liệu");
+        List<PhuongTien> danhSachPt = phuongTienRepository.findAll();
+        model.addAttribute("danhSachPhuongTien", danhSachPt);
         return "admin/25-vehicles";
     }
 
+    @PostMapping("/admin/vehicles/save")
+    public String saveVehicle(
+            @RequestParam(required = false) String maPt,
+            @RequestParam String bienSo,
+            @RequestParam String loaiXe,
+            @RequestParam BigDecimal taiTrong,
+            @RequestParam String trangThai,
+            RedirectAttributes redirectAttributes) {
+        try {
+            PhuongTien pt;
+            if (maPt != null && !maPt.isBlank() && phuongTienRepository.existsById(maPt.trim())) {
+                pt = phuongTienRepository.findById(maPt.trim()).get();
+                pt.setBienSo(bienSo.trim());
+                pt.setLoaiXe(loaiXe.trim());
+                pt.setTaiTrong(taiTrong);
+                pt.setTrangThai(trangThai.trim());
+                phuongTienRepository.save(pt);
+                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật phương tiện " + maPt + " thành công!");
+            } else {
+                String nextCode = (maPt != null && !maPt.isBlank()) ? maPt.trim() : null;
+                if (nextCode == null) {
+                    long count = phuongTienRepository.count() + 1;
+                    nextCode = String.format("PT%03d", count);
+                    while (phuongTienRepository.existsById(nextCode)) {
+                        count++;
+                        nextCode = String.format("PT%03d", count);
+                    }
+                }
+                pt = new PhuongTien(nextCode, bienSo.trim(), loaiXe.trim(), taiTrong, trangThai.trim());
+                phuongTienRepository.save(pt);
+                redirectAttributes.addFlashAttribute("successMessage", "Thêm mới phương tiện " + nextCode + " thành công!");
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi lưu phương tiện: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi lưu phương tiện: " + e.getMessage());
+        }
+        return "redirect:/admin/vehicles";
+    }
+
     @GetMapping({"/admin/settings", "/admin/30-settings.html"})
-    public String adminSettings() {
+    public String adminSettings(Model model) {
+        model.addAttribute("tongKho", khoRepository.count());
+        model.addAttribute("tongDonHang", donHangRepository.count());
+        model.addAttribute("tongNguoiDung", nguoiDungRepository.count());
         return "admin/30-settings";
     }
 
@@ -435,8 +535,25 @@ public class ViewController implements WebMvcConfigurer {
         }
     }
 
+    private NhanVien getCurrentNhanVien() {
+        org.springframework.security.core.Authentication auth =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            String username = auth.getName();
+            var nvOpt = nhanVienRepository.findByNguoiDung_MaNd(username)
+                    .or(() -> nguoiDungRepository.findByTenDangNhap(username)
+                            .flatMap(nd -> nhanVienRepository.findByNguoiDung_MaNd(nd.getMaNd())))
+                    .or(() -> nhanVienRepository.findBySdt(username))
+                    .or(() -> nhanVienRepository.findById(username));
+            if (nvOpt.isPresent()) {
+                return nvOpt.get();
+            }
+        }
+        return nhanVienRepository.findById("NV001").orElse(null);
+    }
+
     // =========================================================================
-    // 2. PHÂN HỆ BƯU CỤC: TIẾP NHẬN ĐƠN (UC08)
+    // 2. PHÂN HỆ BƯU CỤC: BẢNG ĐIỀU KHIỂN & TIẾP NHẬN ĐƠN (UC08)
     // =========================================================================
     @GetMapping({"/post-office/dashboard", "/post-office/09-dashboard.html"})
     public String postOfficeDashboard(
@@ -445,30 +562,30 @@ public class ViewController implements WebMvcConfigurer {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             Model model) {
-        // Xác định nhân viên bưu cục hiện tại (từ SecurityContext hoặc mặc định NV001)
-        String currentMaNv = "NV001";
         org.springframework.security.core.Authentication auth =
                 org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            String username = auth.getName();
-            var nvOpt = nhanVienRepository.findByNguoiDung_MaNd(username)
-                    .or(() -> nguoiDungRepository.findByTenDangNhap(username)
-                            .flatMap(nd -> nhanVienRepository.findByNguoiDung_MaNd(nd.getMaNd())));
-            if (nvOpt.isPresent()) {
-                currentMaNv = nvOpt.get().getMaNv();
-            }
+        NhanVien currentNv = getCurrentNhanVien();
+        boolean isAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ADMIN".equals(a.getAuthority()));
+        String resolvedMaKho;
+        if (!isAdmin && currentNv != null && currentNv.getMaKho() != null) {
+            resolvedMaKho = currentNv.getMaKho(); // Nhân viên bưu cục chỉ được quản lý và tiếp nhận đơn đúng kho của mình
+        } else if (maKho != null && !maKho.isBlank()) {
+            resolvedMaKho = maKho;
+        } else if (currentNv != null && currentNv.getMaKho() != null) {
+            resolvedMaKho = currentNv.getMaKho();
+        } else {
+            resolvedMaKho = "KHO01";
         }
 
-        NhanVien currentNv = nhanVienRepository.findById(currentMaNv).orElse(null);
-        String resolvedMaKho = (maKho != null && !maKho.isBlank()) ? maKho : (currentNv != null && currentNv.getMaKho() != null ? currentNv.getMaKho() : "KHO01");
-
-        log.info("Tải Dashboard Bưu cục từ cơ sở dữ liệu cho nhân viên {} tại kho {}", currentMaNv, resolvedMaKho);
+        log.info("Tải Dashboard Bưu cục từ cơ sở dữ liệu cho nhân viên {} tại kho {}", currentNv != null ? currentNv.getMaNv() : "N/A", resolvedMaKho);
 
         List<Kho> danhSachKho = khoRepository.findAll();
         Kho currentKho = khoRepository.findById(resolvedMaKho).orElse(danhSachKho.isEmpty() ? null : danhSachKho.get(0));
 
         Page<PendingOrderResponse> pagedPending = postOfficeService.getPendingOrdersPaged(resolvedMaKho, Math.max(0, page), Math.max(1, size));
-        List<DonHang> allOrders = donHangRepository.findAllByOrderByNgayTaoDesc();
+        List<DonHang> allOrders = isAdmin 
+                ? donHangRepository.findAllByOrderByNgayTaoDesc() 
+                : donHangRepository.findByMaKhoGuiOrderByNgayTaoDesc(resolvedMaKho);
 
         long countPending = donHangRepository.countByMaKhoGuiAndTrangThai_MaTrangThai(resolvedMaKho, "TT01");
         long countReceived = donHangRepository.countByMaKhoGuiAndTrangThai_MaTrangThai(resolvedMaKho, "TT02");
@@ -506,22 +623,31 @@ public class ViewController implements WebMvcConfigurer {
             @RequestParam(value = "ghiChu", required = false) String ghiChu,
             RedirectAttributes redirectAttributes) {
 
-        String currentMaNv = "NV001";
         org.springframework.security.core.Authentication auth =
                 org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            String username = auth.getName();
-            var nvOpt = nhanVienRepository.findByNguoiDung_MaNd(username)
-                    .or(() -> nguoiDungRepository.findByTenDangNhap(username)
-                            .flatMap(nd -> nhanVienRepository.findByNguoiDung_MaNd(nd.getMaNd())));
-            if (nvOpt.isPresent()) {
-                currentMaNv = nvOpt.get().getMaNv();
-            }
-        }
-        NhanVien currentNv = nhanVienRepository.findById(currentMaNv).orElse(null);
-        String finalMaKho = (maKho != null && !maKho.isBlank()) ? maKho : (currentNv != null && currentNv.getMaKho() != null ? currentNv.getMaKho() : "KHO01");
+        NhanVien currentNv = getCurrentNhanVien();
+        String currentMaNv = currentNv != null ? currentNv.getMaNv() : "NV001";
+        boolean isAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ADMIN".equals(a.getAuthority()));
+        String finalMaKho = (!isAdmin && currentNv != null && currentNv.getMaKho() != null)
+                ? currentNv.getMaKho()
+                : ((maKho != null && !maKho.isBlank()) ? maKho : (currentNv != null && currentNv.getMaKho() != null ? currentNv.getMaKho() : "KHO01"));
 
         try {
+            DonHang dh = donHangRepository.findById(maDh).orElse(null);
+            if (dh == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy đơn hàng " + maDh);
+                redirectAttributes.addAttribute("maKho", finalMaKho);
+                return "redirect:/post-office/dashboard";
+            }
+
+            if (!isAdmin && currentNv != null && currentNv.getMaKho() != null && !currentNv.getMaKho().equals(dh.getMaKhoGui())) {
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Từ chối tiếp nhận: Bạn là nhân viên thuộc bưu cục " + currentNv.getMaKho() +
+                        ", chỉ có nhân viên tại bưu cục gửi " + dh.getMaKhoGui() + " mới được tiếp nhận đơn này!");
+                redirectAttributes.addAttribute("maKho", finalMaKho);
+                return "redirect:/post-office/dashboard";
+            }
+
             ReceiveOrderRequest req = ReceiveOrderRequest.builder()
                     .maKho(finalMaKho)
                     .maNV(currentMaNv)
@@ -550,16 +676,43 @@ public class ViewController implements WebMvcConfigurer {
     // =========================================================================
     @GetMapping({"/post-office/packages", "/post-office/10-packages.html"})
     public String postOfficePackages(
+            @RequestParam(value = "maKho", required = false) String maKhoParam,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "transferredMaKien", required = false) String transferredMaKien,
             Model model) {
-        log.info("Tải danh sách Kiện hàng từ cơ sở dữ liệu");
+        org.springframework.security.core.Authentication auth =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        NhanVien currentNv = getCurrentNhanVien();
+        boolean isAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ADMIN".equals(a.getAuthority()));
+
+        String resolvedMaKho;
+        if (!isAdmin && currentNv != null && currentNv.getMaKho() != null) {
+            resolvedMaKho = currentNv.getMaKho();
+        } else if (maKhoParam != null && !maKhoParam.isBlank()) {
+            resolvedMaKho = maKhoParam;
+        } else if (currentNv != null && currentNv.getMaKho() != null) {
+            resolvedMaKho = currentNv.getMaKho();
+        } else {
+            resolvedMaKho = "KHO01";
+        }
+
+        log.info("Tải danh sách Kiện hàng từ cơ sở dữ liệu cho kho {}", resolvedMaKho);
 
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
-        Page<KienHang> pagedKien = kienHangRepository.findAllWithDonHangAndKho(pageable);
-        List<Kho> danhSachKho = khoRepository.findAll();
+        Page<KienHang> pagedKien;
+        if (isAdmin && (maKhoParam == null || maKhoParam.isBlank())) {
+            pagedKien = kienHangRepository.findAllWithDonHangAndKho(pageable);
+        } else {
+            pagedKien = kienHangRepository.findByKhoHienTaiWithDonHangAndKho(resolvedMaKho, pageable);
+        }
 
+        List<Kho> danhSachKho = khoRepository.findAll();
+        Kho currentKho = khoRepository.findById(resolvedMaKho).orElse(danhSachKho.isEmpty() ? null : danhSachKho.get(0));
+
+        model.addAttribute("nhanVien", currentNv);
+        model.addAttribute("currentKho", currentKho);
+        model.addAttribute("selectedMaKho", resolvedMaKho);
         model.addAttribute("danhSachKien", pagedKien.getContent());
         model.addAttribute("currentPage", pagedKien.getNumber());
         model.addAttribute("pageSize", pagedKien.getSize());
@@ -579,9 +732,11 @@ public class ViewController implements WebMvcConfigurer {
             RedirectAttributes redirectAttributes) {
 
         try {
+            NhanVien currentNv = getCurrentNhanVien();
+            String maNd = (currentNv != null && currentNv.getNguoiDung() != null) ? currentNv.getNguoiDung().getMaNd() : "ND002";
             TransferWarehouseRequest req = TransferWarehouseRequest.builder()
                     .maKhoMoi(maKhoMoi)
-                    .maND("ND002")
+                    .maND(maNd)
                     .ghiChu(ghiChu)
                     .build();
 
@@ -602,11 +757,28 @@ public class ViewController implements WebMvcConfigurer {
     public String postOfficeUpdateStatus(
             @RequestParam(value = "updatedMaDh", required = false) String updatedMaDh,
             Model model) {
-        log.info("Tải trang Cập nhật trạng thái từ cơ sở dữ liệu");
+        org.springframework.security.core.Authentication auth =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        NhanVien currentNv = getCurrentNhanVien();
+        boolean isAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ADMIN".equals(a.getAuthority()));
+        String resolvedMaKho = (!isAdmin && currentNv != null && currentNv.getMaKho() != null) ? currentNv.getMaKho() : "KHO01";
 
-        List<DonHang> danhSachDonHang = donHangRepository.findAllByOrderByNgayTaoDesc();
+        log.info("Tải trang Cập nhật trạng thái cho kho {}", resolvedMaKho);
+
+        List<DonHang> danhSachDonHang;
+        if (isAdmin) {
+            danhSachDonHang = donHangRepository.findAllByOrderByNgayTaoDesc();
+        } else {
+            danhSachDonHang = donHangRepository.findByMaKhoGuiOrderByNgayTaoDesc(resolvedMaKho);
+        }
+
         List<TrangThaiDH> danhSachTrangThai = trangThaiDHRepository.findAll();
+        List<Kho> danhSachKho = khoRepository.findAll();
+        Kho currentKho = khoRepository.findById(resolvedMaKho).orElse(danhSachKho.isEmpty() ? null : danhSachKho.get(0));
 
+        model.addAttribute("nhanVien", currentNv);
+        model.addAttribute("currentKho", currentKho);
+        model.addAttribute("selectedMaKho", resolvedMaKho);
         model.addAttribute("danhSachDonHang", danhSachDonHang);
         model.addAttribute("danhSachTrangThai", danhSachTrangThai);
         model.addAttribute("updatedMaDh", updatedMaDh);
@@ -622,20 +794,21 @@ public class ViewController implements WebMvcConfigurer {
             RedirectAttributes redirectAttributes) {
 
         try {
+            NhanVien currentNv = getCurrentNhanVien();
+            String maNd = (currentNv != null && currentNv.getNguoiDung() != null) ? currentNv.getNguoiDung().getMaNd() : "ND002";
             UpdateOrderStatusRequest req = UpdateOrderStatusRequest.builder()
                     .maTrangThaiMoi(maTrangThaiMoi)
-                    .maND("ND002")
+                    .maND(maNd)
                     .ghiChu(ghiChu)
                     .build();
 
             postOfficeService.updateOrderStatus(maDh, req);
             redirectAttributes.addAttribute("updatedMaDh", maDh);
-            return "redirect:/post-office/update-status";
         } catch (Exception e) {
             log.error("Lỗi khi cập nhật trạng thái đơn {}: {}", maDh, e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/post-office/update-status";
         }
+        return "redirect:/post-office/update-status";
     }
 
     // =========================================================================
@@ -656,7 +829,7 @@ public class ViewController implements WebMvcConfigurer {
         model.addAttribute("danhSachDonHang", danhSachDonHang);
         model.addAttribute("processedMaDh", processedMaDh);
 
-        return "admin/payments";
+        return "admin/28-payments";
     }
 
     @PostMapping("/admin/process-payment")
@@ -702,7 +875,7 @@ public class ViewController implements WebMvcConfigurer {
         model.addAttribute("slaReport", slaReport);
         model.addAttribute("tongKienLuuKho", tongKienLuuKho);
 
-        return "admin/reports";
+        return "admin/29-reports";
     }
 
     // =========================================================================

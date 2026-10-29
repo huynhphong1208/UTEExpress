@@ -222,7 +222,7 @@ class PostOfficeAndFinanceFullTest {
 
     @Test
     @Order(11)
-    @DisplayName("UC04: Khách hàng tạo đơn chọn CHUYEN_KHOAN -> Tự động xác nhận Đã thanh toán")
+    @DisplayName("UC04: Khách hàng tạo đơn chọn CHUYEN_KHOAN -> Khởi tạo Chưa thanh toán -> Thanh toán chuyển sang Đã thanh toán")
     void testTaoDonHangChuyenKhoan() {
         var khList = khachHangRepository.findAll();
         assertFalse(khList.isEmpty(), "Cần có ít nhất 1 khách hàng trong DB");
@@ -252,17 +252,58 @@ class PostOfficeAndFinanceFullTest {
         assertNotNull(resp);
         assertNotNull(resp.getMaDh());
         assertEquals("Chuyển khoản", resp.getPhuongThucThanhToan());
-        assertEquals("Đã thanh toán", resp.getTrangThaiThanhToan());
+        assertEquals("Chưa thanh toán", resp.getTrangThaiThanhToan());
 
-        // Kiểm tra trong danh sách đơn chờ lấy hàng của KHO01
+        // Kiểm tra trong danh sách đơn chờ lấy hàng của KHO01: ban đầu chưa thanh toán
         List<PendingOrderResponse> pendingOrders = postOfficeService.getPendingOrders("KHO01");
         PendingOrderResponse orderInList = pendingOrders.stream()
                 .filter(o -> o.getMaDh().equals(resp.getMaDh()))
                 .findFirst()
                 .orElse(null);
         assertNotNull(orderInList);
-        assertTrue(orderInList.getPhiDaThanhToan());
-        assertEquals("Chuyển khoản", orderInList.getPhuongThucThanhToan());
+        assertFalse(orderInList.getPhiDaThanhToan());
+
+        // Khi đơn hàng chuyển khoản chưa thanh toán -> Bưu cục không thể tiếp nhận và ném ngoại lệ
+        ReceiveOrderRequest receiveReq = ReceiveOrderRequest.builder()
+                .maKho("KHO01")
+                .maNV("NV001")
+                .khoiLuong(new BigDecimal("2.0"))
+                .dai(new BigDecimal("20.0"))
+                .rong(new BigDecimal("15.0"))
+                .cao(new BigDecimal("10.0"))
+                .loaiHang("Hàng tiêu chuẩn")
+                .ghiChu("Thử tiếp nhận đơn chuyển khoản chưa thanh toán")
+                .build();
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            postOfficeService.receiveOrder(resp.getMaDh(), receiveReq);
+        });
+        assertTrue(ex.getMessage().contains("chưa hoàn tất thanh toán cước phí"));
+
+        // Khách hàng thực hiện xác nhận thanh toán cước chuyển khoản
+        paymentService.processPayment(com.example.backend.dto.payment.ProcessPaymentRequest.builder()
+                .maDH(resp.getMaDh())
+                .loaiKhoan("PHI_VC")
+                .soTien(resp.getPhiVanChuyen())
+                .phuongThuc("Chuyển khoản")
+                .nguoiThanhToan(kh.getHoTen())
+                .build());
+
+        // Sau khi thanh toán -> Cước chuyển sang Đã thanh toán
+        List<PendingOrderResponse> pendingOrdersAfter = postOfficeService.getPendingOrders("KHO01");
+        PendingOrderResponse orderAfterPay = pendingOrdersAfter.stream()
+                .filter(o -> o.getMaDh().equals(resp.getMaDh()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(orderAfterPay);
+        assertTrue(orderAfterPay.getPhiDaThanhToan());
+        assertEquals("Chuyển khoản", orderAfterPay.getPhuongThucThanhToan());
+
+        // Sau khi đã thanh toán chuyển khoản thành công -> Tiếp nhận thành công
+        ReceiveOrderResponse receiveResp = postOfficeService.receiveOrder(resp.getMaDh(), receiveReq);
+        assertNotNull(receiveResp);
+        assertEquals(resp.getMaDh(), receiveResp.getMaDh());
+        assertEquals("TT02", receiveResp.getMaTrangThai());
     }
 
     @Test
@@ -321,9 +362,28 @@ class PostOfficeAndFinanceFullTest {
         ReceiveOrderResponse receiveResp = postOfficeService.receiveOrder(resp.getMaDh(), receiveReq);
         assertNotNull(receiveResp);
 
-        // Kiểm tra sau khi nhân viên lấy hàng: phí vận chuyển đã chuyển sang Đã thanh toán
+        // Kiểm tra sau khi bưu cục tiếp nhận: phí vận chuyển VẪN Ở TRẠNG THÁI Chưa thanh toán (chờ tài xế giao hàng thu)
         var summary = paymentService.getOrderPaymentSummary(resp.getMaDh());
-        assertTrue(summary.isPhiDaThanhToan(), "Cước vận chuyển phải tự động chuyển sang Đã thanh toán sau khi nhân viên lấy hàng");
+        assertFalse(summary.isPhiDaThanhToan(), "Cước vận chuyển KHÔNG chuyển sang Đã thanh toán khi bưu cục tiếp nhận");
+        assertEquals("Tiền mặt", summary.getPhuongThucCuoc());
+        assertTrue(summary.getPhuongThucThanhToan().contains("Tiền mặt"), "Phương thức thanh toán phải hiển thị là Tiền mặt chứ không phải Chuyển khoản");
+
+        // Luân chuyển đơn hàng đến khi tài xế giao hàng thành công: TT02 -> TT05 (Đang giao) -> TT06 (Giao thành công)
+        postOfficeService.updateOrderStatus(resp.getMaDh(), UpdateOrderStatusRequest.builder()
+                .maTrangThaiMoi("TT05")
+                .maND("ND002")
+                .ghiChu("Tài xế nhận đơn đi giao hàng")
+                .build());
+
+        postOfficeService.updateOrderStatus(resp.getMaDh(), UpdateOrderStatusRequest.builder()
+                .maTrangThaiMoi("TT06")
+                .maND("ND002")
+                .ghiChu("Tài xế giao hàng thành công và thu tiền mặt trực tiếp")
+                .build());
+
+        // Sau khi tài xế giao hàng thành công: cước vận chuyển chuyển sang Đã thanh toán
+        var summaryAfterDelivery = paymentService.getOrderPaymentSummary(resp.getMaDh());
+        assertTrue(summaryAfterDelivery.isPhiDaThanhToan(), "Cước vận chuyển phải chuyển sang Đã thanh toán sau khi tài xế giao hàng thành công");
     }
 
     @Autowired

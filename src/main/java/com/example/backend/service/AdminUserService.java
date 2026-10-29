@@ -41,7 +41,7 @@ public class AdminUserService {
         this.entityManager = entityManager;
     }
 
-    private static final String DEFAULT_PASSWORD = "123456@Ute";
+    private static final String DEFAULT_PASSWORD = "123456";
 
     // =========================================================
     // Lấy danh sách tài khoản (phân trang, tìm kiếm, lọc role)
@@ -140,12 +140,13 @@ public class AdminUserService {
 
         // Kiểm tra công việc dở dang trước khi khóa (gọi fn_so_viec_dang_xu_ly)
         if ("Bị khóa".equals(trangThaiMoi)) {
-            Long soViec = (Long) entityManager
+            Object obj = entityManager
                     .createNativeQuery("SELECT fn_so_viec_dang_xu_ly(:maNd)")
                     .setParameter("maNd", maNd)
                     .getSingleResult();
+            long soViec = (obj instanceof Number num) ? num.longValue() : 0L;
 
-            if (soViec != null && soViec > 0) {
+            if (soViec > 0) {
                 throw new BusinessException(
                         String.format("Không thể khóa tài khoản này: còn %d công việc/đơn hàng đang xử lý dở dang", soViec)
                 );

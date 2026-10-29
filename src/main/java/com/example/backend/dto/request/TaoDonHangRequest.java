@@ -32,12 +32,10 @@ public class TaoDonHangRequest {
     @Schema(description = "Địa chỉ giao hàng", example = "456 Nguyễn Văn Cừ, Q5, TP.HCM")
     private String diaChiGiao;
 
-    @NotBlank(message = "Mã kho gửi không được để trống")
-    @Schema(description = "Mã bưu cục gửi", example = "KHO0001")
+    @Schema(description = "Mã bưu cục gửi (tùy chọn, để trống hệ thống AI Gemini sẽ tự động chọn kho tối ưu)", example = "KHO01")
     private String maKhoGui;
 
-    @NotBlank(message = "Mã kho nhận không được để trống")
-    @Schema(description = "Mã bưu cục nhận", example = "KHO0002")
+    @Schema(description = "Mã bưu cục nhận (tùy chọn, để trống hệ thống AI Gemini sẽ tự động chọn kho tối ưu)", example = "KHO02")
     private String maKhoNhan;
 
     @DecimalMin(value = "0", message = "Tiền COD không được âm")

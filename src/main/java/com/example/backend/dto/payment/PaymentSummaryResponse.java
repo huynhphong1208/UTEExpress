@@ -43,6 +43,12 @@ public class PaymentSummaryResponse {
     @Schema(description = "Tên trạng thái đơn hàng hiện tại", example = "Giao thành công")
     private String tenTrangThai;
 
+    @Schema(description = "Phương thức thanh toán cước gốc", example = "Tiền mặt")
+    private String phuongThucCuoc;
+
+    @Schema(description = "Phương thức thanh toán tổng hợp", example = "Tiền mặt khi giao/lấy hàng")
+    private String phuongThucThanhToan;
+
     @Schema(description = "Lịch sử các giao dịch thanh toán của đơn hàng")
     private List<PaymentDetailDto> lichSuThanhToan;
 }

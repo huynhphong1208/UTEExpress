@@ -6,6 +6,7 @@
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
+        modal.style.display = 'flex';
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
@@ -15,6 +16,7 @@ function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('show');
+        modal.style.display = 'none';
         document.body.style.overflow = '';
     }
 }
@@ -23,6 +25,7 @@ function closeModal(modalId) {
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('modal-backdrop')) {
         e.target.classList.remove('show');
+        e.target.style.display = 'none';
         document.body.style.overflow = '';
     }
 });
@@ -56,19 +59,19 @@ function showToast(title, message, type = 'info') {
     }, 3500);
 }
 
-// 3. TÍNH CƯỚC PHÍ VẬN CHUYỂN TỰ ĐỘNG
-function calculateShippingFee(weightKg, lengthCm = 10, widthCm = 10, heightCm = 10, distanceKm = 10) {
-    const volWeight = (lengthCm * widthCm * heightCm) / 5000;
-    const chargeWeight = Math.max(parseFloat(weightKg) || 0, volWeight);
-    
-    let basePrice = 15000;
-    if (chargeWeight > 1) {
-        basePrice += Math.ceil(chargeWeight - 1) * 5000;
-    }
-    if (distanceKm > 10) {
-        basePrice += Math.ceil(distanceKm - 10) * 1000;
-    }
-    return basePrice;
+// 3. TÍNH CƯỚC PHÍ VẬN CHUYỂN TỰ ĐỘNG (CHUẨN LOGISTICS UTE EXPRESS)
+function calculateShippingFee(weightKg, lengthCm = 10, widthCm = 10, heightCm = 10, distanceKm = 0) {
+    const volWeight = (parseFloat(lengthCm || 10) * parseFloat(widthCm || 10) * parseFloat(heightCm || 10)) / 5000;
+    const chargeWeight = Math.max(parseFloat(weightKg) || 0.5, volWeight);
+    const dist = parseFloat(distanceKm) || 0;
+
+    // Chuẩn Database UTE Express: Cước cơ bản 15.000đ + vượt 0.5kg x 5.000đ + cự ly x 300đ/km
+    const basePrice = 15000;
+    const extraWeightFee = Math.max(0, chargeWeight - 0.5) * 5000;
+    const distanceFee = dist * 300;
+
+    const total = basePrice + extraWeightFee + distanceFee;
+    return Math.round(total / 100) * 100;
 }
 
 // 4. RENDER STATUS BADGE HELPER
@@ -81,7 +84,7 @@ function getStatusBadge(status) {
         case 'Đã thanh toán':
         case 'Sẵn sàng':
             return `<span class="badge badge-success"><span class="badge-dot"></span>${status}</span>`;
-            
+
         case 'Đang đi':
         case 'Đang thực hiện':
         case 'Đang vận chuyển':
@@ -89,7 +92,7 @@ function getStatusBadge(status) {
         case 'Đang chạy':
         case 'Đã quét':
             return `<span class="badge badge-info"><span class="badge-dot"></span>${status}</span>`;
-            
+
         case 'Chưa đi':
         case 'Chưa xuất phát':
         case 'Đã gán':
@@ -100,7 +103,7 @@ function getStatusBadge(status) {
         case 'Chờ tiếp nhận':
         case 'Chưa thanh toán':
             return `<span class="badge badge-warning"><span class="badge-dot"></span>${status}</span>`;
-            
+
         case 'Đã hủy':
         case 'Hủy':
         case 'Trả hàng':
@@ -108,7 +111,7 @@ function getStatusBadge(status) {
         case 'Thất bại':
         case 'Bảo trì':
             return `<span class="badge badge-danger"><span class="badge-dot"></span>${status}</span>`;
-            
+
         default:
             return `<span class="badge badge-gray"><span class="badge-dot"></span>${status || 'Không rõ'}</span>`;
     }
@@ -187,7 +190,7 @@ class TablePagination {
         const startItem = this.totalItems === 0 ? 0 : (this.currentPage - 1) * this.pageSize + 1;
         const endItem = Math.min(this.currentPage * this.pageSize, this.totalItems);
 
-        const sizeOptionsHtml = this.pageSizeOptions.map(opt => 
+        const sizeOptionsHtml = this.pageSizeOptions.map(opt =>
             `<option value="${opt}" ${opt === this.pageSize ? 'selected' : ''}>${opt} / trang</option>`
         ).join('');
 

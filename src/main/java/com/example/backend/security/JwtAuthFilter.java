@@ -56,12 +56,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-            return headerAuth.substring(7);
+            String token = headerAuth.substring(7).trim();
+            if (StringUtils.hasText(token) && !"null".equalsIgnoreCase(token) && !"undefined".equalsIgnoreCase(token)) {
+                return token;
+            }
         }
         if (request.getCookies() != null) {
             for (jakarta.servlet.http.Cookie c : request.getCookies()) {
                 if ("accessToken".equals(c.getName()) || "jwt_token".equals(c.getName())) {
-                    if (StringUtils.hasText(c.getValue())) {
+                    if (StringUtils.hasText(c.getValue()) && !"null".equalsIgnoreCase(c.getValue()) && !"undefined".equalsIgnoreCase(c.getValue())) {
                         return c.getValue();
                     }
                 }

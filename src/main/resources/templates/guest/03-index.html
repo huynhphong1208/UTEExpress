@@ -319,19 +319,33 @@
                 <div class="form-group">
                     <label class="form-label">Kho đi (Bưu cục gửi)</label>
                     <select id="estKhoGui" class="form-select">
-                        <option value="KHO01" selected>KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
-                        <option value="KHO02">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
-                        <option value="KHO03">KHO03 - Bưu cục Đà Nẵng</option>
-                        <option value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                        <option th:each="kho : ${danhSachKho}" th:value="${kho.maKho}" th:text="|${kho.maKho} - ${kho.tenKho}|" th:selected="${kho.maKho == 'KHO01'}">KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO01" selected>KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO02">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO03">KHO03 - Bưu cục Đà Nẵng</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO05">KHO05 - Bưu cục Quận 1 (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO06">KHO06 - Bưu cục Đống Đa (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO07">KHO07 - Bưu cục Hải Phòng</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO08">KHO08 - Bưu cục Biên Hòa (Đồng Nai)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhKho)}" value="KHO09">KHO09 - Bưu cục Nha Trang (Khánh Hòa)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhKho)}" value="KHO10">KHO10 - Bưu cục Buôn Ma Thuột (Đắk Lắk)</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Kho đến (Bưu cục nhận)</label>
                     <select id="estKhoNhan" class="form-select">
-                        <option value="KHO01">KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
-                        <option value="KHO03" selected>KHO03 - Bưu cục Đà Nẵng</option>
-                        <option value="KHO02">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
-                        <option value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                        <option th:each="kho : ${danhSachKho}" th:value="${kho.maKho}" th:text="|${kho.maKho} - ${kho.tenKho}|" th:selected="${kho.maKho == 'KHO02'}">KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO01">KHO01 - Bưu cục Thủ Đức (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO02" selected>KHO02 - Bưu cục Cầu Giấy (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO03">KHO03 - Bưu cục Đà Nẵng</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO04">KHO04 - Bưu cục Cần Thơ</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO05">KHO05 - Bưu cục Quận 1 (TP.HCM)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO06">KHO06 - Bưu cục Đống Đa (Hà Nội)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO07">KHO07 - Bưu cục Hải Phòng</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhSachKho)}" value="KHO08">KHO08 - Bưu cục Biên Hòa (Đồng Nai)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhKho)}" value="KHO09">KHO09 - Bưu cục Nha Trang (Khánh Hòa)</option>
+                        <option th:if="${danhSachKho == null or #lists.isEmpty(danhKho)}" value="KHO10">KHO10 - Bưu cục Buôn Ma Thuột (Đắk Lắk)</option>
                     </select>
                 </div>
             </div>
@@ -344,22 +358,28 @@
                 <div class="form-group">
                     <label class="form-label">Kích thước Dài x Rộng x Cao (cm)</label>
                     <div style="display: flex; gap: 8px;">
-                        <input type="number" id="estLength" class="form-control" placeholder="Dài" value="20">
-                        <input type="number" id="estWidth" class="form-control" placeholder="Rộng" value="15">
-                        <input type="number" id="estHeight" class="form-control" placeholder="Cao" value="10">
+                        <input type="number" id="estLength" class="form-control" placeholder="Dài" value="20" min="1">
+                        <input type="number" id="estWidth" class="form-control" placeholder="Rộng" value="15" min="1">
+                        <input type="number" id="estHeight" class="form-control" placeholder="Cao" value="10" min="1">
                     </div>
                 </div>
             </div>
 
             <div style="text-align: center; margin-top: 12px;">
-                <button class="btn btn-primary btn-lg" onclick="calculateEstimatedFee()">⚡ Tính cước phí ngay</button>
+                <button class="btn btn-primary btn-lg" id="btnCalcEstimator" onclick="calculateEstimatedFee()">⚡ Tính cước phí ngay</button>
             </div>
 
-            <!-- Kết quả tính cước -->
-            <div id="calcResult" style="display: none; margin-top: 24px; padding: 20px; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: var(--radius-lg); text-align: center;">
-                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">Ước tính cước phí vận chuyển:</div>
-                <div id="calcFeeText" style="font-size: 28px; font-weight: 800; color: var(--brand-red);">0 đ</div>
-                <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 6px;">Cước phí chưa bao gồm tiền thu hộ COD. Giá thực tế có thể thay đổi nhẹ tùy theo địa chỉ chi tiết.</div>
+            <!-- Kết quả tính cước chuẩn xác -->
+            <div id="calcResult" style="display: none; margin-top: 24px; padding: 22px; background: #FEF2F2; border: 1.5px solid #FCA5A5; border-radius: var(--radius-lg); text-align: center;">
+                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">Ước tính cước phí vận chuyển tiêu chuẩn:</div>
+                <div id="calcFeeText" style="font-size: 32px; font-weight: 800; color: var(--brand-red); margin-bottom: 8px;">0 đ</div>
+                <div id="calcDetailsRow" style="display: flex; justify-content: center; gap: 20px; font-size: 13px; color: #475569; margin: 10px 0; flex-wrap: wrap;">
+                    <span>📍 Tuyến đường: <strong id="calcRouteText">Thủ Đức → Cầu Giấy</strong></span>
+                    <span>📏 Khoảng cách: <strong id="calcDistanceText">-- km</strong></span>
+                    <span>⚖️ Khối lượng tính cước: <strong id="calcWeightText">-- kg</strong></span>
+                    <span>⏱️ Dự kiến: <strong id="calcTimeText">-- giờ</strong></span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Cước phí chưa bao gồm tiền thu hộ COD. Giá thực tế chuẩn hóa theo biểu phí công khai UTE Express Logistics.</div>
             </div>
         </div>
     </section>
@@ -549,22 +569,69 @@
             window.location.href = `/tracking?maDh=${code}`;
         }
 
-        function calculateEstimatedFee() {
+        async function calculateEstimatedFee() {
             const w = parseFloat(document.getElementById('estWeight').value) || 1;
-            const l = parseFloat(document.getElementById('estLength').value) || 10;
-            const wi = parseFloat(document.getElementById('estWidth').value) || 10;
+            const l = parseFloat(document.getElementById('estLength').value) || 20;
+            const wi = parseFloat(document.getElementById('estWidth').value) || 15;
             const h = parseFloat(document.getElementById('estHeight').value) || 10;
-            const kg = document.getElementById('estKhoGui').value;
-            const kn = document.getElementById('estKhoNhan').value;
+            const kgEl = document.getElementById('estKhoGui');
+            const knEl = document.getElementById('estKhoNhan');
+            const kg = kgEl.value;
+            const kn = knEl.value;
+            const kgText = kgEl.options[kgEl.selectedIndex]?.text?.split(' - ')[1] || kg;
+            const knText = knEl.options[knEl.selectedIndex]?.text?.split(' - ')[1] || kn;
+            const btn = document.getElementById('btnCalcEstimator');
 
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = '⏳ Đang tính toán...';
+            }
+
+            try {
+                const res = await fetch(`/api/tra-cuu/uoc-tinh-cuoc?maKhoGui=${encodeURIComponent(kg)}&maKhoNhan=${encodeURIComponent(kn)}&khoiLuong=${w}&dai=${l}&rong=${wi}&cao=${h}`);
+                const data = await res.json();
+
+                if (res.ok && data.success && data.data) {
+                    const info = data.data;
+                    document.getElementById('calcResult').style.display = 'block';
+                    document.getElementById('calcFeeText').innerText = Number(info.phiVanChuyen).toLocaleString('vi-VN') + ' đ';
+                    document.getElementById('calcRouteText').innerText = `${info.tenKhoGui || kgText} → ${info.tenKhoNhan || knText}`;
+                    document.getElementById('calcDistanceText').innerText = info.cungKho ? 'Nội bưu cục (0 km)' : `${info.khoangCachKm} km`;
+                    document.getElementById('calcWeightText').innerText = `${info.khoiLuongTinhCuoc} kg (Thực: ${w}kg, Quy đổi: ${info.khoiLuongQuyDoi}kg)`;
+                    document.getElementById('calcTimeText').innerText = info.cungKho ? 'Trong ngày' : `~${info.thoiGianDuKienGio} giờ`;
+                    return;
+                }
+            } catch (err) {
+                console.warn('API tính cước lỗi, chuyển sang tính cục bộ:', err);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '⚡ Tính cước phí ngay';
+                }
+            }
+
+            // Fallback tính toán cục bộ chính xác
             let distance = 15;
-            if ((kg === 'KHO01' && kn === 'KHO03') || (kg === 'KHO03' && kn === 'KHO01')) distance = 960;
+            if (kg === kn) distance = 0;
+            else if ((kg === 'KHO01' && kn === 'KHO03') || (kg === 'KHO03' && kn === 'KHO01')) distance = 960;
             else if ((kg === 'KHO01' && kn === 'KHO02') || (kg === 'KHO02' && kn === 'KHO01')) distance = 1700;
             else if ((kg === 'KHO03' && kn === 'KHO02') || (kg === 'KHO02' && kn === 'KHO03')) distance = 770;
+            else if ((kg === 'KHO01' && kn === 'KHO04') || (kg === 'KHO04' && kn === 'KHO01')) distance = 170;
+            else if ((kg === 'KHO01' && kn === 'KHO05') || (kg === 'KHO05' && kn === 'KHO01')) distance = 15;
+            else if ((kg === 'KHO01' && kn === 'KHO08') || (kg === 'KHO08' && kn === 'KHO01')) distance = 25;
+            else if ((kg === 'KHO02' && kn === 'KHO06') || (kg === 'KHO06' && kn === 'KHO02')) distance = 8;
+            else if ((kg === 'KHO02' && kn === 'KHO07') || (kg === 'KHO07' && kn === 'KHO02')) distance = 120;
+            else if ((kg === 'KHO01' && kn === 'KHO09') || (kg === 'KHO09' && kn === 'KHO01')) distance = 430;
+            else if ((kg === 'KHO01' && kn === 'KHO10') || (kg === 'KHO10' && kn === 'KHO01')) distance = 350;
+            else distance = 500;
 
             const fee = calculateShippingFee(w, l, wi, h, distance);
             document.getElementById('calcResult').style.display = 'block';
             document.getElementById('calcFeeText').innerText = fee.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('calcRouteText').innerText = `${kgText} → ${knText}`;
+            document.getElementById('calcDistanceText').innerText = distance === 0 ? 'Nội bưu cục' : `${distance} km`;
+            document.getElementById('calcWeightText').innerText = `${w} kg`;
+            document.getElementById('calcTimeText').innerText = distance <= 25 ? 'Trong ngày' : (distance <= 300 ? '24 giờ' : '36 - 48 giờ');
         }
 
         function logout() {

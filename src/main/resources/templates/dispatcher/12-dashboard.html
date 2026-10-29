@@ -157,7 +157,7 @@
                 <div class="user-avatar" style="background-color: #2563EB;">DP</div>
                 <div class="user-info">
                     <div class="user-name">Đặng Quốc Huy</div>
-                    <div class="user-sub">NV Điều phối (NV003)</div>
+                    <div class="user-sub">NV Điều phối (NV011)</div>
                 </div>
             </div>
         </aside>
@@ -256,6 +256,40 @@
                     </div>
                 </div>
 
+                <!-- SECTION: ĐIỀU PHỐI TÀI XẾ LẤY HÀNG (PICKUP) -->
+                <div class="card" style="margin-bottom: 24px; border-left: 4px solid #2563EB;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;">
+                        <div>
+                            <h3 class="card-title" style="margin: 0; font-size: 15.5px; font-weight: 700; color: #1E293B;">
+                                🛵 Đơn bưu cục đã tiếp nhận (TT02) – Cần điều tài xế đi lấy hàng tận nơi
+                            </h3>
+                            <p style="margin: 3px 0 0 0; font-size: 12.5px; color: var(--text-muted);">
+                                Bưu cục đã tiếp nhận đơn trên hệ thống. Nhân viên điều phối phân công tài xế đến nhà khách lấy hàng về kho.
+                            </p>
+                        </div>
+                        <span class="badge badge-warning" id="badgePendingPickup">0 đơn chờ lấy</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table" style="font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Bưu cục gửi</th>
+                                    <th>Địa chỉ lấy hàng</th>
+                                    <th>Người nhận & Giao</th>
+                                    <th>Cước phí</th>
+                                    <th>Trạng thái lấy</th>
+                                    <th>Tài xế phụ trách</th>
+                                    <th style="text-align: right; min-width: 250px;">Phân công tài xế</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyPickupOrders">
+                                <tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">Đang tải danh sách đơn cần lấy...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="card" id="detailSection">
                     <div class="card-header"
                         style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
@@ -282,12 +316,21 @@
                     <!-- PANE 1: ĐƠN CẦN ĐIỀU PHỐI (STT 1) -->
                     <div class="tab-pane active" id="tabPane1">
                         <div
-                            style="padding: 12px 20px; background: #FEF2F2; border-bottom: 1px solid #FEE2E2; font-size: 13.5px; color: #991B1B; display: flex; align-items: center; justify-content: space-between;">
+                            style="padding: 12px 20px; background: #FEF2F2; border-bottom: 1px solid #FEE2E2; font-size: 13.5px; color: #991B1B; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
                             <div>
-                                📌 <strong>Tổng số đơn/kiện đang chờ điều phối, chờ xuất bến:</strong> Nhân viên kiểm
+                                <strong>Tổng số đơn/kiện đang chờ điều phối, chờ xuất bến:</strong> Nhân viên kiểm
                                 tra và gán vào các chuyến liên kho hoặc giao cuối phù hợp.
                             </div>
-
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label for="filterKhoNhanTab1" style="font-weight: 600; color: #7F1D1D; margin: 0; white-space: nowrap; font-size: 13px;">
+                                    Lọc theo kho nhận:
+                                </label>
+                                <select id="filterKhoNhanTab1" class="form-select form-select-sm"
+                                    style="min-width: 240px; font-size: 13px; font-weight: 500; border: 1.5px solid #F87171; border-radius: 6px; padding: 5px 10px; background-color: #FFFFFF; color: #1E293B; cursor: pointer;"
+                                    onchange="onKhoNhanFilterChange(this.value)">
+                                    <option value="">-- Tất cả kho nhận --</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table">
@@ -319,7 +362,7 @@
                     <div class="tab-pane" id="tabPane2">
                         <div
                             style="padding: 12px 20px; background: #EFF6FF; border-bottom: 1px solid #DBEAFE; font-size: 13.5px; color: #1E40AF;">
-                            🚚 <strong>Danh sách các chuyến đang chạy (trạng thái: Đang đi):</strong> Giám sát thời gian
+                            <strong>Danh sách các chuyến đang chạy (trạng thái: Đang đi):</strong> Giám sát thời gian
                             xuất phát, thời gian dự kiến và tình trạng kiện hàng trên từng chuyến.
                         </div>
                         <div class="table-responsive">
@@ -353,8 +396,8 @@
                     <div class="tab-pane" id="tabPane3">
                         <div
                             style="padding: 12px 20px; background: #ECFDF5; border-bottom: 1px solid #D1FAE5; font-size: 13.5px; color: #065F46;">
-                            👨‍✈️ <strong>Danh sách tài xế khả dụng:</strong> Các tài xế đang sẵn sàng nhận phân công,
-                            không bị trùng lịch chuyến đang vận chuyển.
+                            <strong>Danh sách tài xế khả dụng:</strong> Các tài xế sẵn sàng nhận phân công chuyến
+                            mới (chỉ hiển thị những tài xế chưa gán vào bất kỳ chuyến nào).
                         </div>
                         <div class="table-responsive">
                             <table class="table">
@@ -385,8 +428,7 @@
                     <div class="tab-pane" id="tabPane4">
                         <div
                             style="padding: 12px 20px; background: #FFFBEB; border-bottom: 1px solid #FEF3C7; font-size: 13.5px; color: #92400E;">
-                            🚛 <strong>Danh sách xe khả dụng:</strong> Các phương tiện có trạng thái Sẵn sàng, không bảo
-                            trì và không bị trùng lịch chuyến đang chạy.
+                            <strong>Danh sách xe khả dụng:</strong> Các phương tiện có trạng thái Sẵn sàng và chưa xếp chuyến (chỉ hiển thị những xe chưa xếp vào chuyến nào).
                         </div>
                         <div class="table-responsive">
                             <table class="table">
@@ -452,8 +494,8 @@
         </div>
     </div>
 
-    <script src="../../static/js/api-client.js"></script>
-    <script src="../../static/js/components.js"></script>
+    <script th:src="@{/js/api-client.js}" src="../../static/js/api-client.js"></script>
+    <script th:src="@{/js/components.js}" src="../../static/js/components.js"></script>
     <script>
         // State storage
         // State storage
@@ -501,20 +543,54 @@
             const tbody = document.getElementById('tbodyPendingPackages');
             tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 24px;">Đang tải danh sách đơn cần điều phối...</td></tr>`;
             try {
-                const res = await UteApi.getPendingDispatches({ page, size });
+                const selectKhoNhan = document.getElementById('filterKhoNhanTab1');
+                const maKhoNhan = selectKhoNhan ? selectKhoNhan.value : '';
+                const res = await UteApi.getPendingDispatches({ page, size, maKhoNhan });
                 if (res && res.success && res.data) {
                     const paged = res.data;
                     paginationTab1.setServerPageInfo(paged);
                     renderPendingPackages(paged.items || []);
+                    if (!maKhoNhan) {
+                        const el = document.getElementById('statDonCanDieuPhoi');
+                        if (el) el.innerText = paged.totalItems ?? 0;
+                    }
                     if (currentTab === 1) updateHeaderInfo(1, paged.totalItems);
                 } else {
                     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 24px;">Không có kiện hàng nào cần điều phối.</td></tr>`;
                     document.getElementById('paginationTab1').innerHTML = '';
+                    if (!maKhoNhan) {
+                        const el = document.getElementById('statDonCanDieuPhoi');
+                        if (el) el.innerText = 0;
+                    }
                     if (currentTab === 1) updateHeaderInfo(1, 0);
                 }
             } catch (err) {
                 console.error('Lỗi tải tab 1:', err);
                 tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--danger); padding: 24px;">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
+            }
+        }
+
+        function onKhoNhanFilterChange(khoValue) {
+            paginationTab1.currentPage = 1;
+            loadTab1(1, paginationTab1.pageSize);
+        }
+
+        async function loadKhoNhanDropdown() {
+            const select = document.getElementById('filterKhoNhanTab1');
+            if (!select) return;
+            try {
+                const res = await UteApi.getWarehouses();
+                if (res && res.success && res.data) {
+                    const cur = select.value;
+                    let html = '<option value="">-- Tất cả kho nhận --</option>';
+                    res.data.forEach(k => {
+                        html += `<option value="${k.maKho}">${k.maKho} - ${k.tenKho}</option>`;
+                    });
+                    select.innerHTML = html;
+                    if (cur) select.value = cur;
+                }
+            } catch (e) {
+                console.warn('Lỗi tải danh mục kho nhận:', e);
             }
         }
 
@@ -528,10 +604,14 @@
                     const paged = res.data;
                     paginationTab2.setServerPageInfo(paged);
                     renderRunningTrips(paged.items || []);
+                    const el2 = document.getElementById('statChuyenDangChay');
+                    if (el2) el2.innerText = paged.totalItems ?? 0;
                     if (currentTab === 2) updateHeaderInfo(2, paged.totalItems);
                 } else {
                     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color: var(--text-muted); padding: 24px;">Không có chuyến nào đang chạy.</td></tr>`;
                     document.getElementById('paginationTab2').innerHTML = '';
+                    const el2 = document.getElementById('statChuyenDangChay');
+                    if (el2) el2.innerText = 0;
                     if (currentTab === 2) updateHeaderInfo(2, 0);
                 }
             } catch (err) {
@@ -550,10 +630,14 @@
                     const paged = res.data;
                     paginationTab3.setServerPageInfo(paged);
                     renderAvailableDrivers(paged.items || []);
+                    const el3 = document.getElementById('statTaiXeKhaDung');
+                    if (el3) el3.innerText = paged.totalItems ?? 0;
                     if (currentTab === 3) updateHeaderInfo(3, paged.totalItems);
                 } else {
                     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Không tìm thấy dữ liệu tài xế khả dụng.</td></tr>`;
                     document.getElementById('paginationTab3').innerHTML = '';
+                    const el3 = document.getElementById('statTaiXeKhaDung');
+                    if (el3) el3.innerText = 0;
                     if (currentTab === 3) updateHeaderInfo(3, 0);
                 }
             } catch (err) {
@@ -572,10 +656,14 @@
                     const paged = res.data;
                     paginationTab4.setServerPageInfo(paged);
                     renderAvailableVehicles(paged.items || []);
+                    const el4 = document.getElementById('statXeKhaDung');
+                    if (el4) el4.innerText = paged.totalItems ?? 0;
                     if (currentTab === 4) updateHeaderInfo(4, paged.totalItems);
                 } else {
                     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Không tìm thấy phương tiện khả dụng.</td></tr>`;
                     document.getElementById('paginationTab4').innerHTML = '';
+                    const el4 = document.getElementById('statXeKhaDung');
+                    if (el4) el4.innerText = 0;
                     if (currentTab === 4) updateHeaderInfo(4, 0);
                 }
             } catch (err) {
@@ -597,7 +685,8 @@
                     document.getElementById('statXeKhaDung').innerText = d.phuongTienKhaDung ?? 0;
                 }
 
-                // 2. Tải song song 4 Tab theo cấu hình Server-side ban đầu
+                // 2. Tải danh mục kho nhận và song song 4 Tab theo cấu hình Server-side ban đầu
+                await loadKhoNhanDropdown();
                 await Promise.allSettled([
                     loadTab1(1, paginationTab1.pageSize),
                     loadTab2(1, paginationTab2.pageSize),
@@ -706,7 +795,7 @@
 
             tbody.innerHTML = list.map(item => {
                 const isSameWh = (item.maKhoHienTai && item.maKhoNhan && item.maKhoHienTai === item.maKhoNhan);
-                const suggestedRoute = isSameWh 
+                const suggestedRoute = isSameWh
                     ? `<span class="badge badge-success" style="font-size: 10.5px; padding: 2px 6px;">🚚 Đề xuất: Giao cuối</span>`
                     : `<span class="badge badge-primary" style="font-size: 10.5px; padding: 2px 6px;">🚛 Đề xuất: Liên kho (${item.maKhoHienTai || '?'} ➔ ${item.maKhoNhan || '?'})</span>`;
                 const khoNhan = item.tenKhoNhan ? `Kho nhận: ${item.tenKhoNhan}` : (item.diaChiGiao || '---');
@@ -778,16 +867,11 @@
         function renderAvailableDrivers(list = []) {
             const tbody = document.getElementById('tbodyAvailableDrivers');
             if (!list || list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Không có tài xế nào sẵn sàng.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Hiện không có tài xế nào chưa gán (tất cả tài xế đều đang chạy chuyến hoặc đang chờ xuất phát).</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = list.map(d => {
-                const isReady = !d.chuyenHienTai;
-                const badgeStatus = isReady
-                    ? `<span class="badge badge-success">Sẵn sàng</span>`
-                    : `<span class="badge badge-warning">Đã xếp chuyến</span>`;
-
                 return `
                     <tr>
                         <td><strong style="color: var(--primary-blue);">${d.maTx}</strong></td>
@@ -796,8 +880,8 @@
                         <td><span class="badge badge-secondary">${d.bangLai || '---'}</span></td>
                         <td><span class="badge badge-success">${d.trangThaiTaiKhoan || 'Hoạt động'}</span></td>
                         <td>
-                            <span style="${isReady ? 'color: #059669; font-weight: 600;' : 'color: #D97706; font-weight: 600;'}">
-                                ${d.thongTinPhanCong || (isReady ? 'Sẵn sàng nhận chuyến (Chưa gán)' : 'Đã phân công ' + d.chuyenHienTai)}
+                            <span style="color: #059669; font-weight: 600;">
+                                Sẵn sàng nhận chuyến (Chưa gán)
                             </span>
                         </td>
                         <td>
@@ -814,7 +898,7 @@
         function renderAvailableVehicles(list = []) {
             const tbody = document.getElementById('tbodyAvailableVehicles');
             if (!list || list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Không có phương tiện nào khả dụng.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 24px;">Hiện không có phương tiện nào chưa xếp chuyến (tất cả xe đều đang chạy hoặc đang chờ xuất phát).</td></tr>`;
                 return;
             }
 
@@ -828,7 +912,7 @@
                         <td style="font-weight: 600; color: #2563EB;">${taiTrongFormatted}</td>
                         <td><span class="badge badge-success">${v.trangThai || 'Sẵn sàng'}</span></td>
                         <td>
-                            ${v.chuyenHienTai ? `<span class="badge badge-warning">Chờ chạy chuyến ${v.chuyenHienTai}</span>` : '<span style="color: #059669; font-weight: 500;">Chưa xếp chuyến</span>'}
+                            <span style="color: #059669; font-weight: 600;">Chưa xếp chuyến</span>
                         </td>
                         <td>
                             <a href="14-trips.html?action=create&vehicle=${v.maPt}" class="btn btn-secondary btn-sm">
@@ -911,7 +995,110 @@
             onFilterTable(query);
         }
 
-        document.addEventListener('DOMContentLoaded', loadDashboardData);
+        // ========================== XỬ LÝ LẤY HÀNG (PICKUP) ==========================
+        let globalAvailableDrivers = [];
+
+        async function loadPickupOrders() {
+            const tbody = document.getElementById('tbodyPickupOrders');
+            if (!tbody) return;
+
+            try {
+                // Tải danh sách tài xế nếu chưa có
+                if (globalAvailableDrivers.length === 0) {
+                    const txRes = await fetch('/api/dieu-phoi/tai-xe-kha-dung');
+                    const txJson = await txRes.json();
+                    if (txJson && txJson.data) {
+                        globalAvailableDrivers = txJson.data;
+                    }
+                }
+
+                const res = await fetch('/api/dieu-phoi/don-can-lay');
+                const json = await res.json();
+                const orders = (json && json.data) ? json.data : [];
+                const badge = document.getElementById('badgePendingPickup');
+                if (badge) badge.innerText = `${orders.length} đơn chờ lấy`;
+
+                if (orders.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">Không có đơn hàng nào chờ lấy tận nơi.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(d => {
+                    const statusText = d.trangThaiLay === 'DANG_LAY'
+                        ? '<span class="badge badge-info"><span class="badge-dot"></span>Đang đi lấy</span>'
+                        : '<span class="badge badge-warning"><span class="badge-dot"></span>Chưa lấy</span>';
+                    const txPhuTrach = d.maTxLay ? `<strong style="color: #2563EB;">${d.maTxLay}</strong>` : '<span style="color: var(--text-muted);">Chưa gán</span>';
+
+                    let driverOptions = '<option value="">-- Chọn tài xế --</option>';
+                    globalAvailableDrivers.forEach(tx => {
+                        const isSel = (d.maTxLay && d.maTxLay.toUpperCase() === tx.maTx.toUpperCase()) ? 'selected' : '';
+                        driverOptions += `<option value="${tx.maTx}" ${isSel}>${tx.maTx} - ${tx.hoTen}</option>`;
+                    });
+
+                    return `
+                        <tr>
+                            <td><strong>${d.maDh}</strong></td>
+                            <td><span class="badge badge-secondary">${d.maKhoGui || ''}</span></td>
+                            <td style="max-width: 220px;">
+                                <div style="font-weight: 600;">${d.tenNguoiNhan || ''}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiLay || ''}</div>
+                            </td>
+                            <td style="max-width: 200px;">
+                                <div style="font-weight: 500;">${d.tenNguoiNhan || ''} (${d.sdtNhan || ''})</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiGiao || ''}</div>
+                            </td>
+                            <td><strong>${d.phiVanChuyen ? Number(d.phiVanChuyen).toLocaleString('vi-VN') + ' đ' : '0 đ'}</strong></td>
+                            <td>${statusText}</td>
+                            <td>${txPhuTrach}</td>
+                            <td style="text-align: right;">
+                                <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                    <select class="form-select form-select-sm" id="selectTx_${d.maDh}" style="width: 150px; font-size: 12px;">
+                                        ${driverOptions}
+                                    </select>
+                                    <button class="btn btn-primary btn-sm" onclick="assignPickupDriver('${d.maDh}', 'selectTx_${d.maDh}')" style="white-space: nowrap; font-size: 12px; padding: 4px 10px;">
+                                        Giao việc
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Lỗi tải đơn cần lấy:', err);
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--danger);">Lỗi tải danh sách: ${err.message}</td></tr>`;
+            }
+        }
+
+        async function assignPickupDriver(maDh, selectId) {
+            const select = document.getElementById(selectId);
+            const maTx = select ? select.value : '';
+            if (!maTx) {
+                alert('Vui lòng chọn một tài xế để phân công đi lấy hàng!');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/dieu-phoi/assign-pickup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ maDh: maDh, maTx: maTx })
+                });
+                const json = await res.json();
+                if (json && json.success) {
+                    alert(`✓ Đã phân công tài xế ${maTx} đi lấy đơn hàng ${maDh} thành công!`);
+                    loadPickupOrders();
+                } else {
+                    alert('Lỗi: ' + (json.message || 'Không thể phân công tài xế'));
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardData();
+            loadPickupOrders();
+        });
     </script>
     <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
 </body>

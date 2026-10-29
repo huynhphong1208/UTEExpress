@@ -4,14 +4,9 @@ import com.example.backend.dto.request.TaoDonHangRequest;
 import com.example.backend.dto.response.DonHangChiTietResponse;
 import com.example.backend.dto.response.TaoDonHangResponse;
 import com.example.backend.dto.response.TraCuuDonHangResponse;
-import com.example.backend.entity.DonHang;
-import com.example.backend.entity.KhachHang;
-import com.example.backend.entity.ThanhToan;
+import com.example.backend.entity.*;
 import com.example.backend.exception.BusinessException;
-import com.example.backend.repository.DonHangRepository;
-import com.example.backend.repository.KhachHangRepository;
-import com.example.backend.repository.NguoiDungRepository;
-import com.example.backend.repository.ThanhToanRepository;
+import com.example.backend.repository.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.ParameterMode;
 import jakarta.persistence.StoredProcedureQuery;
@@ -41,6 +36,8 @@ public class DonHangService {
     private final DonHangRepository donHangRepository;
     private final ThanhToanRepository thanhToanRepository;
     private final NguoiDungRepository nguoiDungRepository;
+    private final KhoRepository khoRepository;
+    private final GeminiService geminiService;
     private final EntityManager entityManager;
 
     // =========================================================
@@ -48,6 +45,25 @@ public class DonHangService {
     // =========================================================
     @Transactional
     public TaoDonHangResponse taoDonHang(String maNd, TaoDonHangRequest request) {
+        // Tự động phân tích và chọn kho gần nhất bằng Gemini AI nếu chưa chọn kho
+        String maKhoGui = request.getMaKhoGui();
+        String maKhoNhan = request.getMaKhoNhan();
+
+        if (maKhoGui == null || maKhoGui.isBlank() || maKhoNhan == null || maKhoNhan.isBlank()) {
+            List<com.example.backend.entity.Kho> allKho = khoRepository.findAll();
+            GeminiService.WarehouseRecommendation recommendation = geminiService.determineWarehouses(
+                    request.getDiaChiLay(), request.getDiaChiGiao(), allKho);
+            if (maKhoGui == null || maKhoGui.isBlank()) {
+                maKhoGui = recommendation.getMaKhoGui();
+                request.setMaKhoGui(maKhoGui);
+            }
+            if (maKhoNhan == null || maKhoNhan.isBlank()) {
+                maKhoNhan = recommendation.getMaKhoNhan();
+                request.setMaKhoNhan(maKhoNhan);
+            }
+            log.info("Kho được chọn tự động cho đơn hàng: gửi={}, nhận={}, lý do={}", maKhoGui, maKhoNhan, recommendation.getLyDo());
+        }
+
         // Lấy mã khách hàng từ mã người dùng (hỗ trợ cả ma_nd hoặc ten_dang_nhap/sdt)
         KhachHang kh = khachHangRepository.findByNguoiDung_MaNd(maNd)
                 .or(() -> khachHangRepository.findBySdt(maNd))
@@ -95,14 +111,16 @@ public class DonHangService {
         // Lấy thông tin đơn hàng vừa tạo (lúc này Trigger DB đã tính xong phí vận chuyển)
         DonHang donHang = donHangRepository.findById(maDh)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng sau khi tạo: " + maDh, 500));
+        donHang.setTrangThaiLay("CHUA_LAY");
+        donHangRepository.save(donHang);
 
         // Xác định phương thức thanh toán cước phí và trạng thái
         String rawPt = request.getPhuongThucThanhToan();
-        boolean isChuyenKhoan = rawPt != null && (rawPt.toUpperCase().contains("CHUYEN") || rawPt.toUpperCase().contains("BANK"));
+        boolean isChuyenKhoan = rawPt != null && (rawPt.toUpperCase().contains("CHUYEN") || rawPt.toUpperCase().contains("CHUYỂN") || rawPt.toUpperCase().contains("BANK") || rawPt.toUpperCase().contains("QR"));
         String phuongThuc = isChuyenKhoan ? "Chuyển khoản" : "Tiền mặt";
-        String trangThai = isChuyenKhoan ? "Đã thanh toán" : "Chưa thanh toán";
+        String trangThai = "Chưa thanh toán";
         String thongBao = isChuyenKhoan
-                ? "Đã ghi nhận thanh toán cước qua chuyển khoản thành công"
+                ? "Vui lòng chuyển khoản quét mã QR để hoàn tất thanh toán cước phí"
                 : "Vui lòng chuẩn bị tiền mặt khi nhân viên bưu cục đến lấy hàng";
 
         BigDecimal phiVC = donHang.getPhiVanChuyen() != null ? donHang.getPhiVanChuyen() : BigDecimal.ZERO;
