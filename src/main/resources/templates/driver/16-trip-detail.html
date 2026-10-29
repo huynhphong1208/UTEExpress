@@ -267,6 +267,7 @@
             }
 
             const isLienKho = currentTripData && currentTripData.loaiChuyen === 'LIEN_KHO';
+            const isLayHang = currentTripData && currentTripData.loaiChuyen === 'LAY_HANG';
 
             tbody.innerHTML = pkgs.map(p => {
                 const badge = getStatusBadge(p.trangThai);
@@ -274,21 +275,51 @@
                 const phiVC = Number(p.phiVanChuyen || 0);
                 const isCk = p.phiDaThanhToan || (p.phuongThucThanhToan && p.phuongThucThanhToan.toLowerCase().includes('chuyển'));
                 let paymentHtml = '';
-                if (isCk) {
-                    paymentHtml = `
-                        <div><strong style="color: ${codVal > 0 ? 'var(--danger)' : 'var(--text-muted)'};">Thu COD: ${codVal > 0 ? codVal.toLocaleString('vi-VN') + ' đ' : '0 đ'}</strong></div>
-                        <small style="color: var(--success); font-weight: 500;">✓ Đã TT cước CK</small>
-                    `;
+
+                if (isLayHang) {
+                    if (isCk) {
+                        paymentHtml = `
+                            <div><strong style="color: var(--success);">0 đ</strong></div>
+                            <small style="color: var(--success); font-weight: 500;">✓ Cước đã TT chuyển khoản</small>
+                        `;
+                    } else {
+                        paymentHtml = `
+                            <div><strong style="color: #DC2626;">Thu: ${phiVC.toLocaleString('vi-VN')} đ</strong></div>
+                            <small style="color: var(--text-muted);">Cước tiền mặt người gửi</small>
+                        `;
+                    }
                 } else {
-                    const tongThu = (p.tongTienThu !== undefined && p.tongTienThu !== null) ? Number(p.tongTienThu) : (phiVC + codVal);
-                    paymentHtml = `
-                        <div><strong style="color: #DC2626;">Thu: ${tongThu.toLocaleString('vi-VN')} đ</strong></div>
-                        <small style="color: var(--text-muted);">Cước: ${phiVC.toLocaleString('vi-VN')}đ + COD: ${codVal.toLocaleString('vi-VN')}đ (Tiền mặt)</small>
-                    `;
+                    if (isCk) {
+                        paymentHtml = `
+                            <div><strong style="color: ${codVal > 0 ? 'var(--danger)' : 'var(--text-muted)'};">Thu COD: ${codVal > 0 ? codVal.toLocaleString('vi-VN') + ' đ' : '0 đ'}</strong></div>
+                            <small style="color: var(--success); font-weight: 500;">✓ Đã TT cước CK</small>
+                        `;
+                    } else {
+                        const tongThu = (p.tongTienThu !== undefined && p.tongTienThu !== null) ? Number(p.tongTienThu) : (phiVC + codVal);
+                        paymentHtml = `
+                            <div><strong style="color: #DC2626;">Thu: ${tongThu.toLocaleString('vi-VN')} đ</strong></div>
+                            <small style="color: var(--text-muted);">Cước: ${phiVC.toLocaleString('vi-VN')}đ + COD: ${codVal.toLocaleString('vi-VN')}đ (Tiền mặt)</small>
+                        `;
+                    }
                 }
 
                 let actionHtml = '';
-                if (isLienKho) {
+                if (isLayHang) {
+                    if (p.trangThai === 'Đã quét') {
+                        actionHtml = '<span class="badge badge-success">✓ Đã lấy hàng</span>';
+                    } else if (p.trangThai === 'Thất bại') {
+                        actionHtml = `<span class="badge badge-danger" title="${p.ghiChu || ''}">✕ Lấy thất bại</span>`;
+                    } else if (currentTripData.trangThai === 'Đang đi') {
+                        actionHtml = `
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <button class="btn btn-success btn-sm" onclick="handleConfirmPickup('${p.maKien}', '${p.tenNguoiGui || ''}')" title="Xác nhận đã nhận hàng từ người gửi">✓ Đã lấy</button>
+                                <button class="btn btn-danger btn-sm" onclick="handleFailPickup('${p.maKien}')" title="Báo không lấy được hàng">✕ Thất bại</button>
+                            </div>
+                        `;
+                    } else {
+                        actionHtml = '<span class="badge badge-warning">⏳ Chờ xuất phát</span>';
+                    }
+                } else if (isLienKho) {
                     if (currentTripData.trangThai === 'Hoàn thành') {
                         actionHtml = '<span class="badge badge-success">✓ Đã nhập kho đích</span>';
                     } else if (currentTripData.trangThai === 'Đang đi') {
@@ -302,13 +333,21 @@
                         : `<a href="17-delivery-update.html?id=${currentTripId}&pkg=${p.maKien}" class="btn btn-primary btn-sm">Cập nhật</a>`;
                 }
 
+                const contactPerson = isLayHang
+                    ? `<strong>${p.tenNguoiGui || 'Người gửi'}</strong><br><small style="color: var(--text-muted);">${p.sdtGui || ''}</small>`
+                    : `<strong>${p.tenNguoiNhan || 'Người nhận'}</strong><br><small style="color: var(--text-muted);">${p.sdtNhan || ''}</small>`;
+
+                const addressDisplay = isLayHang
+                    ? (p.diaChiLay || 'Tại địa chỉ người gửi')
+                    : (p.diaChiGiao || '---');
+
                 return `
                     <tr>
                         <td><strong style="color: var(--primary-blue);">${p.maKien}</strong></td>
                         <td>${p.maDh || '---'}</td>
                         <td>${p.khoiLuong || 0} kg</td>
-                        <td><strong>${p.tenNguoiNhan}</strong><br><small style="color: var(--text-muted);">${p.sdtNhan}</small></td>
-                        <td>${p.diaChiGiao}</td>
+                        <td>${contactPerson}</td>
+                        <td>${addressDisplay}</td>
                         <td>${paymentHtml}</td>
                         <td>${badge}</td>
                         <td class="cell-actions">
@@ -350,14 +389,18 @@
 
             if (t.trangThai === 'Chưa đi') {
                 startBtn.style.display = 'inline-block';
-                startBtn.innerText = '🚚 Xuất phát chuyến';
+                startBtn.innerText = t.loaiChuyen === 'LAY_HANG' ? '🛵 Xuất phát đi lấy hàng' : '🚚 Xuất phát chuyến';
                 completeBtn.style.display = 'none';
-                scanBtn.style.display = 'inline-block';
+                scanBtn.style.display = t.loaiChuyen === 'LAY_HANG' ? 'none' : 'inline-block';
             } else if (t.trangThai === 'Đang đi') {
                 startBtn.style.display = 'none';
                 if (t.loaiChuyen === 'LIEN_KHO') {
-                    // Với chuyến liên kho đang chạy, tài xế có nút xác nhận đến kho đích
                     completeBtn.style.display = 'inline-block';
+                    completeBtn.innerText = '🏁 Đến kho đích & Hoàn thành';
+                    scanBtn.style.display = 'none';
+                } else if (t.loaiChuyen === 'LAY_HANG') {
+                    completeBtn.style.display = 'inline-block';
+                    completeBtn.innerText = '🏁 Về bưu cục & Hoàn thành chuyến lấy';
                     scanBtn.style.display = 'none';
                 } else {
                     completeBtn.style.display = 'none';
@@ -372,11 +415,20 @@
             const depTime = t.ngayXuatPhat ? new Date(t.ngayXuatPhat).toLocaleString('vi-VN') : '---';
             const arrTime = t.ngayDenDuKien ? new Date(t.ngayDenDuKien).toLocaleString('vi-VN') : '---';
 
+            let loaiChuyenLabel = '';
+            if (t.loaiChuyen === 'LAY_HANG') {
+                loaiChuyenLabel = '🛵 Lấy hàng tận nơi (Đi gom hàng tại nhà gửi)';
+            } else if (t.loaiChuyen === 'LIEN_KHO') {
+                loaiChuyenLabel = '🚛 Liên kho (Hub-to-Hub): ' + (t.maTuyen || '');
+            } else {
+                loaiChuyenLabel = '🚚 Giao cuối tới khách hàng';
+            }
+
             document.getElementById('tripOverviewBody').innerHTML = `
                 <div class="grid-4" style="margin-bottom: 16px;">
                     <div>
                         <span style="font-size: 12px; color: var(--text-muted);">Tuyến / Loại chuyến</span>
-                        <div style="font-weight: 700; margin-top: 2px;">${t.loaiChuyen === 'LIEN_KHO' ? 'Liên kho (Hub-to-Hub): ' + (t.maTuyen || '') : 'Giao cuối tới khách hàng'}</div>
+                        <div style="font-weight: 700; margin-top: 2px;">${loaiChuyenLabel}</div>
                     </div>
                     <div>
                         <span style="font-size: 12px; color: var(--text-muted);">Kho đi (Xuất phát)</span>
@@ -475,6 +527,58 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        async function handleConfirmPickup(maKien, tenNguoiGui) {
+            if (!confirm(`Xác nhận bạn đã nhận kiện hàng ${maKien} từ người gửi (${tenNguoiGui || 'Khách hàng'})?`)) {
+                return;
+            }
+            const driverId = getCurrentDriverId();
+            const userId = getDriverUserId(driverId);
+            try {
+                const res = await UteApi.pickupSuccess({
+                    maChuyen: currentTripId,
+                    maKien: maKien,
+                    maNd: userId || 'ND0003',
+                    nguoiGiao: tenNguoiGui || 'Khách gửi',
+                    ghiChu: 'Tài xế đã nhận hàng tận nơi'
+                });
+                if (res && res.success) {
+                    showToast('Thành công', `Đã xác nhận lấy hàng thành công kiện ${maKien}!`, 'success');
+                    await loadTripDetail(currentTripId);
+                } else {
+                    alert('Lỗi: ' + (res ? res.message : 'Không thể xác nhận lấy hàng'));
+                }
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+            }
+        }
+
+        async function handleFailPickup(maKien) {
+            const lyDo = prompt(`Nhập lý do không thể lấy hàng cho kiện ${maKien} (ví dụ: Khách hẹn hôm sau, không liên lạc được...):`);
+            if (lyDo === null) return;
+            if (!lyDo.trim()) {
+                alert('Vui lòng nhập lý do!');
+                return;
+            }
+            const driverId = getCurrentDriverId();
+            const userId = getDriverUserId(driverId);
+            try {
+                const res = await UteApi.pickupFailed({
+                    maChuyen: currentTripId,
+                    maKien: maKien,
+                    maNd: userId || 'ND0003',
+                    lyDo: lyDo.trim()
+                });
+                if (res && res.success) {
+                    showToast('Đã ghi nhận', `Đã ghi nhận lấy hàng thất bại kiện ${maKien}.`, 'warning');
+                    await loadTripDetail(currentTripId);
+                } else {
+                    alert('Lỗi: ' + (res ? res.message : 'Không thể ghi nhận'));
+                }
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+            }
         }
 
         function onTripSelectChanged(tripId) {

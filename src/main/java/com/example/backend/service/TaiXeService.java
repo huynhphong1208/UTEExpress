@@ -91,29 +91,30 @@ public class TaiXeService {
      */
     public List<KienTrongChuyenDTO> getKienTrongChuyen(String maChuyen) {
         String sql = """
-            SELECT x.ma_chuyen, c.ma_tx, x.ma_kien, k.ma_dh,
-                   COALESCE(d.ten_nguoi_nhan, 'Khách hàng') AS ten_nguoi_nhan,
-                   COALESCE(d.sdt_nhan, '') AS sdt_nhan,
-                   COALESCE(d.dia_chi_giao, '') AS dia_chi_giao,
-                   k.khoi_luong, k.loai_hang, x.trang_thai,
-                   x.thoi_gian_gan, x.thoi_gian_quet, x.ghi_chu,
-                   COALESCE(d.cod, 0) AS cod,
-                   COALESCE(d.phi_van_chuyen, 0) AS phi_van_chuyen,
+            SELECT v.ma_chuyen, v.ma_tx, v.loai_chuyen, v.ma_kien, v.ma_dh,
+                   COALESCE(v.ten_nguoi_nhan, 'Khách hàng') AS ten_nguoi_nhan,
+                   COALESCE(v.sdt_nhan, '') AS sdt_nhan,
+                   COALESCE(v.dia_chi_giao, '') AS dia_chi_giao,
+                   COALESCE(v.dia_chi_lay, '') AS dia_chi_lay,
+                   COALESCE(v.ten_nguoi_gui, 'Khách gửi') AS ten_nguoi_gui,
+                   COALESCE(v.sdt_gui, '') AS sdt_gui,
+                   v.khoi_luong, v.loai_hang, v.trang_thai,
+                   v.trang_thai_lay,
+                   v.thoi_gian_gan, v.thoi_gian_quet, v.ghi_chu,
+                   COALESCE(v.cod, 0) AS cod,
+                   COALESCE(v.phi_van_chuyen, 0) AS phi_van_chuyen,
                    tt.phuong_thuc AS phuong_thuc_cuoc,
                    tt.trang_thai AS trang_thai_cuoc
-            FROM chi_tiet_chuyen_giao x
-            JOIN chuyen_giao c ON c.ma_chuyen = x.ma_chuyen
-            JOIN kien_hang k ON k.ma_kien = x.ma_kien
-            LEFT JOIN don_hang d ON d.ma_dh = k.ma_dh
+            FROM v_kien_trong_chuyen v
             LEFT JOIN LATERAL (
                 SELECT t.phuong_thuc, t.trang_thai
                 FROM thanh_toan t
-                WHERE t.ma_dh = d.ma_dh AND t.loai_khoan = 'PHI_VC'
+                WHERE t.ma_dh = v.ma_dh AND t.loai_khoan = 'PHI_VC'
                 ORDER BY t.thoi_gian DESC
                 LIMIT 1
             ) tt ON TRUE
-            WHERE x.ma_chuyen = ?
-            ORDER BY x.thoi_gian_gan ASC
+            WHERE v.ma_chuyen = ?
+            ORDER BY v.thoi_gian_gan ASC
         """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
@@ -123,19 +124,27 @@ public class TaiXeService {
             KienTrongChuyenDTO dto = KienTrongChuyenDTO.builder()
                     .maChuyen(rs.getString("ma_chuyen"))
                     .maTx(rs.getString("ma_tx"))
+                    .loaiChuyen(rs.getString("loai_chuyen"))
                     .maKien(rs.getString("ma_kien"))
                     .maDh(rs.getString("ma_dh"))
                     .tenNguoiNhan(rs.getString("ten_nguoi_nhan"))
                     .sdtNhan(rs.getString("sdt_nhan"))
                     .diaChiGiao(rs.getString("dia_chi_giao"))
+                    .diaChiLay(rs.getString("dia_chi_lay"))
+                    .tenNguoiGui(rs.getString("ten_nguoi_gui"))
+                    .sdtGui(rs.getString("sdt_gui"))
+                    .trangThaiLay(rs.getString("trang_thai_lay"))
                     .khoiLuong(rs.getBigDecimal("khoi_luong"))
                     .loaiHang(rs.getString("loai_hang"))
                     .trangThai(rs.getString("trang_thai"))
                     .thoiGianGan(tsGan != null ? tsGan.toLocalDateTime() : null)
                     .thoiGianQuet(tsQuet != null ? tsQuet.toLocalDateTime() : null)
                     .ghiChu(rs.getString("ghi_chu"))
+                    .cod(rs.getBigDecimal("cod"))
+                    .phiVanChuyen(rs.getBigDecimal("phi_van_chuyen"))
                     .build();
             dto.applyPaymentInfo(
+                    rs.getString("loai_chuyen"),
                     rs.getBigDecimal("phi_van_chuyen"),
                     rs.getBigDecimal("cod"),
                     rs.getString("phuong_thuc_cuoc"),
@@ -154,7 +163,11 @@ public class TaiXeService {
                    COALESCE(t.ma_kho_di, c.ma_kho_giao) AS ma_kho_xuat_phat,
                    COALESCE(kdi.ten_kho, 'Kho xuất phát') AS ten_kho_xuat_phat,
                    t.ma_kho_den,
-                   COALESCE(kden.ten_kho, 'Địa chỉ khách hàng') AS ten_diem_den,
+                   CASE
+                       WHEN c.loai_chuyen = 'LAY_HANG' THEN 'Địa chỉ khách gửi (Lấy hàng)'
+                       WHEN c.loai_chuyen = 'LIEN_KHO' THEN COALESCE(kden.ten_kho, 'Kho đích')
+                       ELSE 'Địa chỉ khách hàng (Giao cuối)'
+                   END AS ten_diem_den,
                    c.ma_tx, tx.ho_ten AS ten_tai_xe, c.ma_pt, pt.bien_so, pt.tai_trong,
                    c.ma_nv_dieu_phoi, c.ngay_xuat_phat, c.ngay_den_du_kien,
                    COALESCE(ct.so_kien, 0) AS so_kien, COALESCE(ct.tong_kg, 0) AS tong_kg,
@@ -214,7 +227,11 @@ public class TaiXeService {
                    COALESCE(t.ma_kho_di, c.ma_kho_giao) AS ma_kho_xuat_phat,
                    COALESCE(kdi.ten_kho, 'Kho xuất phát') AS ten_kho_xuat_phat,
                    t.ma_kho_den,
-                   COALESCE(kden.ten_kho, 'Địa chỉ khách hàng') AS ten_diem_den,
+                   CASE
+                       WHEN c.loai_chuyen = 'LAY_HANG' THEN 'Địa chỉ khách gửi (Lấy hàng)'
+                       WHEN c.loai_chuyen = 'LIEN_KHO' THEN COALESCE(kden.ten_kho, 'Kho đích')
+                       ELSE 'Địa chỉ khách hàng (Giao cuối)'
+                   END AS ten_diem_den,
                    c.ma_tx, tx.ho_ten AS ten_tai_xe, c.ma_pt, pt.bien_so, pt.tai_trong,
                    c.ma_nv_dieu_phoi, c.ngay_xuat_phat, c.ngay_den_du_kien,
                    COALESCE(ct.so_kien, 0) AS so_kien, COALESCE(ct.tong_kg, 0) AS tong_kg,
@@ -529,17 +546,41 @@ public class TaiXeService {
         kiemTraVaTuDongHoanThanhChuyen(maChuyen, maNd);
     }
 
+    /**
+     * Tài xế lấy hàng thành công (chuyến LAY_HANG).
+     */
+    @Transactional
+    public void layHangThanhCong(String maChuyen, String maKien, String maNd, String nguoiGiao, String ghiChu) {
+        chuyenGiaoRepository.layHangThanhCong(maChuyen, maKien, maNd, nguoiGiao, ghiChu);
+        kiemTraVaTuDongHoanThanhChuyen(maChuyen, maNd);
+    }
+
+    /**
+     * Tài xế lấy hàng thất bại (chuyến LAY_HANG).
+     */
+    @Transactional
+    public void layHangThatBai(String maChuyen, String maKien, String maNd, String lyDo) {
+        chuyenGiaoRepository.layHangThatBai(maChuyen, maKien, maNd, lyDo);
+        kiemTraVaTuDongHoanThanhChuyen(maChuyen, maNd);
+    }
+
     private void kiemTraVaTuDongHoanThanhChuyen(String maChuyen, String maNd) {
         ChuyenGiao cg = chuyenGiaoRepository.findById(maChuyen).orElse(null);
         if (cg == null || !"Đang đi".equals(cg.getTrangThai())) {
             return;
         }
 
-        // Nghiệp vụ: Chuyến đang giao mà chưa có kết quả hết các kiện -> Đang đi
-        // Có kiện thành công, có kiện thất bại HOẶC Tất cả kiện đều giao thất bại -> Hoàn thành
-        Integer remaining = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM chi_tiet_chuyen_giao WHERE ma_chuyen = ? AND trang_thai NOT IN ('Đã giao', 'Thất bại')",
-                Integer.class, maChuyen);
+        // Nghiệp vụ: Chuyến đang giao/lấy mà chưa có kết quả hết các kiện -> Đang đi
+        Integer remaining;
+        if ("LAY_HANG".equalsIgnoreCase(cg.getLoaiChuyen())) {
+            remaining = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM chi_tiet_chuyen_giao WHERE ma_chuyen = ? AND trang_thai NOT IN ('Đã quét', 'Thất bại')",
+                    Integer.class, maChuyen);
+        } else {
+            remaining = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM chi_tiet_chuyen_giao WHERE ma_chuyen = ? AND trang_thai NOT IN ('Đã giao', 'Thất bại')",
+                    Integer.class, maChuyen);
+        }
 
         if (remaining != null && remaining == 0) {
             try {

@@ -124,8 +124,9 @@
                     <div class="form-group">
                         <label class="form-label">Loại chuyến <span class="required">*</span></label>
                         <select class="form-select" id="tripType" onchange="toggleTripType()">
-                            <option value="LIEN_KHO" selected>Liên kho (Hub to Hub / Branch)</option>
-                            <option value="GIAO_CUOI">Giao cuối (Branch to Customer)</option>
+                            <option value="LAY_HANG">🛵 Lấy hàng tận nơi (Đi gom hàng tại nhà người gửi)</option>
+                            <option value="LIEN_KHO" selected>🚛 Liên kho (Hub to Hub / Branch)</option>
+                            <option value="GIAO_CUOI">🚚 Giao cuối (Branch to Customer)</option>
                         </select>
                     </div>
                     <div class="form-group" id="groupRoute">
@@ -135,7 +136,7 @@
                         </select>
                     </div>
                     <div class="form-group" id="groupFromWarehouse" style="display: none;">
-                        <label class="form-label">Kho xuất phát giao hàng <span class="required">*</span></label>
+                        <label class="form-label" id="lblWarehouse">Bưu cục / Kho phụ trách <span class="required">*</span></label>
                         <select class="form-select" id="tripDepartureWarehouse" onchange="renderAvailablePackages()">
                             <option value="">-- Đang tải danh sách kho --</option>
                         </select>
@@ -503,12 +504,18 @@
 
         function toggleTripType() {
             const type = document.getElementById('tripType').value;
+            const lblWh = document.getElementById('lblWarehouse');
             if (type === 'LIEN_KHO') {
                 document.getElementById('groupRoute').style.display = 'block';
                 document.getElementById('groupFromWarehouse').style.display = 'none';
+            } else if (type === 'LAY_HANG') {
+                document.getElementById('groupRoute').style.display = 'none';
+                document.getElementById('groupFromWarehouse').style.display = 'block';
+                if (lblWh) lblWh.innerHTML = 'Bưu cục phụ trách lấy hàng <span class="required">*</span>';
             } else {
                 document.getElementById('groupRoute').style.display = 'none';
                 document.getElementById('groupFromWarehouse').style.display = 'block';
+                if (lblWh) lblWh.innerHTML = 'Kho / Bưu cục xuất phát giao hàng <span class="required">*</span>';
             }
             renderAvailablePackages();
         }
@@ -562,7 +569,30 @@
                 return curWh === departureWh;
             });
 
-            if (type === 'LIEN_KHO') {
+            if (type === 'LAY_HANG') {
+                if (badgeEl) {
+                    badgeEl.className = 'badge badge-warning';
+                    badgeEl.innerText = `Lấy hàng: ${departureWh || '?'} ➔ Nhà người gửi`;
+                }
+                if (explEl) {
+                    explEl.innerHTML = `Bưu cục phụ trách: <strong>${depWhName}</strong>. Danh sách đơn gom hàng tại nhà khách gửi (TT02 - Chưa lấy).`;
+                }
+
+                availablePackages.forEach(p => {
+                    const isPickupAtWh = (p.maKhoGui === departureWh || p.maKhoHienTai === departureWh);
+                    const isWaitingPickup = (p.maTt === 'TT02' && (p.trangThaiLay === 'CHUA_LAY' || p.trangThaiLay === 'DANG_LAY' || !p.trangThaiLay));
+
+                    if (isPickupAtWh && isWaitingPickup) {
+                        currentEligiblePackages.push(p);
+                    } else if (isPickupAtWh) {
+                        currentIneligiblePackages.push({
+                            package: p,
+                            reason: `Đơn đã lấy trước đó (${p.trangThaiLay}) hoặc không ở trạng thái TT02`
+                        });
+                    }
+                });
+
+            } else if (type === 'LIEN_KHO') {
                 const routeId = document.getElementById('tripRoute').value;
                 const route = allRoutes.find(r => r.maTuyen === routeId);
                 const arrWh = route ? route.maKhoDen : null;
@@ -682,7 +712,16 @@
             container.innerHTML = currentEligiblePackages.map(p => {
                 const kg = parseFloat(p.khoiLuong) || 0;
                 let routeBadge = '';
-                if (type === 'LIEN_KHO') {
+                let detailText = '';
+                let extraFeeText = '';
+
+                if (type === 'LAY_HANG') {
+                    routeBadge = `<span class="badge badge-warning" style="font-size: 10.5px; padding: 2px 6px;">🛵 Lấy: ${p.tenNguoiGui || 'Khách gửi'}</span>`;
+                    detailText = `Nhà người gửi: ${p.diaChiLay || 'Chưa có địa chỉ lấy'}${p.sdtGui ? ` • SĐT: ${p.sdtGui}` : ''}`;
+                    if (p.phiVanChuyen && parseFloat(p.phiVanChuyen) > 0) {
+                        extraFeeText = `<div style="font-size: 11px; color: #0284C7; font-weight: 600;">Cước: ${parseFloat(p.phiVanChuyen).toLocaleString('vi-VN')} đ</div>`;
+                    }
+                } else if (type === 'LIEN_KHO') {
                     const routeId = document.getElementById('tripRoute').value;
                     const route = allRoutes.find(r => r.maTuyen === routeId);
                     const arrWh = route ? route.maKhoDen : null;
@@ -691,8 +730,16 @@
                     } else {
                         routeBadge = `<span class="badge badge-info" style="font-size: 10.5px; padding: 2px 6px;">↗ Đi tiếp: ${p.tenKhoNhan || p.maKhoNhan || 'Kho khác'}</span>`;
                     }
+                    detailText = `${p.loaiHang || 'Hàng hóa'}${p.diaChiGiao ? ` • Giao: ${p.diaChiGiao}` : ''}`;
+                    if (p.cod && parseFloat(p.cod) > 0) {
+                        extraFeeText = `<div style="font-size: 11px; color: #DC2626; font-weight: 600;">COD: ${parseFloat(p.cod).toLocaleString('vi-VN')} đ</div>`;
+                    }
                 } else {
                     routeBadge = `<span class="badge badge-success" style="font-size: 10.5px; padding: 2px 6px;">📍 Khách: ${p.tenNguoiNhan || 'Khách nhận'}</span>`;
+                    detailText = `${p.loaiHang || 'Hàng hóa'}${p.diaChiGiao ? ` • Giao: ${p.diaChiGiao}` : ''}`;
+                    if (p.cod && parseFloat(p.cod) > 0) {
+                        extraFeeText = `<div style="font-size: 11px; color: #DC2626; font-weight: 600;">COD: ${parseFloat(p.cod).toLocaleString('vi-VN')} đ</div>`;
+                    }
                 }
 
                 const statusBadge = `<span class="badge badge-secondary" style="font-size: 10.5px; padding: 2px 6px;">${p.trangThaiDon || p.maTt || 'Sẵn sàng'}</span>`;
@@ -709,13 +756,13 @@
                                     ${statusBadge}
                                 </div>
                                 <div style="font-size: 11.5px; color: #64748B; margin-top: 2px;">
-                                    ${p.loaiHang || 'Hàng hóa'}${p.diaChiGiao ? ` • Giao: ${p.diaChiGiao}` : ''}
+                                    ${detailText}
                                 </div>
                             </div>
                         </div>
                         <div style="text-align: right; white-space: nowrap; margin-left: 12px;">
                             <span style="color: var(--primary-blue); font-weight: 700; font-size: 14px;">${kg.toLocaleString('vi-VN')} kg</span>
-                            ${p.cod && parseFloat(p.cod) > 0 ? `<div style="font-size: 11px; color: #DC2626; font-weight: 600;">COD: ${parseFloat(p.cod).toLocaleString('vi-VN')} đ</div>` : ''}
+                            ${extraFeeText}
                         </div>
                     </label>
                 `;
@@ -886,9 +933,14 @@
             }
 
             tbody.innerHTML = trips.map(t => {
-                const routeName = t.loaiChuyen === 'LIEN_KHO'
-                    ? `${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`
-                    : `Giao cuối: ${t.tenKhoXuatPhat || 'Kho'} ➔ Địa chỉ khách`;
+                let routeName = '';
+                if (t.loaiChuyen === 'LAY_HANG') {
+                    routeName = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Địa chỉ gửi`;
+                } else if (t.loaiChuyen === 'LIEN_KHO') {
+                    routeName = `<span class="badge badge-primary" style="font-size: 11px; margin-right: 4px;">🚛 Liên kho</span> ${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`;
+                } else {
+                    routeName = `<span class="badge badge-success" style="font-size: 11px; margin-right: 4px;">🚚 Giao cuối</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Địa chỉ nhận`;
+                }
 
                 const loadPercent = t.tyLeTai != null ? t.tyLeTai : 0;
                 const loadStyle = loadPercent > 100 ? 'color: var(--danger); font-weight: 700;' : 'font-weight: 600;';
@@ -967,7 +1019,7 @@
 
             const type = document.getElementById('tripType').value;
             const maTuyen = type === 'LIEN_KHO' ? document.getElementById('tripRoute').value : null;
-            const maKhoGiao = type === 'GIAO_CUOI' ? document.getElementById('tripDepartureWarehouse').value : null;
+            const maKhoGiao = (type === 'GIAO_CUOI' || type === 'LAY_HANG') ? document.getElementById('tripDepartureWarehouse').value : null;
             const maTx = document.getElementById('tripDriver').value;
             const maPt = document.getElementById('tripVehicle').value;
             const depTime = document.getElementById('tripDepartureTime').value;
@@ -983,8 +1035,8 @@
                 return;
             }
 
-            if (type === 'GIAO_CUOI' && !maKhoGiao) {
-                alert('Chuyến giao cuối bắt buộc phải chọn kho xuất phát.');
+            if ((type === 'GIAO_CUOI' || type === 'LAY_HANG') && !maKhoGiao) {
+                alert('Chuyến lấy hàng / giao cuối bắt buộc phải chọn Bưu cục phụ trách.');
                 return;
             }
 

@@ -33,9 +33,6 @@ public interface ChuyenGiaoRepository extends JpaRepository<ChuyenGiao, String> 
 
     org.springframework.data.domain.Page<ChuyenGiao> findByMaTxAndTrangThai(String maTx, String trangThai, org.springframework.data.domain.Pageable pageable);
 
-
-
-
     /**
      * Gán kiện vào chuyến giao.
      */
@@ -88,6 +85,31 @@ public interface ChuyenGiaoRepository extends JpaRepository<ChuyenGiao, String> 
     @Modifying
     @Query(value = "CALL sp_giao_that_bai(:maChuyen, :maKien, :maNd, :lyDo)", nativeQuery = true)
     void giaoThatBai(
+            @Param("maChuyen") String maChuyen,
+            @Param("maKien") String maKien,
+            @Param("maNd") String maNd,
+            @Param("lyDo") String lyDo
+    );
+
+    /**
+     * Tài xế lấy hàng thành công (chuyến LAY_HANG).
+     */
+    @Modifying
+    @Query(value = "CALL sp_lay_hang_thanh_cong(:maChuyen, :maKien, :maNd, :nguoiGiao, :ghiChu)", nativeQuery = true)
+    void layHangThanhCong(
+            @Param("maChuyen") String maChuyen,
+            @Param("maKien") String maKien,
+            @Param("maNd") String maNd,
+            @Param("nguoiGiao") String nguoiGiao,
+            @Param("ghiChu") String ghiChu
+    );
+
+    /**
+     * Tài xế lấy hàng thất bại (chuyến LAY_HANG).
+     */
+    @Modifying
+    @Query(value = "CALL sp_lay_hang_that_bai(:maChuyen, :maKien, :maNd, :lyDo)", nativeQuery = true)
+    void layHangThatBai(
             @Param("maChuyen") String maChuyen,
             @Param("maKien") String maKien,
             @Param("maNd") String maNd,

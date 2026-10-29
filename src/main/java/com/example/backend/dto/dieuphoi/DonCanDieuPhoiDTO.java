@@ -26,4 +26,11 @@ public class DonCanDieuPhoiDTO {
     private BigDecimal cod;
     private String maTt;
     private String trangThaiDon;
+    private String diaChiLay;
+    private String tenNguoiGui;
+    private String sdtGui;
+    private BigDecimal phiVanChuyen;
+    private String trangThaiLay;
+    private String maKhoGui;
+    private String tenKhoGui;
 }

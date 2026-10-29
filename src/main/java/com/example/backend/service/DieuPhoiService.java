@@ -241,33 +241,49 @@ public class DieuPhoiService {
      */
     public List<KienTrongChuyenDTO> getKienTrongChuyen(String maChuyen) {
         String sql = """
-            SELECT x.ma_chuyen, c.ma_tx, x.ma_kien, k.ma_dh,
-                   COALESCE(d.ten_nguoi_nhan, 'Khách hàng') AS ten_nguoi_nhan,
-                   COALESCE(d.sdt_nhan, '') AS sdt_nhan,
-                   COALESCE(d.dia_chi_giao, '') AS dia_chi_giao,
-                   k.khoi_luong, k.loai_hang, x.trang_thai,
-                   x.thoi_gian_gan, x.thoi_gian_quet, x.ghi_chu,
-                   COALESCE(d.cod, 0) AS cod
-            FROM chi_tiet_chuyen_giao x
-            JOIN chuyen_giao c ON c.ma_chuyen = x.ma_chuyen
-            JOIN kien_hang k ON k.ma_kien = x.ma_kien
-            LEFT JOIN don_hang d ON d.ma_dh = k.ma_dh
-            WHERE x.ma_chuyen = ?
-            ORDER BY x.thoi_gian_gan ASC
+            SELECT v.ma_chuyen, v.ma_tx, v.loai_chuyen, v.ma_kien, v.ma_dh,
+                   COALESCE(v.ten_nguoi_nhan, 'Khách hàng') AS ten_nguoi_nhan,
+                   COALESCE(v.sdt_nhan, '') AS sdt_nhan,
+                   COALESCE(v.dia_chi_giao, '') AS dia_chi_giao,
+                   COALESCE(v.dia_chi_lay, '') AS dia_chi_lay,
+                   COALESCE(v.ten_nguoi_gui, 'Khách gửi') AS ten_nguoi_gui,
+                   COALESCE(v.sdt_gui, '') AS sdt_gui,
+                   v.khoi_luong, v.loai_hang, v.trang_thai,
+                   v.trang_thai_lay,
+                   v.thoi_gian_gan, v.thoi_gian_quet, v.ghi_chu,
+                   COALESCE(v.cod, 0) AS cod,
+                   COALESCE(v.phi_van_chuyen, 0) AS phi_van_chuyen,
+                   tt.phuong_thuc AS phuong_thuc_cuoc,
+                   tt.trang_thai AS trang_thai_cuoc
+            FROM v_kien_trong_chuyen v
+            LEFT JOIN LATERAL (
+                SELECT t.phuong_thuc, t.trang_thai
+                FROM thanh_toan t
+                WHERE t.ma_dh = v.ma_dh AND t.loai_khoan = 'PHI_VC'
+                ORDER BY t.thoi_gian DESC
+                LIMIT 1
+            ) tt ON TRUE
+            WHERE v.ma_chuyen = ?
+            ORDER BY v.thoi_gian_gan ASC
         """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Timestamp tsGan = rs.getTimestamp("thoi_gian_gan");
             Timestamp tsQuet = rs.getTimestamp("thoi_gian_quet");
 
-            return KienTrongChuyenDTO.builder()
+            KienTrongChuyenDTO dto = KienTrongChuyenDTO.builder()
                     .maChuyen(rs.getString("ma_chuyen"))
                     .maTx(rs.getString("ma_tx"))
+                    .loaiChuyen(rs.getString("loai_chuyen"))
                     .maKien(rs.getString("ma_kien"))
                     .maDh(rs.getString("ma_dh"))
                     .tenNguoiNhan(rs.getString("ten_nguoi_nhan"))
                     .sdtNhan(rs.getString("sdt_nhan"))
                     .diaChiGiao(rs.getString("dia_chi_giao"))
+                    .diaChiLay(rs.getString("dia_chi_lay"))
+                    .tenNguoiGui(rs.getString("ten_nguoi_gui"))
+                    .sdtGui(rs.getString("sdt_gui"))
+                    .trangThaiLay(rs.getString("trang_thai_lay"))
                     .khoiLuong(rs.getBigDecimal("khoi_luong"))
                     .loaiHang(rs.getString("loai_hang"))
                     .trangThai(rs.getString("trang_thai"))
@@ -275,7 +291,16 @@ public class DieuPhoiService {
                     .thoiGianQuet(tsQuet != null ? tsQuet.toLocalDateTime() : null)
                     .ghiChu(rs.getString("ghi_chu"))
                     .cod(rs.getBigDecimal("cod"))
+                    .phiVanChuyen(rs.getBigDecimal("phi_van_chuyen"))
                     .build();
+            dto.applyPaymentInfo(
+                    rs.getString("loai_chuyen"),
+                    rs.getBigDecimal("phi_van_chuyen"),
+                    rs.getBigDecimal("cod"),
+                    rs.getString("phuong_thuc_cuoc"),
+                    rs.getString("trang_thai_cuoc")
+            );
+            return dto;
         }, maChuyen);
     }
 
@@ -292,7 +317,11 @@ public class DieuPhoiService {
                    COALESCE(t.ma_kho_di, c.ma_kho_giao) AS ma_kho_xuat_phat,
                    COALESCE(kdi.ten_kho, 'Kho xuất phát') AS ten_kho_xuat_phat,
                    t.ma_kho_den,
-                   COALESCE(kden.ten_kho, 'Địa chỉ khách hàng') AS ten_diem_den,
+                   CASE
+                       WHEN c.loai_chuyen = 'LAY_HANG' THEN 'Địa chỉ khách gửi (Lấy hàng)'
+                       WHEN c.loai_chuyen = 'LIEN_KHO' THEN COALESCE(kden.ten_kho, 'Kho đích')
+                       ELSE 'Địa chỉ khách hàng (Giao cuối)'
+                   END AS ten_diem_den,
                    c.ma_tx, tx.ho_ten AS ten_tai_xe, c.ma_pt, pt.bien_so, pt.tai_trong,
                    c.ma_nv_dieu_phoi, c.ngay_xuat_phat, c.ngay_den_du_kien,
                    COALESCE(ct.so_kien, 0) AS so_kien, COALESCE(ct.tong_kg, 0) AS tong_kg,
@@ -359,9 +388,10 @@ public class DieuPhoiService {
         Long donCanDieuPhoi = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM kien_hang k " +
                 "JOIN don_hang dh ON k.ma_dh = dh.ma_dh " +
-                "WHERE k.ma_kho_hien_tai IS NOT NULL " +
-                "AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') " +
-                "AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY') " +
+                "WHERE (" +
+                "  (k.ma_kho_hien_tai IS NOT NULL AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY')) " +
+                "  OR (dh.ma_tt = 'TT02' AND dh.trang_thai_lay IN ('CHUA_LAY', 'DANG_LAY'))" +
+                ") " +
                 "AND k.ma_kien NOT IN (SELECT c.ma_kien FROM chi_tiet_chuyen_giao c " +
                 "JOIN chuyen_giao cg ON cg.ma_chuyen = c.ma_chuyen WHERE cg.trang_thai IN ('Chưa đi', 'Đang đi'))",
                 Long.class);
@@ -429,8 +459,15 @@ public class DieuPhoiService {
                 k.loai_hang,
                 k.khoi_luong,
                 k.ma_kho_hien_tai,
-                kh.ten_kho AS ten_kho_hien_tai,
+                COALESCE(kh.ten_kho, 'Chờ lấy tận nơi') AS ten_kho_hien_tai,
                 dh.dia_chi_giao,
+                dh.dia_chi_lay,
+                kg.ho_ten AS ten_nguoi_gui,
+                kg.sdt AS sdt_gui,
+                dh.phi_van_chuyen,
+                dh.trang_thai_lay,
+                dh.ma_kho_gui,
+                kgui.ten_kho AS ten_kho_gui,
                 dh.ma_kho_nhan,
                 kn.ten_kho AS ten_kho_nhan,
                 dh.ten_nguoi_nhan,
@@ -440,58 +477,69 @@ public class DieuPhoiService {
                 tt.ten_trang_thai AS trang_thai_don
             FROM kien_hang k
             JOIN don_hang dh ON k.ma_dh = dh.ma_dh
+            LEFT JOIN khach_hang kg ON kg.ma_kh = dh.ma_kh_gui
             LEFT JOIN kho kh ON k.ma_kho_hien_tai = kh.ma_kho
             LEFT JOIN kho kn ON dh.ma_kho_nhan = kn.ma_kho
+            LEFT JOIN kho kgui ON dh.ma_kho_gui = kgui.ma_kho
             LEFT JOIN trang_thai_dh tt ON dh.ma_tt = tt.ma_trang_thai
-            WHERE k.ma_kho_hien_tai IS NOT NULL
-              AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY')
-              AND k.ma_kien NOT IN (
-                  SELECT c.ma_kien FROM chi_tiet_chuyen_giao c
-                  JOIN chuyen_giao cg ON cg.ma_chuyen = c.ma_chuyen
-                  WHERE cg.trang_thai IN ('Chưa đi', 'Đang đi')
-              )
+            WHERE k.ma_kien NOT IN (
+                SELECT c.ma_kien FROM chi_tiet_chuyen_giao c
+                JOIN chuyen_giao cg ON cg.ma_chuyen = c.ma_chuyen
+                WHERE cg.trang_thai IN ('Chưa đi', 'Đang đi')
+            )
         """);
 
         List<Object> params = new java.util.ArrayList<>();
 
+        if ("LAY_HANG".equalsIgnoreCase(loaiChuyen)) {
+            // Lấy hàng: đơn TT02 chưa lấy hoặc đang lấy thuộc bưu cục xuất phát
+            sql.append(" AND dh.ma_tt = 'TT02' AND dh.trang_thai_lay IN ('CHUA_LAY', 'DANG_LAY') ");
+            if (maKho != null && !maKho.isBlank()) {
+                sql.append(" AND dh.ma_kho_gui = ? ");
+                params.add(maKho);
+            }
+        } else if ("LIEN_KHO".equalsIgnoreCase(loaiChuyen)) {
+            sql.append(" AND k.ma_kho_hien_tai IS NOT NULL AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY') ");
+            sql.append(" AND dh.ma_tt IN ('TT02', 'TT04') ");
+            if (maTuyen != null && !maTuyen.isBlank()) {
+                TuyenVanChuyen tuyen = tuyenVanChuyenRepository.findById(maTuyen).orElse(null);
+                if (tuyen != null) {
+                    sql.append(" AND k.ma_kho_hien_tai = ? ");
+                    params.add(tuyen.getMaKhoDi());
+                    sql.append(" AND dh.ma_kho_nhan <> ? ");
+                    params.add(tuyen.getMaKhoDi());
+                }
+            } else if (maKho != null && !maKho.isBlank()) {
+                sql.append(" AND k.ma_kho_hien_tai = ? ");
+                params.add(maKho);
+                sql.append(" AND dh.ma_kho_nhan <> ? ");
+                params.add(maKho);
+            }
+        } else if ("GIAO_CUOI".equalsIgnoreCase(loaiChuyen)) {
+            sql.append(" AND k.ma_kho_hien_tai IS NOT NULL AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY') ");
+            sql.append(" AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') ");
+            if (maKho != null && !maKho.isBlank()) {
+                sql.append(" AND k.ma_kho_hien_tai = ? ");
+                params.add(maKho);
+                sql.append(" AND dh.ma_kho_nhan = ? ");
+                params.add(maKho);
+            }
+        } else {
+            // Mặc định (tất cả đơn/kiện cần điều phối)
+            sql.append(" AND ( ");
+            sql.append("   (k.ma_kho_hien_tai IS NOT NULL AND (dh.trang_thai_lay IS NULL OR dh.trang_thai_lay = 'DA_LAY') AND dh.ma_tt IN ('TT02', 'TT04', 'TT08')) ");
+            sql.append("   OR (dh.ma_tt = 'TT02' AND dh.trang_thai_lay IN ('CHUA_LAY', 'DANG_LAY')) ");
+            sql.append(" ) ");
+            if (maKho != null && !maKho.isBlank()) {
+                sql.append(" AND (k.ma_kho_hien_tai = ? OR (dh.ma_kho_gui = ? AND dh.trang_thai_lay IN ('CHUA_LAY', 'DANG_LAY'))) ");
+                params.add(maKho);
+                params.add(maKho);
+            }
+        }
+
         if (maKhoNhan != null && !maKhoNhan.isBlank()) {
             sql.append(" AND dh.ma_kho_nhan = ? ");
             params.add(maKhoNhan);
-        }
-
-        if (loaiChuyen == null || loaiChuyen.isBlank()) {
-            sql.append(" AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') ");
-        }
-
-        if (loaiChuyen != null && !loaiChuyen.isBlank()) {
-            if ("LIEN_KHO".equalsIgnoreCase(loaiChuyen)) {
-                sql.append(" AND dh.ma_tt IN ('TT02', 'TT04') ");
-                if (maTuyen != null && !maTuyen.isBlank()) {
-                    TuyenVanChuyen tuyen = tuyenVanChuyenRepository.findById(maTuyen).orElse(null);
-                    if (tuyen != null) {
-                        sql.append(" AND k.ma_kho_hien_tai = ? ");
-                        params.add(tuyen.getMaKhoDi());
-                        sql.append(" AND dh.ma_kho_nhan <> ? ");
-                        params.add(tuyen.getMaKhoDi());
-                    }
-                } else if (maKho != null && !maKho.isBlank()) {
-                    sql.append(" AND k.ma_kho_hien_tai = ? ");
-                    params.add(maKho);
-                    sql.append(" AND dh.ma_kho_nhan <> ? ");
-                    params.add(maKho);
-                }
-            } else if ("GIAO_CUOI".equalsIgnoreCase(loaiChuyen)) {
-                sql.append(" AND dh.ma_tt IN ('TT02', 'TT04', 'TT08') ");
-                if (maKho != null && !maKho.isBlank()) {
-                    sql.append(" AND k.ma_kho_hien_tai = ? ");
-                    params.add(maKho);
-                    sql.append(" AND dh.ma_kho_nhan = ? ");
-                    params.add(maKho);
-                }
-            }
-        } else if (maKho != null && !maKho.isBlank()) {
-            sql.append(" AND k.ma_kho_hien_tai = ? ");
-            params.add(maKho);
         }
 
         sql.append(" ORDER BY k.ma_kien ASC ");
@@ -504,6 +552,13 @@ public class DieuPhoiService {
                 .maKhoHienTai(rs.getString("ma_kho_hien_tai"))
                 .tenKhoHienTai(rs.getString("ten_kho_hien_tai"))
                 .diaChiGiao(rs.getString("dia_chi_giao"))
+                .diaChiLay(rs.getString("dia_chi_lay"))
+                .tenNguoiGui(rs.getString("ten_nguoi_gui"))
+                .sdtGui(rs.getString("sdt_gui"))
+                .phiVanChuyen(rs.getBigDecimal("phi_van_chuyen"))
+                .trangThaiLay(rs.getString("trang_thai_lay"))
+                .maKhoGui(rs.getString("ma_kho_gui"))
+                .tenKhoGui(rs.getString("ten_kho_gui"))
                 .maKhoNhan(rs.getString("ma_kho_nhan"))
                 .tenKhoNhan(rs.getString("ten_kho_nhan"))
                 .tenNguoiNhan(rs.getString("ten_nguoi_nhan"))
@@ -523,7 +578,11 @@ public class DieuPhoiService {
                    COALESCE(t.ma_kho_di, c.ma_kho_giao) AS ma_kho_xuat_phat,
                    COALESCE(kdi.ten_kho, 'Kho xuất phát') AS ten_kho_xuat_phat,
                    t.ma_kho_den,
-                   COALESCE(kden.ten_kho, 'Địa chỉ khách hàng') AS ten_diem_den,
+                   CASE
+                       WHEN c.loai_chuyen = 'LAY_HANG' THEN 'Địa chỉ khách gửi (Lấy hàng)'
+                       WHEN c.loai_chuyen = 'LIEN_KHO' THEN COALESCE(kden.ten_kho, 'Kho đích')
+                       ELSE 'Địa chỉ khách hàng (Giao cuối)'
+                   END AS ten_diem_den,
                    c.ma_tx, tx.ho_ten AS ten_tai_xe, c.ma_pt, pt.bien_so, pt.tai_trong,
                    c.ma_nv_dieu_phoi, c.ngay_xuat_phat, c.ngay_den_du_kien,
                    COALESCE(ct.so_kien, 0) AS so_kien, COALESCE(ct.tong_kg, 0) AS tong_kg,

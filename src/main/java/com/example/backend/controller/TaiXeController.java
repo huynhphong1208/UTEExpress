@@ -168,6 +168,22 @@ public class TaiXeController {
         return ResponseEntity.ok(ApiResponse.ok("Đã ghi nhận giao thất bại"));
     }
 
+    @PostMapping("/lay-hang-thanh-cong")
+    public ResponseEntity<ApiResponse<Void>> layHangThanhCong(@RequestBody LayHangThanhCongRequest request) {
+        taiXeService.layHangThanhCong(
+                request.getMaChuyen(), request.getMaKien(),
+                request.getMaNd(), request.getNguoiGiao(), request.getGhiChu());
+        return ResponseEntity.ok(ApiResponse.ok("Xác nhận lấy hàng thành công"));
+    }
+
+    @PostMapping("/lay-hang-that-bai")
+    public ResponseEntity<ApiResponse<Void>> layHangThatBai(@RequestBody LayHangThatBaiRequest request) {
+        taiXeService.layHangThatBai(
+                request.getMaChuyen(), request.getMaKien(),
+                request.getMaNd(), request.getLyDo());
+        return ResponseEntity.ok(ApiResponse.ok("Đã ghi nhận lấy hàng thất bại"));
+    }
+
     @PostMapping("/chuyen-giao/{maChuyen}/hoan-thanh")
     public ResponseEntity<ApiResponse<Void>> hoanThanhChuyen(
             @PathVariable String maChuyen,

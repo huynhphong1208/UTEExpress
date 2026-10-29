@@ -256,39 +256,7 @@
                     </div>
                 </div>
 
-                <!-- SECTION: ĐIỀU PHỐI TÀI XẾ LẤY HÀNG (PICKUP) -->
-                <div class="card" style="margin-bottom: 24px; border-left: 4px solid #2563EB;">
-                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;">
-                        <div>
-                            <h3 class="card-title" style="margin: 0; font-size: 15.5px; font-weight: 700; color: #1E293B;">
-                                🛵 Đơn bưu cục đã tiếp nhận (TT02) – Cần điều tài xế đi lấy hàng tận nơi
-                            </h3>
-                            <p style="margin: 3px 0 0 0; font-size: 12.5px; color: var(--text-muted);">
-                                Bưu cục đã tiếp nhận đơn trên hệ thống. Nhân viên điều phối phân công tài xế đến nhà khách lấy hàng về kho.
-                            </p>
-                        </div>
-                        <span class="badge badge-warning" id="badgePendingPickup">0 đơn chờ lấy</span>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table" style="font-size: 13px;">
-                            <thead>
-                                <tr>
-                                    <th>Mã đơn</th>
-                                    <th>Bưu cục gửi</th>
-                                    <th>Địa chỉ lấy hàng</th>
-                                    <th>Người nhận & Giao</th>
-                                    <th>Cước phí</th>
-                                    <th>Trạng thái lấy</th>
-                                    <th>Tài xế phụ trách</th>
-                                    <th style="text-align: right; min-width: 250px;">Phân công tài xế</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyPickupOrders">
-                                <tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">Đang tải danh sách đơn cần lấy...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+
 
                 <div class="card" id="detailSection">
                     <div class="card-header"
@@ -785,7 +753,7 @@
             }
         }
 
-        // RENDER STT 1: ĐƠN CẦN ĐIỀU PHỐI (Bỏ cột Thu hộ COD và Trạng thái)
+        // RENDER STT 1: ĐƠN CẦN ĐIỀU PHỐI (Bao gồm cả kiện cần lấy tận nơi và kiện tại kho)
         function renderPendingPackages(list = []) {
             const tbody = document.getElementById('tbodyPendingPackages');
             if (!list || list.length === 0) {
@@ -794,30 +762,49 @@
             }
 
             tbody.innerHTML = list.map(item => {
-                const isSameWh = (item.maKhoHienTai && item.maKhoNhan && item.maKhoHienTai === item.maKhoNhan);
-                const suggestedRoute = isSameWh
-                    ? `<span class="badge badge-success" style="font-size: 10.5px; padding: 2px 6px;">🚚 Đề xuất: Giao cuối</span>`
-                    : `<span class="badge badge-primary" style="font-size: 10.5px; padding: 2px 6px;">🚛 Đề xuất: Liên kho (${item.maKhoHienTai || '?'} ➔ ${item.maKhoNhan || '?'})</span>`;
-                const khoNhan = item.tenKhoNhan ? `Kho nhận: ${item.tenKhoNhan}` : (item.diaChiGiao || '---');
+                const isPickup = (item.trangThaiLay === 'CHUA_LAY' || item.trangThaiLay === 'DANG_LAY');
+                let suggestedRoute = '';
+                let destinationInfo = '';
+                let actionBtn = '';
+
+                if (isPickup) {
+                    suggestedRoute = `<span class="badge badge-warning" style="font-size: 10.5px; padding: 2px 6px;">🛵 Lấy gom: Bưu cục ${item.maKhoGui || ''}</span>`;
+                    destinationInfo = `<div><strong>Lấy tại:</strong> ${item.diaChiLay || 'Địa chỉ khách'}</div><small style="color: var(--text-muted);">${item.tenNguoiGui || ''} - ${item.sdtGui || ''}</small>`;
+                    actionBtn = `
+                        <a href="14-trips.html?action=create&type=LAY_HANG&package=${item.maKien}&warehouse=${item.maKhoGui || ''}" class="btn btn-warning btn-sm" title="Lập chuyến gom hàng từ người gửi">
+                            🛵 Lập chuyến lấy
+                        </a>
+                    `;
+                } else {
+                    const isSameWh = (item.maKhoHienTai && item.maKhoNhan && item.maKhoHienTai === item.maKhoNhan);
+                    suggestedRoute = isSameWh
+                        ? `<span class="badge badge-success" style="font-size: 10.5px; padding: 2px 6px;">🚚 Đề xuất: Giao cuối</span>`
+                        : `<span class="badge badge-primary" style="font-size: 10.5px; padding: 2px 6px;">🚛 Đề xuất: Liên kho (${item.maKhoHienTai || '?'} ➔ ${item.maKhoNhan || '?'})</span>`;
+                    const khoNhan = item.tenKhoNhan ? `Kho nhận: ${item.tenKhoNhan}` : (item.diaChiGiao || '---');
+                    destinationInfo = `<div>${khoNhan}</div><div style="margin-top: 4px;">${suggestedRoute}</div>`;
+                    actionBtn = `
+                        <a href="14-trips.html?action=create&package=${item.maKien}&warehouse=${item.maKhoHienTai || ''}" class="btn btn-primary btn-sm" title="Chuyển đến quản lý chuyến để gán">
+                            Gán chuyến
+                        </a>
+                    `;
+                }
+
                 return `
                     <tr>
                         <td><strong style="color: var(--primary-blue);">${item.maKien}</strong></td>
                         <td><strong>${item.maDh || '---'}</strong></td>
                         <td>${item.loaiHang || 'Hàng phổ thông'}</td>
                         <td><span style="font-weight: 600;">${item.khoiLuong ? item.khoiLuong + ' kg' : '---'}</span></td>
-                        <td><span class="badge badge-secondary">${item.tenKhoHienTai || item.maKhoHienTai || '---'}</span></td>
+                        <td><span class="badge ${isPickup ? 'badge-warning' : 'badge-secondary'}">${item.tenKhoHienTai || item.maKhoHienTai || (isPickup ? 'Nhà người gửi' : '---')}</span></td>
                         <td style="max-width: 250px; white-space: normal;">
-                            <div>${khoNhan}</div>
-                            <div style="margin-top: 4px;">${suggestedRoute}</div>
+                            ${destinationInfo}
                         </td>
                         <td>
                             <div>${item.tenNguoiNhan || '---'}</div>
                             <small style="color: var(--text-muted);">${item.sdtNhan || ''}</small>
                         </td>
                         <td>
-                            <a href="14-trips.html?action=create&package=${item.maKien}&warehouse=${item.maKhoHienTai || ''}" class="btn btn-primary btn-sm" title="Chuyển đến quản lý chuyến để gán">
-                                Gán chuyến
-                            </a>
+                            ${actionBtn}
                         </td>
                     </tr>
                 `;
@@ -833,9 +820,14 @@
             }
 
             tbody.innerHTML = list.map(t => {
-                const routeName = t.loaiChuyen === 'LIEN_KHO'
-                    ? `${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`
-                    : `Giao cuối: ${t.tenKhoXuatPhat || 'Kho'} ➔ Địa chỉ khách`;
+                let routeName = '';
+                if (t.loaiChuyen === 'LAY_HANG') {
+                    routeName = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Địa chỉ gửi`;
+                } else if (t.loaiChuyen === 'LIEN_KHO') {
+                    routeName = `<span class="badge badge-primary" style="font-size: 11px; margin-right: 4px;">🚛 Liên kho</span> ${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`;
+                } else {
+                    routeName = `<span class="badge badge-success" style="font-size: 11px; margin-right: 4px;">🚚 Giao cuối</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Địa chỉ khách`;
+                }
 
                 const loadPercent = t.tyLeTai != null ? t.tyLeTai : 0;
                 const loadStyle = loadPercent > 100 ? 'color: var(--danger); font-weight: 700;' : 'font-weight: 600;';
@@ -995,109 +987,8 @@
             onFilterTable(query);
         }
 
-        // ========================== XỬ LÝ LẤY HÀNG (PICKUP) ==========================
-        let globalAvailableDrivers = [];
-
-        async function loadPickupOrders() {
-            const tbody = document.getElementById('tbodyPickupOrders');
-            if (!tbody) return;
-
-            try {
-                // Tải danh sách tài xế nếu chưa có
-                if (globalAvailableDrivers.length === 0) {
-                    const txRes = await fetch('/api/dieu-phoi/tai-xe-kha-dung');
-                    const txJson = await txRes.json();
-                    if (txJson && txJson.data) {
-                        globalAvailableDrivers = txJson.data;
-                    }
-                }
-
-                const res = await fetch('/api/dieu-phoi/don-can-lay');
-                const json = await res.json();
-                const orders = (json && json.data) ? json.data : [];
-                const badge = document.getElementById('badgePendingPickup');
-                if (badge) badge.innerText = `${orders.length} đơn chờ lấy`;
-
-                if (orders.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">Không có đơn hàng nào chờ lấy tận nơi.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = orders.map(d => {
-                    const statusText = d.trangThaiLay === 'DANG_LAY'
-                        ? '<span class="badge badge-info"><span class="badge-dot"></span>Đang đi lấy</span>'
-                        : '<span class="badge badge-warning"><span class="badge-dot"></span>Chưa lấy</span>';
-                    const txPhuTrach = d.maTxLay ? `<strong style="color: #2563EB;">${d.maTxLay}</strong>` : '<span style="color: var(--text-muted);">Chưa gán</span>';
-
-                    let driverOptions = '<option value="">-- Chọn tài xế --</option>';
-                    globalAvailableDrivers.forEach(tx => {
-                        const isSel = (d.maTxLay && d.maTxLay.toUpperCase() === tx.maTx.toUpperCase()) ? 'selected' : '';
-                        driverOptions += `<option value="${tx.maTx}" ${isSel}>${tx.maTx} - ${tx.hoTen}</option>`;
-                    });
-
-                    return `
-                        <tr>
-                            <td><strong>${d.maDh}</strong></td>
-                            <td><span class="badge badge-secondary">${d.maKhoGui || ''}</span></td>
-                            <td style="max-width: 220px;">
-                                <div style="font-weight: 600;">${d.tenNguoiNhan || ''}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiLay || ''}</div>
-                            </td>
-                            <td style="max-width: 200px;">
-                                <div style="font-weight: 500;">${d.tenNguoiNhan || ''} (${d.sdtNhan || ''})</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiGiao || ''}</div>
-                            </td>
-                            <td><strong>${d.phiVanChuyen ? Number(d.phiVanChuyen).toLocaleString('vi-VN') + ' đ' : '0 đ'}</strong></td>
-                            <td>${statusText}</td>
-                            <td>${txPhuTrach}</td>
-                            <td style="text-align: right;">
-                                <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                    <select class="form-select form-select-sm" id="selectTx_${d.maDh}" style="width: 150px; font-size: 12px;">
-                                        ${driverOptions}
-                                    </select>
-                                    <button class="btn btn-primary btn-sm" onclick="assignPickupDriver('${d.maDh}', 'selectTx_${d.maDh}')" style="white-space: nowrap; font-size: 12px; padding: 4px 10px;">
-                                        Giao việc
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            } catch (err) {
-                console.error('Lỗi tải đơn cần lấy:', err);
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--danger);">Lỗi tải danh sách: ${err.message}</td></tr>`;
-            }
-        }
-
-        async function assignPickupDriver(maDh, selectId) {
-            const select = document.getElementById(selectId);
-            const maTx = select ? select.value : '';
-            if (!maTx) {
-                alert('Vui lòng chọn một tài xế để phân công đi lấy hàng!');
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/dieu-phoi/assign-pickup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ maDh: maDh, maTx: maTx })
-                });
-                const json = await res.json();
-                if (json && json.success) {
-                    alert(`✓ Đã phân công tài xế ${maTx} đi lấy đơn hàng ${maDh} thành công!`);
-                    loadPickupOrders();
-                } else {
-                    alert('Lỗi: ' + (json.message || 'Không thể phân công tài xế'));
-                }
-            } catch (e) {
-                alert('Lỗi kết nối: ' + e.message);
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboardData();
-            loadPickupOrders();
         });
     </script>
     <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>

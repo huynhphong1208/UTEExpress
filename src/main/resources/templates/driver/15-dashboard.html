@@ -188,37 +188,7 @@
                     </div>
                 </div>
 
-                <!-- NHIỆM VỤ LẤY HÀNG TẬN NƠI (PICKUP) -->
-                <div class="card" style="margin-bottom: 24px; border-left: 4px solid #10B981;" id="driverPickupCard">
-                    <div class="card-header" style="background: #F0FDF4; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h3 class="card-title" style="color: #065F46; margin: 0; font-size: 15.5px; font-weight: 700;">
-                                🛵 Đơn hàng cần đến lấy tận nơi (Nhiệm vụ lấy hàng)
-                            </h3>
-                            <p style="margin: 3px 0 0 0; font-size: 12.5px; color: #047857;">
-                                Danh sách các đơn bạn được phân công qua lấy từ khách hàng để mang về kho bưu cục.
-                            </p>
-                        </div>
-                        <span class="badge badge-success" id="driverPickupBadge">0 đơn cần lấy</span>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table" style="font-size: 13px;">
-                            <thead>
-                                <tr>
-                                    <th>Mã đơn</th>
-                                    <th>Địa chỉ lấy hàng (Người gửi)</th>
-                                    <th>Người nhận & Địa chỉ giao</th>
-                                    <th>Cước phí</th>
-                                    <th>Trạng thái lấy</th>
-                                    <th style="text-align: right; min-width: 170px;">Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyDriverPickupOrders">
-                                <tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--text-muted);">Đang tải danh sách đơn lấy...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+
 
                 <!-- KHU VỰC CHI TIẾT TỪNG THẺ KHI NHẤN VÀO (THẺ 1, 2, 3, 4) -->
                 <div class="card" id="driverDetailSection">
@@ -639,9 +609,14 @@
             }
 
             tbody.innerHTML = list.map(t => {
-                const route = t.loaiChuyen === 'LIEN_KHO'
-                    ? `${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`
-                    : `Giao cuối: ${t.tenKhoXuatPhat || 'Kho'} ➔ Khách hàng`;
+                let route = '';
+                if (t.loaiChuyen === 'LAY_HANG') {
+                    route = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Địa chỉ người gửi`;
+                } else if (t.loaiChuyen === 'LIEN_KHO') {
+                    route = `<span class="badge badge-primary" style="font-size: 11px; margin-right: 4px;">🚛 Liên kho</span> ${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`;
+                } else {
+                    route = `<span class="badge badge-success" style="font-size: 11px; margin-right: 4px;">🚚 Giao cuối</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Khách nhận`;
+                }
 
                 const startStr = t.ngayXuatPhat ? new Date(t.ngayXuatPhat).toLocaleString('vi-VN') : 'Chưa định';
                 const arrStr = t.ngayDenDuKien ? new Date(t.ngayDenDuKien).toLocaleString('vi-VN') : 'Chưa định';
@@ -659,7 +634,7 @@
                         </td>
                         <td>
                             <div style="font-weight: 600;">${route}</div>
-                            <small style="color: var(--text-muted); font-size: 11.5px;">${t.loaiChuyen === 'LIEN_KHO' ? 'Liên kho' : 'Giao chặng cuối'}</small>
+                            <small style="color: var(--text-muted); font-size: 11.5px;">${t.loaiChuyen === 'LAY_HANG' ? 'Lấy hàng tận nơi' : (t.loaiChuyen === 'LIEN_KHO' ? 'Liên kho' : 'Giao chặng cuối')}</small>
                         </td>
                         <td>
                             <strong>${t.bienSo || '---'}</strong>
@@ -696,9 +671,14 @@
             }
 
             tbody.innerHTML = list.map(t => {
-                const route = t.loaiChuyen === 'LIEN_KHO'
-                    ? `${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`
-                    : `Giao cuối: ${t.tenKhoXuatPhat || 'Kho'} ➔ Khách hàng`;
+                let route = '';
+                if (t.loaiChuyen === 'LAY_HANG') {
+                    route = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Địa chỉ người gửi`;
+                } else if (t.loaiChuyen === 'LIEN_KHO') {
+                    route = `<span class="badge badge-primary" style="font-size: 11px; margin-right: 4px;">🚛 Liên kho</span> ${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`;
+                } else {
+                    route = `<span class="badge badge-success" style="font-size: 11px; margin-right: 4px;">🚚 Giao cuối</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Khách nhận`;
+                }
 
                 const startStr = t.ngayXuatPhat ? new Date(t.ngayXuatPhat).toLocaleString('vi-VN') : '---';
                 const arrStr = t.ngayDenDuKien ? new Date(t.ngayDenDuKien).toLocaleString('vi-VN') : '---';
@@ -907,9 +887,14 @@
             badge.className = `badge ${trip.trangThai === 'Đang đi' ? 'badge-info' : 'badge-warning'}`;
             badge.innerHTML = `<span class="badge-dot"></span>${trip.trangThai}`;
 
-            const route = trip.loaiChuyen === 'LIEN_KHO'
-                ? `${trip.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${trip.tenDiemDen || 'Kho đích'}`
-                : `Giao cuối: ${trip.tenKhoXuatPhat || 'Kho'} ➔ Khách hàng`;
+            let route = '';
+            if (trip.loaiChuyen === 'LAY_HANG') {
+                route = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> ${trip.tenKhoXuatPhat || 'Bưu cục'} ➔ Gom hàng tại nhà người gửi`;
+            } else if (trip.loaiChuyen === 'LIEN_KHO') {
+                route = `<span class="badge badge-primary" style="font-size: 11px; margin-right: 4px;">🚛 Liên kho</span> ${trip.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${trip.tenDiemDen || 'Kho đích'}`;
+            } else {
+                route = `<span class="badge badge-success" style="font-size: 11px; margin-right: 4px;">🚚 Giao cuối</span> ${trip.tenKhoXuatPhat || 'Bưu cục'} ➔ Khách nhận`;
+            }
 
             const arrTime = trip.ngayDenDuKien ? new Date(trip.ngayDenDuKien).toLocaleString('vi-VN') : 'Chưa xác định';
 
@@ -980,98 +965,8 @@
             showToast('Đã nhận chuyến', `Tài xế đã xác nhận tiếp nhận chuyến giao ${tripId}.`, 'success');
         }
 
-        // ========================== XỬ LÝ LẤY HÀNG TẬN NƠI ==========================
-        async function loadDriverPickupOrders() {
-            const tbody = document.getElementById('tbodyDriverPickupOrders');
-            if (!tbody) return;
-
-            try {
-                const driverId = getCurrentDriverId() || 'TX001';
-                const res = await fetch(`/api/tai-xe/don-can-lay?maTx=${encodeURIComponent(driverId)}`);
-                const json = await res.json();
-                const orders = (json && json.data) ? json.data : [];
-                const badge = document.getElementById('driverPickupBadge');
-                if (badge) badge.innerText = `${orders.length} đơn cần lấy`;
-
-                if (orders.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--text-muted);">Hiện tại bạn không có đơn hàng nào cần đi lấy.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = orders.map(d => {
-                    const statusBadge = d.trangThaiLay === 'DANG_LAY'
-                        ? '<span class="badge badge-info"><span class="badge-dot"></span>Đang đi lấy</span>'
-                        : '<span class="badge badge-warning"><span class="badge-dot"></span>Chưa lấy</span>';
-
-                    return `
-                        <tr>
-                            <td><strong style="color: #2563EB;">${d.maDh}</strong></td>
-                            <td style="max-width: 250px;">
-                                <div style="font-weight: 600;">${d.tenNguoiNhan ? 'Người gửi (đơn ' + d.maDh + ')' : ''}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiLay || ''}</div>
-                            </td>
-                            <td style="max-width: 220px;">
-                                <div style="font-weight: 500;">${d.tenNguoiNhan || ''} (${d.sdtNhan || ''})</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">${d.diaChiGiao || ''}</div>
-                            </td>
-                            <td>
-                                ${(() => {
-                                    const isCk = d.phiDaThanhToan || (d.phuongThucThanhToan && d.phuongThucThanhToan.toLowerCase().includes('chuyển'));
-                                    const phiVC = Number(d.phiVanChuyen || 0);
-                                    if (isCk) {
-                                        return `
-                                            <div><strong style="color: var(--success); font-size: 13px;">0 đ</strong></div>
-                                            <div style="font-size: 11px; color: var(--success); font-weight: 500;">✓ Đã TT chuyển khoản</div>
-                                        `;
-                                    } else {
-                                        return `
-                                            <div><strong style="color: #DC2626; font-size: 13px;">Thu: ${phiVC.toLocaleString('vi-VN')} đ</strong></div>
-                                            <div style="font-size: 11px; color: #D97706; font-weight: 500;">(Thu cước tiền mặt khi lấy)</div>
-                                        `;
-                                    }
-                                })()}
-                            </td>
-                            <td>${statusBadge}</td>
-                            <td style="text-align: right;">
-                                <button class="btn btn-success btn-sm" onclick="confirmDriverPickup('${d.maDh}')" style="font-size: 12px; padding: 5px 12px; font-weight: 600;">
-                                    ✓ Đã lấy hàng
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            } catch (err) {
-                console.error('Lỗi tải danh sách đơn cần lấy:', err);
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--danger);">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
-            }
-        }
-
-        async function confirmDriverPickup(maDh) {
-            if (!confirm(`Xác nhận bạn đã nhận hàng thành công từ khách cho đơn hàng ${maDh}?`)) {
-                return;
-            }
-
-            try {
-                const driverId = getCurrentDriverId() || 'TX001';
-                const res = await fetch(`/api/tai-xe/orders/${encodeURIComponent(maDh)}/confirm-pickup?maTx=${encodeURIComponent(driverId)}`, {
-                    method: 'POST'
-                });
-                const json = await res.json();
-                if (json && json.success) {
-                    alert(`✓ Thành công! Đơn hàng ${maDh} đã được xác nhận lấy hàng, kiện hàng đã nhập vào kho bưu cục và cước phí tiền mặt (nếu có) đã tự động cập nhật 'Đã thanh toán'.`);
-                    loadDriverPickupOrders();
-                    loadDriverDashboard();
-                } else {
-                    alert('Lỗi: ' + (json.message || 'Không thể xác nhận lấy hàng'));
-                }
-            } catch (e) {
-                alert('Lỗi kết nối: ' + e.message);
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             loadDriverDashboard();
-            loadDriverPickupOrders();
         });
     </script>
     <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>

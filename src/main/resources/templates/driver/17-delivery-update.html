@@ -314,7 +314,24 @@
 
             banner.style.display = 'block';
 
-            if (currentTripData.loaiChuyen === 'LIEN_KHO') {
+            if (currentTripData.loaiChuyen === 'LAY_HANG') {
+                banner.style.background = '#FFFBEB';
+                banner.style.border = '1px solid #FDE68A';
+                banner.style.color = '#92400E';
+                banner.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>🛵 Chuyến LẤY HÀNG (${currentTripData.maChuyen} - ${currentTripData.trangThai}):</strong>
+                            Chuyến gom đơn từ nhà khách gửi. Bạn có thể xác nhận lấy hàng trực tiếp tại trang Chi tiết chuyến.
+                        </div>
+                        <a href="16-trip-detail.html?id=${currentTripData.maChuyen}" class="btn btn-warning btn-sm" style="font-weight: 700; white-space: nowrap;">
+                            📋 Mở danh sách lấy hàng
+                        </a>
+                    </div>
+                `;
+                submitBtn.disabled = true;
+                submitBtn.innerText = '⚠️ Chuyến lấy hàng vui lòng xác nhận tại trang Chi tiết chuyến';
+            } else if (currentTripData.loaiChuyen === 'LIEN_KHO') {
                 banner.style.background = '#EFF6FF';
                 banner.style.border = '1px solid #BFDBFE';
                 banner.style.color = '#1E40AF';

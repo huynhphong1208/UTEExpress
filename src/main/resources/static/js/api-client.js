@@ -233,6 +233,14 @@ const UteApi = (function() {
             method: 'POST',
             body: JSON.stringify(failedData)
         }),
+        pickupSuccess: (pickupData) => request('/api/tai-xe/lay-hang-thanh-cong', {
+            method: 'POST',
+            body: JSON.stringify(pickupData)
+        }),
+        pickupFailed: (failedData) => request('/api/tai-xe/lay-hang-that-bai', {
+            method: 'POST',
+            body: JSON.stringify(failedData)
+        }),
         completeTrip: (maChuyen, maNd) => {
             const query = maNd ? `?maNd=${encodeURIComponent(maNd)}` : '';
             return request(`/api/tai-xe/chuyen-giao/${encodeURIComponent(maChuyen)}/hoan-thanh${query}`, {

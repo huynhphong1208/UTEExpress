@@ -97,7 +97,7 @@ CREATE TABLE tuyen_van_chuyen (
 CREATE TABLE chuyen_giao (
     ma_chuyen   VARCHAR(20) PRIMARY KEY DEFAULT ('CG' || lpad(nextval('seq_chuyen')::text, 6, '0')),
     loai_chuyen VARCHAR(20) NOT NULL DEFAULT 'LIEN_KHO'
-                CONSTRAINT ck_cg_loai_val CHECK (loai_chuyen IN ('LIEN_KHO','GIAO_CUOI')),
+                CONSTRAINT ck_cg_loai_val CHECK (loai_chuyen IN ('LIEN_KHO','GIAO_CUOI','LAY_HANG')),
     ma_tuyen    VARCHAR(20) REFERENCES tuyen_van_chuyen(ma_tuyen),
     ma_kho_giao VARCHAR(20) REFERENCES kho(ma_kho),
     ma_tx       VARCHAR(20) NOT NULL REFERENCES tai_xe(ma_tx),
@@ -111,7 +111,7 @@ CREATE TABLE chuyen_giao (
                 CONSTRAINT ck_cg_trang_thai CHECK (trang_thai IN ('Chưa đi','Đang đi','Hoàn thành','Đã hủy')),
     CONSTRAINT ck_cg_loai CHECK (
         (loai_chuyen = 'LIEN_KHO'  AND ma_tuyen IS NOT NULL AND ma_kho_giao IS NULL) OR
-        (loai_chuyen = 'GIAO_CUOI' AND ma_tuyen IS NULL     AND ma_kho_giao IS NOT NULL)),
+        (loai_chuyen IN ('GIAO_CUOI', 'LAY_HANG') AND ma_tuyen IS NULL AND ma_kho_giao IS NOT NULL)),
     CONSTRAINT ck_cg_thoi_gian CHECK (ngay_den_du_kien > ngay_xuat_phat),
     CONSTRAINT ck_cg_thuc CHECK (ngay_den IS NULL OR ngay_xuat_phat_thuc IS NULL OR ngay_den >= ngay_xuat_phat_thuc),
     -- Một tài xế / một xe không được có 2 chuyến chồng thời gian (chỉ xét chuyến chưa đi hoặc đang đi)
