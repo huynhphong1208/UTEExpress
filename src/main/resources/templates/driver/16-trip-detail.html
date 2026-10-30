@@ -431,12 +431,12 @@
                         <div style="font-weight: 700; margin-top: 2px;">${loaiChuyenLabel}</div>
                     </div>
                     <div>
-                        <span style="font-size: 12px; color: var(--text-muted);">Kho đi (Xuất phát)</span>
-                        <div style="font-weight: 600; margin-top: 2px;">${t.tenKhoXuatPhat || '---'}</div>
+                        <span style="font-size: 12px; color: var(--text-muted);">${t.loaiChuyen === 'LAY_HANG' ? 'Nơi lấy hàng (Xuất phát)' : 'Kho đi (Xuất phát)'}</span>
+                        <div style="font-weight: 600; margin-top: 2px;">${t.loaiChuyen === 'LAY_HANG' ? (t.tenDiemDen || 'Địa chỉ người gửi') : (t.tenKhoXuatPhat || '---')}</div>
                     </div>
                     <div>
-                        <span style="font-size: 12px; color: var(--text-muted);">Kho đến (Đích nhận)</span>
-                        <div style="font-weight: 600; margin-top: 2px;">${t.tenDiemDen || 'Địa chỉ khách'}</div>
+                        <span style="font-size: 12px; color: var(--text-muted);">${t.loaiChuyen === 'LAY_HANG' ? 'Kho đến (Nơi nhập kho)' : 'Kho đến (Đích nhận)'}</span>
+                        <div style="font-weight: 600; margin-top: 2px;">${t.loaiChuyen === 'LAY_HANG' ? (t.tenKhoXuatPhat || 'Bưu cục') : (t.tenDiemDen || 'Địa chỉ khách')}</div>
                     </div>
                     <div>
                         <span style="font-size: 12px; color: var(--text-muted);">Phương tiện phân công</span>

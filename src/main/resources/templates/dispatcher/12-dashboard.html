@@ -822,7 +822,7 @@
             tbody.innerHTML = list.map(t => {
                 let routeName = '';
                 if (t.loaiChuyen === 'LAY_HANG') {
-                    routeName = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Địa chỉ gửi`;
+                    routeName = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> Địa chỉ gửi ➔ ${t.tenKhoXuatPhat || 'Bưu cục'}`;
                 } else if (t.loaiChuyen === 'LIEN_KHO') {
                     routeName = `<span class="badge badge-primary" style="font-size: 11px; margin-right: 4px;">🚛 Liên kho</span> ${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`;
                 } else {

@@ -611,7 +611,7 @@
             tbody.innerHTML = list.map(t => {
                 let route = '';
                 if (t.loaiChuyen === 'LAY_HANG') {
-                    route = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Địa chỉ người gửi`;
+                    route = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> Địa chỉ người gửi ➔ ${t.tenKhoXuatPhat || 'Bưu cục'}`;
                 } else if (t.loaiChuyen === 'LIEN_KHO') {
                     route = `<span class="badge badge-primary" style="font-size: 11px; margin-right: 4px;">🚛 Liên kho</span> ${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`;
                 } else {
@@ -673,7 +673,7 @@
             tbody.innerHTML = list.map(t => {
                 let route = '';
                 if (t.loaiChuyen === 'LAY_HANG') {
-                    route = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> ${t.tenKhoXuatPhat || 'Bưu cục'} ➔ Địa chỉ người gửi`;
+                    route = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> Địa chỉ người gửi ➔ ${t.tenKhoXuatPhat || 'Bưu cục'}`;
                 } else if (t.loaiChuyen === 'LIEN_KHO') {
                     route = `<span class="badge badge-primary" style="font-size: 11px; margin-right: 4px;">🚛 Liên kho</span> ${t.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${t.tenDiemDen || 'Kho đích'}`;
                 } else {
@@ -889,7 +889,7 @@
 
             let route = '';
             if (trip.loaiChuyen === 'LAY_HANG') {
-                route = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> ${trip.tenKhoXuatPhat || 'Bưu cục'} ➔ Gom hàng tại nhà người gửi`;
+                route = `<span class="badge badge-warning" style="font-size: 11px; margin-right: 4px;">🛵 Lấy hàng</span> Địa chỉ người gửi ➔ ${trip.tenKhoXuatPhat || 'Bưu cục'}`;
             } else if (trip.loaiChuyen === 'LIEN_KHO') {
                 route = `<span class="badge badge-primary" style="font-size: 11px; margin-right: 4px;">🚛 Liên kho</span> ${trip.tenKhoXuatPhat || 'Kho xuất phát'} ➔ ${trip.tenDiemDen || 'Kho đích'}`;
             } else {
