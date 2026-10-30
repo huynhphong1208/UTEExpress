@@ -364,8 +364,9 @@
                                     </tr>
                                     <tr th:each="dh : ${donHangMoiNhat}">
                                         <td>
-                                            <a th:href="@{/customer/order-detail(maDh=${dh.maDh})}"
+                                            <a th:href="@{/admin/orders(keyword=${dh.maDh})}"
                                                 style="font-weight: 600; color: var(--primary-blue);"
+                                                title="Giám sát đơn hàng này trong Quản lý đơn"
                                                 th:text="${dh.maDh}">DH000001</a>
                                         </td>
                                         <td>

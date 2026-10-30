@@ -196,8 +196,10 @@
                                 </tr>
                                 <tr th:each="dh : ${danhSachDonHang}">
                                     <td>
-                                        <a th:href="@{/customer/order-detail(maDh=${dh.maDh})}"
-                                            style="font-weight: 700; color: var(--primary-blue);"
+                                        <a href="javascript:void(0)"
+                                            th:attr="data-madh=${dh.maDh}"
+                                            onclick="openAdminOrderDetailModal(this.getAttribute('data-madh'))"
+                                            style="font-weight: 700; color: var(--primary-blue); cursor: pointer;"
                                             th:text="${dh.maDh}">DH000001</a>
                                     </td>
                                     <td>
@@ -234,8 +236,10 @@
                                         th:text="${dh.ngayTao != null ? #temporals.format(dh.ngayTao, 'dd/MM/yyyy HH:mm') : '-'}">
                                         10/10/2026</td>
                                     <td>
-                                        <a th:href="@{/customer/order-detail(maDh=${dh.maDh})}"
-                                            class="btn btn-secondary btn-sm" style="white-space: nowrap;">Chi tiết</a>
+                                        <button type="button"
+                                            th:attr="data-madh=${dh.maDh}"
+                                            onclick="openAdminOrderDetailModal(this.getAttribute('data-madh'))"
+                                            class="btn btn-secondary btn-sm" style="white-space: nowrap; cursor: pointer;">Chi tiết</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -253,6 +257,108 @@
         </main>
     </div>
 
+    <!-- MODAL CHI TIẾT ĐƠN HÀNG DÀNH RIÊNG CHO QUẢN TRỊ VIÊN ADMIN -->
+    <div id="adminOrderDetailModal" class="modal-backdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card" style="width: 900px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.25); border-radius: 14px; overflow: hidden;">
+            <!-- Modal Header -->
+            <div class="card-header" style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: #EFF6FF; color: var(--primary-blue); display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h3 id="modalAdminOrderTitle" style="margin: 0; font-size: 18px; font-weight: 700; color: #0F172A;">Chi tiết đơn hàng</h3>
+                            <span id="modalAdminOrderStatusBadge" class="badge badge-info">Đang tải...</span>
+                        </div>
+                        <div id="modalAdminOrderSub" style="font-size: 12px; color: #64748B; margin-top: 2px;">Giám sát đơn hàng toàn chuỗi</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAdminOrderDetailModal()" style="background: none; border: none; font-size: 24px; color: #94A3B8; cursor: pointer; line-height: 1; padding: 4px;" title="Đóng">&times;</button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="card-body" style="padding: 24px; overflow-y: auto; flex: 1;">
+                <div id="modalAdminOrderLoading" style="text-align: center; padding: 40px; color: #64748B;">
+                    <svg style="animation: spin 1s linear infinite; width: 32px; height: 32px; margin: 0 auto 12px; color: var(--primary-blue);" fill="none" viewBox="0 0 24 24"><circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                    <div>Đang tải thông tin chi tiết đơn hàng...</div>
+                </div>
+
+                <div id="modalAdminOrderContent" style="display: none;">
+                    <!-- Hàng 1: Tổng quan Người gửi & Người nhận & Tuyến kho -->
+                    <div class="grid-2" style="gap: 16px; margin-bottom: 20px;">
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 18px;">
+                            <div style="font-size: 12px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 8px;">Thông tin giao nhận</div>
+                            <div style="margin-bottom: 6px; font-size: 13.5px;">
+                                <span style="color: #64748B;">Khách gửi:</span> <strong id="mKhGui"></strong> <span id="mSdtKhGui" style="color: #64748B;"></span>
+                            </div>
+                            <div style="margin-bottom: 6px; font-size: 13.5px;">
+                                <span style="color: #64748B;">Địa chỉ lấy:</span> <span id="mDiaChiLay"></span>
+                            </div>
+                            <div style="margin-bottom: 6px; font-size: 13.5px; border-top: 1px dashed #CBD5E1; padding-top: 6px;">
+                                <span style="color: #64748B;">Người nhận:</span> <strong id="mTenNhan"></strong> - <strong id="mSdtNhan" style="color: var(--primary-blue);"></strong>
+                            </div>
+                            <div style="font-size: 13.5px;">
+                                <span style="color: #64748B;">Địa chỉ giao:</span> <span id="mDiaChiGiao"></span>
+                            </div>
+                        </div>
+
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 18px;">
+                            <div style="font-size: 12px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 8px;">Tuyến vận chuyển & Tài chính</div>
+                            <div style="margin-bottom: 6px; font-size: 13.5px;">
+                                <span style="color: #64748B;">Kho gửi:</span> <strong id="mKhoGui"></strong>
+                            </div>
+                            <div style="margin-bottom: 6px; font-size: 13.5px;">
+                                <span style="color: #64748B;">Kho nhận:</span> <strong id="mKhoNhan"></strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; border-top: 1px dashed #CBD5E1; padding-top: 6px; margin-bottom: 6px; font-size: 13.5px;">
+                                <span style="color: #64748B;">Cước phí vận chuyển:</span> <strong id="mPhiVC" style="color: var(--primary-blue);"></strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 13.5px;">
+                                <span style="color: #64748B;">Tiền thu hộ COD:</span> <strong id="mCod" style="color: var(--warning);"></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hàng 2: Danh sách Kiện hàng -->
+                    <div style="margin-bottom: 24px;">
+                        <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                            <span>📦 Danh sách kiện hàng trong đơn</span>
+                            <span id="mSoKienBadge" class="badge badge-primary" style="font-size: 11px;">0 kiện</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" style="font-size: 13px;">
+                                <thead>
+                                    <tr>
+                                        <th>Mã kiện</th>
+                                        <th>Loại hàng</th>
+                                        <th>Khối lượng</th>
+                                        <th>Kích thước (D x R x C)</th>
+                                        <th>Vị trí kho hiện tại</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mKienHangsTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Hàng 3: Timeline Lịch sử vận chuyển & Trạng thái -->
+                    <div>
+                        <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 12px;">
+                            ⏱️ Lịch sử luân chuyển &amp; Hành trình bưu cục
+                        </div>
+                        <div id="mTimelineList" style="padding-left: 12px; border-left: 2px solid #E2E8F0; display: flex; flex-direction: column; gap: 14px; margin-left: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="card-footer" style="padding: 12px 24px; background: #F8FAFC; border-top: 1px solid #E2E8F0; display: flex; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeAdminOrderDetailModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <script th:src="@{/js/components.js}" src="/js/components.js"></script>
     <script>
         function logout() {
@@ -260,6 +366,117 @@
             document.cookie = 'accessToken=; path=/; max-age=0; SameSite=Lax';
             window.location.href = '/login';
         }
+
+        // --- MODAL CHI TIẾT ĐƠN HÀNG ADMIN ---
+        async function openAdminOrderDetailModal(maDh) {
+            if (!maDh) return;
+            const modal = document.getElementById('adminOrderDetailModal');
+            const loading = document.getElementById('modalAdminOrderLoading');
+            const content = document.getElementById('modalAdminOrderContent');
+            
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+            loading.style.display = 'block';
+            content.style.display = 'none';
+
+            document.getElementById('modalAdminOrderTitle').innerText = 'Chi tiết đơn hàng ' + maDh;
+            document.getElementById('modalAdminOrderStatusBadge').innerText = 'Đang tải...';
+
+            try {
+                const res = await fetch('/api/admin/orders/' + encodeURIComponent(maDh));
+                const json = await res.json();
+                if (!res.ok || !json.success || !json.data) {
+                    alert(json.message || 'Không thể tải thông tin đơn hàng ' + maDh);
+                    closeAdminOrderDetailModal();
+                    return;
+                }
+
+                const d = json.data;
+                loading.style.display = 'none';
+                content.style.display = 'block';
+
+                // Status Badge
+                const badgeEl = document.getElementById('modalAdminOrderStatusBadge');
+                badgeEl.innerText = d.tenTrangThai || d.maTrangThai;
+                badgeEl.className = 'badge ' + (d.maTrangThai === 'TT06' ? 'badge-success' : (['TT07','TT08'].includes(d.maTrangThai) ? 'badge-danger' : 'badge-info'));
+
+                document.getElementById('modalAdminOrderSub').innerText = 'Ngày tạo: ' + (d.ngayTao ? new Date(d.ngayTao).toLocaleString('vi-VN') : '---');
+
+                // Người gửi & Người nhận
+                document.getElementById('mKhGui').innerText = d.tenKhGui || d.maKhGui || '---';
+                document.getElementById('mSdtKhGui').innerText = d.sdtKhGui ? `(SĐT: ${d.sdtKhGui})` : '';
+                document.getElementById('mDiaChiLay').innerText = d.diaChiLay || '---';
+                document.getElementById('mTenNhan').innerText = d.tenNguoiNhan || '---';
+                document.getElementById('mSdtNhan').innerText = d.sdtNhan || '---';
+                document.getElementById('mDiaChiGiao').innerText = d.diaChiGiao || '---';
+
+                // Tuyến kho & Cước
+                document.getElementById('mKhoGui').innerText = `${d.maKhoGui} - ${d.tenKhoGui || ''}`;
+                document.getElementById('mKhoNhan').innerText = `${d.maKhoNhan} - ${d.tenKhoNhan || ''}`;
+                document.getElementById('mPhiVC').innerText = Number(d.phiVanChuyen || 0).toLocaleString('vi-VN') + ' đ';
+                document.getElementById('mCod').innerText = Number(d.cod || 0).toLocaleString('vi-VN') + ' đ';
+
+                // Kiện hàng
+                const kienTbody = document.getElementById('mKienHangsTbody');
+                const kiens = d.kienHangs || [];
+                document.getElementById('mSoKienBadge').innerText = kiens.length + ' kiện';
+                if (kiens.length === 0) {
+                    kienTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:16px;">Không có thông tin kiện hàng.</td></tr>';
+                } else {
+                    kienTbody.innerHTML = kiens.map(k => `
+                        <tr>
+                            <td><strong style="color:var(--primary-blue);">${k.maKien}</strong></td>
+                            <td>${k.loaiHang || 'Hàng tiêu chuẩn'}</td>
+                            <td><strong>${k.khoiLuong || 0} kg</strong></td>
+                            <td>${k.dai || 0} x ${k.rong || 0} x ${k.cao || 0} cm</td>
+                            <td><span class="badge badge-gray">${k.tenKhoHienTai}</span></td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Timeline lịch sử
+                const timelineContainer = document.getElementById('mTimelineList');
+                const timeline = d.lichSu || [];
+                if (timeline.length === 0) {
+                    timelineContainer.innerHTML = '<div style="color:#94A3B8; font-size:13px;">Chưa có lịch sử trạng thái ghi nhận.</div>';
+                } else {
+                    timelineContainer.innerHTML = timeline.map(ls => {
+                        const timeStr = ls.thoiGian ? new Date(ls.thoiGian).toLocaleString('vi-VN') : '---';
+                        return `
+                            <div style="position: relative; padding-left: 14px;">
+                                <span style="position: absolute; left: -19px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary-blue); border: 2px solid #ffffff; box-shadow: 0 0 0 2px var(--primary-blue);"></span>
+                                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
+                                    <strong style="font-size: 13.5px; color: #0F172A;">${ls.tenTrangThai || ls.maTrangThai}</strong>
+                                    <span style="font-size: 11.5px; color: #64748B;">${timeStr}</span>
+                                </div>
+                                <div style="font-size: 12.5px; color: #475569;">${ls.ghiChu || 'Cập nhật hệ thống'}</div>
+                                ${ls.maNd ? `<small style="font-size: 11px; color: #94A3B8;">Thực hiện bởi: ${ls.maNd}</small>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+            } catch (err) {
+                console.error('Lỗi lấy chi tiết đơn:', err);
+                alert('Có lỗi khi kết nối tới máy chủ!');
+                closeAdminOrderDetailModal();
+            }
+        }
+
+        function closeAdminOrderDetailModal() {
+            const modal = document.getElementById('adminOrderDetailModal');
+            if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('adminOrderDetailModal');
+            if (modal && e.target === modal) {
+                closeAdminOrderDetailModal();
+            }
+        });
     </script>
     <script th:src="@{/js/account-settings.js}" src="/js/account-settings.js"></script>
 </body>

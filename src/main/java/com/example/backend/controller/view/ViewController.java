@@ -23,6 +23,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
@@ -222,6 +225,82 @@ public class ViewController implements WebMvcConfigurer {
         model.addAttribute("totalAll", allOrders.size());
 
         return "admin/27-orders";
+    }
+
+    @GetMapping("/api/admin/orders/{maDh}")
+    @ResponseBody
+    public ResponseEntity<?> getAdminOrderDetailModal(@PathVariable String maDh) {
+        log.info("Admin lấy chi tiết đơn hàng cho modal: {}", maDh);
+        DonHang dh = donHangRepository.findById(maDh).orElse(null);
+        if (dh == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Không tìm thấy đơn hàng " + maDh));
+        }
+
+        List<KienHang> kiens = kienHangRepository.findByDonHang_MaDh(maDh);
+        List<LichSuTrangThai> lichSus = lichSuTrangThaiRepository.findByDonHang_MaDhOrderByThoiGianAsc(maDh);
+        List<ThanhToan> thanhToans = thanhToanRepository.findByDonHang_MaDhOrderByThoiGianDesc(maDh);
+
+        Kho khoGui = khoRepository.findById(dh.getMaKhoGui()).orElse(null);
+        Kho khoNhan = khoRepository.findById(dh.getMaKhoNhan()).orElse(null);
+        KhachHang khGui = khachHangRepository.findById(dh.getMaKhGui()).orElse(null);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("maDh", dh.getMaDh());
+        data.put("ngayTao", dh.getNgayTao() != null ? dh.getNgayTao().toString() : "");
+        data.put("maKhGui", dh.getMaKhGui());
+        data.put("tenKhGui", khGui != null ? khGui.getHoTen() : dh.getMaKhGui());
+        data.put("sdtKhGui", khGui != null ? khGui.getSdt() : "");
+        data.put("tenNguoiNhan", dh.getTenNguoiNhan());
+        data.put("sdtNhan", dh.getSdtNhan());
+        data.put("diaChiLay", dh.getDiaChiLay());
+        data.put("diaChiGiao", dh.getDiaChiGiao());
+        data.put("maKhoGui", dh.getMaKhoGui());
+        data.put("tenKhoGui", khoGui != null ? khoGui.getTenKho() : dh.getMaKhoGui());
+        data.put("maKhoNhan", dh.getMaKhoNhan());
+        data.put("tenKhoNhan", khoNhan != null ? khoNhan.getTenKho() : dh.getMaKhoNhan());
+        data.put("maTrangThai", dh.getTrangThai() != null ? dh.getTrangThai().getMaTrangThai() : "TT01");
+        data.put("tenTrangThai", dh.getTrangThai() != null ? dh.getTrangThai().getTenTrangThai() : "Mới tạo");
+        data.put("phiVanChuyen", dh.getPhiVanChuyen() != null ? dh.getPhiVanChuyen() : BigDecimal.ZERO);
+        data.put("cod", dh.getCod() != null ? dh.getCod() : BigDecimal.ZERO);
+        data.put("trangThaiLay", dh.getTrangThaiLay());
+
+        List<Map<String, Object>> kienList = kiens.stream().map(k -> {
+            Map<String, Object> km = new HashMap<>();
+            km.put("maKien", k.getMaKien());
+            km.put("khoiLuong", k.getKhoiLuong());
+            km.put("dai", k.getDai());
+            km.put("rong", k.getRong());
+            km.put("cao", k.getCao());
+            km.put("loaiHang", k.getLoaiHang());
+            km.put("tenKhoHienTai", k.getKhoHienTai() != null ? k.getKhoHienTai().getTenKho() : "Đang luân chuyển");
+            return km;
+        }).toList();
+        data.put("kienHangs", kienList);
+
+        List<Map<String, Object>> lsList = lichSus.stream().map(ls -> {
+            Map<String, Object> lm = new HashMap<>();
+            lm.put("maTrangThai", ls.getTrangThai() != null ? ls.getTrangThai().getMaTrangThai() : "");
+            lm.put("tenTrangThai", ls.getTrangThai() != null ? ls.getTrangThai().getTenTrangThai() : "");
+            lm.put("thoiGian", ls.getThoiGian() != null ? ls.getThoiGian().toString() : "");
+            lm.put("ghiChu", ls.getGhiChu());
+            lm.put("maNd", ls.getMaNd());
+            return lm;
+        }).toList();
+        data.put("lichSu", lsList);
+
+        List<Map<String, Object>> payList = thanhToans.stream().map(tt -> {
+            Map<String, Object> pm = new HashMap<>();
+            pm.put("maTtToan", tt.getMaTtToan());
+            pm.put("loaiKhoan", tt.getLoaiKhoan());
+            pm.put("soTien", tt.getSoTien());
+            pm.put("phuongThuc", tt.getPhuongThuc());
+            pm.put("trangThai", tt.getTrangThai());
+            pm.put("thoiGian", tt.getThoiGian() != null ? tt.getThoiGian().toString() : "");
+            return pm;
+        }).toList();
+        data.put("thanhToans", payList);
+
+        return ResponseEntity.ok(Map.of("success", true, "data", data));
     }
 
     @GetMapping({"/admin/users", "/admin/19-users.html"})

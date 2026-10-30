@@ -458,6 +458,8 @@ ROLLBACK;  -- Khối Test Suite rollback an toàn, nhường chỗ cho Dữ li�
 -- ĐẶC BIỆT: Nhân viên bưu cục 1, 2, 3 mỗi người có 7 đơn MỚI TẠO (TT01) chờ tiếp nhận!
 -- ====================================================================
 
+TRUNCATE TABLE chi_tiet_chuyen_giao, chuyen_giao, thanh_toan, lich_su_trang_thai, kien_hang, don_hang RESTART IDENTITY CASCADE;
+
 SET session_replication_role = 'replica';
 
 BEGIN;
